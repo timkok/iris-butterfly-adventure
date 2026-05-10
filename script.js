@@ -10,6 +10,7 @@ let gameState = 'START'; // START, TUTORIAL, PLAYING, PAUSED, GAMEOVER
 let difficulty = 'easy'; // easy, normal, hard
 let score = 0;
 let highScore = localStorage.getItem('iris_butterfly_highScore') || 0;
+let maxFlightTime = localStorage.getItem('iris_butterfly_maxFlightTime') || 0;
 let lives = 3;
 let frameCount = 0;
 let gameTime = 0; // In seconds
@@ -17,16 +18,27 @@ let stage = 1; // 1: Dream Forest, 2: Starlight Garden, 3: Rainbow Valley
 
 // Difficulty Parameters
 const diffSettings = {
-    easy: { speed: 1.5, gap: 180, spawnRate: 150, tolerance: 5 },
-    normal: { speed: 2, gap: 150, spawnRate: 120, tolerance: 0 },
-    hard: { speed: 2.5, gap: 130, spawnRate: 100, tolerance: -5 }
+    easy: { speed: 1.2, gap: 180, spawnRate: 150, tolerance: 8, lives: 5 },
+    normal: { speed: 1.8, gap: 150, spawnRate: 120, tolerance: 3, lives: 3 },
+    hard: { speed: 2.5, gap: 130, spawnRate: 100, tolerance: -2, lives: 3 }
 };
 
 let currentSettings = diffSettings[difficulty];
 
+// Parent Settings (Assist Mode)
+let assistSettings = {
+    speedMult: 1, // slow: 0.7, normal: 1, fast: 1.3
+    toleranceAdd: 0, // loose: 5, standard: 0
+    livesOverride: null // null or specific number
+};
+
+// Sound Settings
+let soundEnabled = true;
+
 // --- UI Elements ---
 const startScreen = document.getElementById('start-screen');
 const howToPlayScreen = document.getElementById('how-to-play-screen');
+const parentSettingsScreen = document.getElementById('parent-settings-screen');
 const pauseScreen = document.getElementById('pause-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const scoreElement = document.getElementById('score');
@@ -43,16 +55,29 @@ const messageDisplay = document.getElementById('message-display');
 const startBtn = document.getElementById('start-btn');
 const howToPlayBtn = document.getElementById('how-to-play-btn');
 const closeHowToBtn = document.getElementById('close-how-to-btn');
+const parentSettingsBtn = document.getElementById('parent-settings-btn');
+const closeSettingsBtn = document.getElementById('close-settings-btn');
+const resetHighScoreBtn = document.getElementById('reset-high-score-btn');
 const pauseBtn = document.getElementById('pause-btn');
+const soundBtn = document.getElementById('sound-btn');
 const resumeBtn = document.getElementById('resume-btn');
 const restartFromPauseBtn = document.getElementById('restart-from-pause-btn');
+const backToHomeFromPauseBtn = document.getElementById('back-to-home-from-pause-btn');
 const restartBtn = document.getElementById('restart-btn');
+const backToHomeBtn = document.getElementById('back-to-home-btn');
 const diffButtons = document.querySelectorAll('.btn-diff');
+
+// Selects
+const settingSpeedSelect = document.getElementById('setting-speed');
+const settingToleranceSelect = document.getElementById('setting-tolerance');
+const settingLivesSelect = document.getElementById('setting-lives');
 
 // --- Audio System (Web Audio API) ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
+    if (!soundEnabled) return;
+    
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     oscillator.connect(gainNode);
@@ -88,16 +113,18 @@ function playSound(type) {
 const player = {
     x: 80,
     y: 300,
-    radius: 12, // Smaller hitbox
-    gravity: 0.2, // Lower gravity for easier control
-    lift: -4.5, // Lower lift
+    radius: 10, // Small hitbox
+    gravity: 0.15, // Low gravity
+    lift: -4, // Gentle lift
     velocity: 0,
     rotation: 0,
     wingAngle: 0,
-    shield: true, // 1 Shield per game
+    shield: true,
     shieldFlashing: false,
     featherMode: false,
-    featherTimer: 0
+    featherTimer: 0,
+    rainbowMode: false,
+    rainbowTimer: 0
 };
 
 // --- Game Objects ---
@@ -109,21 +136,19 @@ let bgElements = []; // For parallax
 // Parallax Background Setup
 function initBackground() {
     bgElements = [];
-    // Far layer (mountains/hills)
-    for (let i = 0; i < 3; i++) {
-        bgElements.push({ x: i * 200, y: 400, w: 210, h: 200, speed: 0.2, type: 'hill', color: '#3a2b5e' });
-    }
-    // Mid layer (trees)
-    for (let i = 0; i < 5; i++) {
-        bgElements.push({ x: i * 100, y: 450, w: 50, h: 150, speed: 0.5, type: 'tree', color: '#2a4b5e' });
-    }
+    // Far layer
+    for (let i = 0; i < 3; i++) bgElements.push({ x: i * 200, y: 400, w: 210, h: 200, speed: 0.1, type: 'hill', color: '#2a1b40' });
+    // Mid layer
+    for (let i = 0; i < 5; i++) bgElements.push({ x: i * 100, y: 450, w: 40, h: 150, speed: 0.3, type: 'tree', color: '#1a2a40' });
+    // Near layer
+    for (let i = 0; i < 10; i++) bgElements.push({ x: i * 50, y: 550, w: 10, h: 50, speed: 0.6, type: 'flower', color: '#ff758c' });
 }
 
 // --- Task System ---
 const tasks = [
-    { id: 1, text: "收集 5 颗星星", target: 5, current: 0, type: 'collect', completed: false },
-    { id: 2, text: "飞行 20 秒", target: 20, current: 0, type: 'time', completed: false },
-    { id: 3, text: "躲过 5 个障碍", target: 5, current: 0, type: 'dodge', completed: false }
+    { id: 1, text: "收集 10 颗星星", target: 10, current: 0, type: 'collect', completed: false },
+    { id: 2, text: "连续飞行 30 秒", target: 30, current: 0, type: 'time', completed: false },
+    { id: 3, text: "躲过 5 个藤蔓", target: 5, current: 0, type: 'dodge', completed: false }
 ];
 let currentTask = null;
 
@@ -142,35 +167,29 @@ function assignRandomTask() {
 }
 
 function updateTaskUI() {
-    if (currentTask) {
-        taskProgressElement.textContent = `(${currentTask.current}/${currentTask.target})`;
-    }
+    if (currentTask) taskProgressElement.textContent = `(${currentTask.current}/${currentTask.target})`;
 }
 
 function checkTaskProgress(type, amount = 1) {
     if (currentTask && currentTask.type === type) {
         currentTask.current += amount;
         updateTaskUI();
-        if (currentTask.current >= currentTask.target) {
-            completeTask();
-        }
+        if (currentTask.current >= currentTask.target) completeTask();
     }
 }
 
 function completeTask() {
     currentTask.completed = true;
-    score += 50; // Bonus points
-    showMessage("太棒了，Iris！完成任务！");
+    score += 50;
+    showMessage("太棒了，Iris！解锁了新的魔法！");
     playSound('collect');
-    setTimeout(assignRandomTask, 3000); // Assign next task after 3s
+    setTimeout(assignRandomTask, 3000);
 }
 
 function showMessage(text) {
     messageDisplay.textContent = text;
     messageDisplay.classList.remove('hidden');
-    setTimeout(() => {
-        messageDisplay.classList.add('hidden');
-    }, 2000);
+    setTimeout(() => { messageDisplay.classList.add('hidden'); }, 2000);
 }
 
 // --- Event Listeners ---
@@ -178,13 +197,35 @@ window.addEventListener('keydown', (e) => { if (e.code === 'Space') jump(); });
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
 canvas.addEventListener('mousedown', jump);
 
+// Prevent scrolling on mobile
+document.body.addEventListener('touchmove', (e) => {
+    if (gameState === 'PLAYING') e.preventDefault();
+}, { passive: false });
+
 startBtn.addEventListener('click', () => { playSound('click'); startGame(); });
 howToPlayBtn.addEventListener('click', () => { playSound('click'); showPanel(howToPlayScreen); });
 closeHowToBtn.addEventListener('click', () => { playSound('click'); showPanel(startScreen); });
+parentSettingsBtn.addEventListener('click', () => { playSound('click'); showPanel(parentSettingsScreen); });
+closeSettingsBtn.addEventListener('click', () => { playSound('click'); applyParentSettings(); showPanel(startScreen); });
+resetHighScoreBtn.addEventListener('click', () => {
+    playSound('click');
+    localStorage.setItem('iris_butterfly_highScore', 0);
+    highScore = 0;
+    highScoreElement.textContent = 0;
+    alert("最高分已重置！");
+});
+
 pauseBtn.addEventListener('click', () => { playSound('click'); pauseGame(); });
+soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    playSound('click');
+});
 resumeBtn.addEventListener('click', () => { playSound('click'); resumeGame(); });
 restartFromPauseBtn.addEventListener('click', () => { playSound('click'); startGame(); });
+backToHomeFromPauseBtn.addEventListener('click', () => { playSound('click'); goHome(); });
 restartBtn.addEventListener('click', () => { playSound('click'); startGame(); });
+backToHomeBtn.addEventListener('click', () => { playSound('click'); goHome(); });
 
 diffButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -201,6 +242,21 @@ function showPanel(panel) {
     panel.classList.add('active');
 }
 
+function applyParentSettings() {
+    const speedVal = settingSpeedSelect.value;
+    if (speedVal === 'slow') assistSettings.speedMult = 0.7;
+    else if (speedVal === 'normal') assistSettings.speedMult = 1;
+    else if (speedVal === 'fast') assistSettings.speedMult = 1.3;
+
+    const tolVal = settingToleranceSelect.value;
+    if (tolVal === 'loose') assistSettings.toleranceAdd = 5;
+    else if (tolVal === 'standard') assistSettings.toleranceAdd = 0;
+
+    const livesVal = settingLivesSelect.value;
+    if (livesVal === '99') assistSettings.livesOverride = 99;
+    else assistSettings.livesOverride = parseInt(livesVal);
+}
+
 // --- Game Logic ---
 
 function jump() {
@@ -213,7 +269,6 @@ function jump() {
 function startGame() {
     gameState = 'PLAYING';
     score = 0;
-    lives = 3;
     stage = 1;
     frameCount = 0;
     gameTime = 0;
@@ -225,29 +280,27 @@ function startGame() {
     player.shield = true;
     player.shieldFlashing = false;
     player.featherMode = false;
+    player.rainbowMode = false;
+    
+    // Apply difficulty + Parent settings
+    currentSettings = {...diffSettings[difficulty]};
+    currentSettings.speed *= assistSettings.speedMult;
+    currentSettings.tolerance += assistSettings.toleranceAdd;
+    
+    lives = assistSettings.livesOverride !== null ? assistSettings.livesOverride : currentSettings.lives;
     
     // Reset tasks
     tasks.forEach(t => t.completed = false);
     assignRandomTask();
     
     initBackground();
-    showPanel(document.getElementById('dummy-panel')); // Hide all panels
+    showPanel(document.getElementById('dummy-panel')); // Hide all
     updateHUD();
 }
 
-function pauseGame() {
-    if (gameState === 'PLAYING') {
-        gameState = 'PAUSED';
-        showPanel(pauseScreen);
-    }
-}
-
-function resumeGame() {
-    if (gameState === 'PAUSED') {
-        gameState = 'PLAYING';
-        showPanel(document.getElementById('dummy-panel'));
-    }
-}
+function pauseGame() { if (gameState === 'PLAYING') { gameState = 'PAUSED'; showPanel(pauseScreen); } }
+function resumeGame() { if (gameState === 'PAUSED') { gameState = 'PLAYING'; showPanel(document.getElementById('dummy-panel')); } }
+function goHome() { gameState = 'START'; showPanel(startScreen); }
 
 function gameOver() {
     gameState = 'GAMEOVER';
@@ -256,6 +309,10 @@ function gameOver() {
         highScore = score;
         localStorage.setItem('iris_butterfly_highScore', highScore);
     }
+    if (gameTime > maxFlightTime) {
+        maxFlightTime = gameTime;
+        localStorage.setItem('iris_butterfly_maxFlightTime', maxFlightTime);
+    }
     recordScoreElement.textContent = highScore;
     showPanel(gameOverScreen);
 }
@@ -263,7 +320,7 @@ function gameOver() {
 function updateHUD() {
     scoreElement.textContent = score;
     highScoreElement.textContent = highScore;
-    livesElement.textContent = '❤️'.repeat(lives);
+    livesElement.textContent = lives === 99 ? '♾️' : '❤️'.repeat(lives);
 }
 
 // --- Classes ---
@@ -272,7 +329,7 @@ class Particle {
     constructor(x, y, color) {
         this.x = x; this.y = y;
         this.size = Math.random() * 4 + 1;
-        this.speedX = Math.random() * 2 - 1 - 1; // Move left
+        this.speedX = Math.random() * 2 - 1 - 1;
         this.speedY = Math.random() * 2 - 1;
         this.color = color; this.alpha = 1;
         this.decay = Math.random() * 0.02 + 0.01;
@@ -290,30 +347,23 @@ class Obstacle {
         this.gap = currentSettings.gap;
         this.width = 50;
         this.x = canvas.width;
-        // 5s safety period: gaps are always centered and big
-        if (gameTime < 5) {
-            this.topHeight = (canvas.height - this.gap) / 2;
-        } else {
-            this.topHeight = Math.random() * (canvas.height - this.gap - 100) + 50;
-        }
+        // 8s safety period
+        if (gameTime < 8) this.topHeight = (canvas.height - this.gap) / 2;
+        else this.topHeight = Math.random() * (canvas.height - this.gap - 100) + 50;
         this.bottomY = this.topHeight + this.gap;
         this.speed = currentSettings.speed;
         this.passed = false;
         
-        // Stage colors
-        if (stage === 1) this.color = '#2ecc71';
-        else if (stage === 2) this.color = '#3498db';
-        else this.color = '#9b59b6';
+        if (stage === 1) this.color = '#ff758c';
+        else if (stage === 2) this.color = '#ffb3ff';
+        else this.color = '#ffd700';
     }
     update() { this.x -= this.speed; }
     draw() {
         ctx.fillStyle = this.color;
-        // Top vine
         ctx.fillRect(this.x, 0, this.width, this.topHeight);
-        // Bottom vine
         ctx.fillRect(this.x, this.bottomY, this.width, canvas.height - this.bottomY);
         
-        // Flowers on vines
         ctx.fillStyle = '#ff4081';
         ctx.beginPath(); ctx.arc(this.x + this.width/2, this.topHeight, 8, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(this.x + this.width/2, this.bottomY, 8, 0, Math.PI * 2); ctx.fill();
@@ -323,8 +373,8 @@ class Obstacle {
 class Star {
     constructor(x, y, type = 'normal') {
         this.x = x; this.y = y;
-        this.type = type; // normal, gold, heart
-        this.size = type === 'normal' ? 10 : 12;
+        this.type = type; // normal, gold, heart, feather, gem
+        this.size = 12;
         this.speed = currentSettings.speed;
         this.angle = 0;
     }
@@ -334,19 +384,14 @@ class Star {
         this.y += Math.sin(this.angle) * 0.5;
     }
     draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
+        ctx.save(); ctx.translate(this.x, this.y);
+        ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         
-        if (this.type === 'normal') {
-            ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('⭐', 0, 0);
-        } else if (this.type === 'gold') {
-            ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('🌟', 0, 0);
-        } else if (this.type === 'heart') {
-            ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('❤️', 0, 0);
-        }
+        if (this.type === 'normal') ctx.fillText('⭐', 0, 0);
+        else if (this.type === 'gold') ctx.fillText('🌟', 0, 0);
+        else if (this.type === 'heart') ctx.fillText('❤️', 0, 0);
+        else if (this.type === 'feather') ctx.fillText('🪶', 0, 0);
+        else if (this.type === 'gem') ctx.fillText('💎', 0, 0);
         
         ctx.restore();
     }
@@ -355,22 +400,21 @@ class Star {
 // --- Main Loop ---
 
 function loop() {
-    // Stage Background Colors
-    let bgColor = '#1a102f';
-    if (stage === 2) bgColor = '#101a2f';
-    else if (stage === 3) bgColor = '#2a102f';
+    let bgColor = '#120c1f';
+    if (stage === 2) bgColor = '#1a0c2f';
+    else if (stage === 3) bgColor = '#2a0c1f';
     
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw Parallax Background
+    // Parallax Background
     bgElements.forEach(el => {
         ctx.fillStyle = el.color;
         if (el.type === 'hill') {
-            ctx.beginPath();
-            ctx.arc(el.x + el.w/2, el.y + el.h, el.w/2, Math.PI, 0);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(el.x + el.w/2, el.y + el.h, el.w/2, Math.PI, 0); ctx.fill();
         } else if (el.type === 'tree') {
+            ctx.fillRect(el.x, el.y, el.w, el.h);
+        } else if (el.type === 'flower') {
             ctx.fillRect(el.x, el.y, el.w, el.h);
         }
         
@@ -385,42 +429,42 @@ function loop() {
         if (frameCount % 60 === 0) {
             gameTime++;
             checkTaskProgress('time', 1);
-            
-            // Progressive difficulty & Stage change
-            if (gameTime === 30) { stage = 2; showMessage("进入星光花园！"); }
-            if (gameTime === 60) { stage = 3; showMessage("进入彩虹山谷！"); }
-            
-            // Slowly increase speed
-            if (gameTime % 10 === 0) currentSettings.speed += 0.1;
+            if (gameTime % 10 === 0) currentSettings.speed += 0.05;
         }
         
-        // Player Physics
+        // Feather Mode (Slow fall)
+        if (player.featherMode) {
+            player.gravity = 0.05;
+            player.featherTimer--;
+            if (player.featherTimer <= 0) { player.featherMode = false; player.gravity = 0.15; }
+        }
+        
+        // Rainbow Mode
+        if (player.rainbowMode) {
+            player.rainbowTimer--;
+            if (player.rainbowTimer <= 0) player.rainbowMode = false;
+        }
+
         player.velocity += player.gravity;
         player.y += player.velocity;
-        player.wingAngle = Math.sin(frameCount * 0.2) * 30; // Flapping effect
+        player.wingAngle = Math.sin(frameCount * 0.2) * 30;
 
-        // Screen boundaries
-        if (player.y > canvas.height - player.radius) {
-            player.y = canvas.height - player.radius;
-            handleCollision();
-        }
-        if (player.y < player.radius) {
-            player.y = player.radius;
-            player.velocity = 0;
-        }
+        if (player.y > canvas.height - player.radius) { player.y = canvas.height - player.radius; handleCollision(); }
+        if (player.y < player.radius) { player.y = player.radius; player.velocity = 0; }
 
-        // Generate obstacles (Safe period: less obstacles)
+        // Generate obstacles
         let rate = currentSettings.spawnRate;
-        if (gameTime < 5) rate *= 1.5;
-        if (frameCount % Math.floor(rate) === 0) {
-            obstacles.push(new Obstacle());
-        }
+        if (gameTime < 8) rate *= 1.5;
+        if (frameCount % Math.floor(rate) === 0) obstacles.push(new Obstacle());
 
         // Generate stars
         if (frameCount % 100 === 0) {
             let type = 'normal';
-            if (Math.random() < 0.2) type = 'gold';
-            if (Math.random() < 0.05) type = 'heart';
+            const r = Math.random();
+            if (r < 0.1) type = 'gold';
+            else if (r < 0.15) type = 'heart';
+            else if (r < 0.2) type = 'feather';
+            else if (r < 0.23) type = 'gem';
             
             stars.push(new Star(canvas.width + 20, Math.random() * (canvas.height - 100) + 50, type));
         }
@@ -430,16 +474,12 @@ function loop() {
             obstacles[i].update();
             obstacles[i].draw();
 
-            // Collision detection with tolerance
             const tol = currentSettings.tolerance;
             if (
                 player.x + player.radius - tol > obstacles[i].x &&
                 player.x - player.radius + tol < obstacles[i].x + obstacles[i].width
             ) {
-                if (
-                    player.y - player.radius + tol < obstacles[i].topHeight ||
-                    player.y + player.radius - tol > obstacles[i].bottomY
-                ) {
+                if (player.y - player.radius + tol < obstacles[i].topHeight || player.y + player.radius - tol > obstacles[i].bottomY) {
                     obstacles.splice(i, 1);
                     handleCollision();
                     continue;
@@ -462,12 +502,18 @@ function loop() {
             const dist = Math.hypot(player.x - stars[i].x, player.y - stars[i].y);
             if (dist < player.radius + stars[i].size) {
                 playSound('collect');
-                if (stars[i].type === 'normal') { score += 10; checkTaskProgress('collect', 1); }
-                else if (stars[i].type === 'gold') { score += 30; checkTaskProgress('collect', 3); }
-                else if (stars[i].type === 'heart') { if (lives < 3) lives++; }
+                if (stars[i].type === 'normal') { score += 1; checkTaskProgress('collect', 1); }
+                else if (stars[i].type === 'gold') { score += 3; checkTaskProgress('collect', 3); }
+                else if (stars[i].type === 'heart') { if (lives < 5) lives++; checkTaskProgress('collect', 1); }
+                else if (stars[i].type === 'feather') { player.featherMode = true; player.featherTimer = 300; showMessage("魔法羽毛：飞得更平稳！"); }
+                else if (stars[i].type === 'gem') { score += 5; player.rainbowMode = true; player.rainbowTimer = 180; showMessage("彩虹宝石！"); }
                 
                 updateHUD();
-                // Particles
+                
+                // Stage check based on score
+                if (stage === 1 && score > 20) { stage = 2; showMessage("Iris 来到了星光花园！"); }
+                if (stage === 2 && score > 50) { stage = 3; showMessage("彩虹山谷就在前方！"); }
+
                 for (let p = 0; p < 5; p++) particles.push(new Particle(player.x, player.y, '#ffd700'));
                 stars.splice(i, 1);
                 continue;
@@ -476,7 +522,7 @@ function loop() {
             if (stars[i].x < -50) stars.splice(i, 1);
         }
 
-        // Update & Draw Particles
+        // Particles
         for (let i = particles.length - 1; i >= 0; i--) {
             particles[i].update();
             particles[i].draw();
@@ -484,27 +530,26 @@ function loop() {
         }
     }
 
-    // Draw Player (Butterfly)
+    // Draw Player
     ctx.save();
     ctx.translate(player.x, player.y);
     
-    // Shield glow
+    // Shield / Flash
     if (player.shield && !player.shieldFlashing) {
-        ctx.beginPath();
-        ctx.arc(0, 0, player.radius + 5, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(112, 161, 255, 0.8)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, player.radius + 8, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(112, 161, 255, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
     } else if (player.shieldFlashing && frameCount % 10 < 5) {
-        // Flash effect
-        ctx.beginPath();
-        ctx.arc(0, 0, player.radius + 5, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255, 117, 140, 0.8)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, player.radius + 8, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 117, 140, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    
+    // Rainbow trail
+    if (player.rainbowMode) {
+        for (let i = 0; i < 5; i++) {
+            particles.push(new Particle(player.x - 10, player.y, `hsl(${frameCount % 360}, 100%, 50%)`));
+        }
     }
 
-    // Butterfly Emoji (Rotated slightly based on velocity)
     ctx.rotate(player.velocity * 0.05);
     ctx.font = '24px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('🦋', 0, 0);
@@ -519,9 +564,9 @@ function handleCollision() {
         player.shield = false;
         player.shieldFlashing = true;
         playSound('hit');
-        showMessage("护盾保护了你！");
+        showMessage("魔法护盾保护了 Iris！");
         setTimeout(() => { player.shieldFlashing = false; }, 2000);
-    } else {
+    } else if (lives !== 99) {
         lives--;
         updateHUD();
         playSound('hit');
@@ -530,18 +575,14 @@ function handleCollision() {
         if (lives <= 0) {
             gameOver();
         } else {
-            // Give temporary invincibility or just continue
-            player.shield = true; // Give another shield or just let them flash?
-            // Let's give them a 2s flashing shield again to be forgiving!
+            player.shield = true;
             player.shieldFlashing = true;
             setTimeout(() => { player.shieldFlashing = false; player.shield = false; }, 2000);
         }
     }
 }
 
-// Start Loop
 requestAnimationFrame(loop);
-highScoreElement.textContent = highScore;
 updateHUD();
-assignRandomTask(); // Initial task
-showPanel(startScreen); // Ensure start screen is visible at start
+assignRandomTask();
+showPanel(startScreen);

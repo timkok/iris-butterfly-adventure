@@ -347,3 +347,42 @@ h1 {
 .hidden {
     display: none !important;
 }
+
+/* New Styles for Upgrade */
+.welcome-text {
+    font-size: 0.9rem;
+    color: #ff7eb3;
+    margin-top: -10px;
+    font-weight: 500;
+}
+
+.settings-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 16px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.setting-item select {
+    background: rgba(26, 16, 47, 0.8);
+    color: white;
+    border: 1px solid var(--panel-border);
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* Prevent scrolling on touch devices */
+canvas {
+    touch-action: none;
+}

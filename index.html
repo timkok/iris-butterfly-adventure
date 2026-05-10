@@ -30,6 +30,7 @@
                     <div class="hud-item" id="lives-box">
                         <span id="lives">❤️❤️❤️</span>
                     </div>
+                    <button id="sound-btn" class="btn-icon">🔊</button>
                     <button id="pause-btn" class="btn-icon">⏸</button>
                 </div>
             </div>
@@ -47,13 +48,14 @@
             <!-- Start Screen -->
             <div id="start-screen" class="panel active">
                 <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
-                <p class="subtitle">穿梭在梦幻森林中，收集星星吧！</p>
+                <p class="subtitle">和小蝴蝶一起飞过梦幻森林，寻找彩虹魔法！</p>
+                <p class="welcome-text">准备好了吗，Iris？森林里的星星正在等你！</p>
                 
                 <div class="difficulty-selection">
                     <p>选择难度：</p>
                     <div class="btn-group">
-                        <button class="btn-diff active" data-diff="easy">简单</button>
-                        <button class="btn-diff" data-diff="normal">普通</button>
+                        <button class="btn-diff active" data-diff="easy">轻松</button>
+                        <button class="btn-diff" data-diff="normal">冒险</button>
                         <button class="btn-diff" data-diff="hard">挑战</button>
                     </div>
                 </div>
@@ -61,6 +63,7 @@
                 <div class="menu-buttons">
                     <button id="start-btn" class="btn-primary">开始冒险</button>
                     <button id="how-to-play-btn" class="btn-secondary">怎么玩</button>
+                    <button id="parent-settings-btn" class="btn-secondary">家长设置</button>
                 </div>
             </div>
 
@@ -84,11 +87,46 @@
                 <button id="close-how-to-btn" class="btn-primary">知道了</button>
             </div>
 
+            <!-- Parent Settings Screen -->
+            <div id="parent-settings-screen" class="panel">
+                <h1>家长设置 / 辅助模式</h1>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <span>游戏速度：</span>
+                        <select id="setting-speed">
+                            <option value="slow">慢</option>
+                            <option value="normal" selected>正常</option>
+                            <option value="fast">快</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <span>碰撞宽容度：</span>
+                        <select id="setting-tolerance">
+                            <option value="loose" selected>宽松</option>
+                            <option value="standard">标准</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <span>生命数量：</span>
+                        <select id="setting-lives">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="99">无限练习</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="menu-buttons">
+                    <button id="reset-high-score-btn" class="btn-secondary">重置最高分</button>
+                    <button id="close-settings-btn" class="btn-primary">保存并返回</button>
+                </div>
+            </div>
+
             <!-- Pause Screen -->
             <div id="pause-screen" class="panel">
                 <h1>游戏暂停</h1>
                 <button id="resume-btn" class="btn-primary">继续游戏</button>
                 <button id="restart-from-pause-btn" class="btn-secondary">重新开始</button>
+                <button id="back-to-home-from-pause-btn" class="btn-secondary">返回首页</button>
             </div>
 
             <!-- Game Over Screen -->
@@ -99,7 +137,10 @@
                     <p>你收集了 <span id="final-score" class="highlight">0</span> 颗星星！</p>
                     <p>最高纪录：<span id="record-score">0</span></p>
                 </div>
-                <button id="restart-btn" class="btn-primary">再次启程</button>
+                <div class="menu-buttons">
+                    <button id="restart-btn" class="btn-primary">再次启程</button>
+                    <button id="back-to-home-btn" class="btn-secondary">返回首页</button>
+                </div>
             </div>
         </div>
     </div>
