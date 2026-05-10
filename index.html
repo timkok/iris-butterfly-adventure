@@ -14,32 +14,91 @@
 
         <!-- UI Overlay -->
         <div id="ui-layer">
-            <!-- Score & Lives -->
+            <!-- HUD -->
             <div id="hud">
-                <div class="hud-item" id="score-box">
-                    <span class="icon">✨</span>
-                    <span id="score">0</span>
+                <div class="hud-group left">
+                    <div class="hud-item" id="score-box">
+                        <span class="icon">✨</span>
+                        <span id="score">0</span>
+                    </div>
+                    <div class="hud-item" id="high-score-box">
+                        <span class="icon">🏆</span>
+                        <span id="high-score">0</span>
+                    </div>
                 </div>
-                <div class="hud-item" id="lives-box">
-                    <span id="lives">❤️❤️❤️</span>
+                <div class="hud-group right">
+                    <div class="hud-item" id="lives-box">
+                        <span id="lives">❤️❤️❤️</span>
+                    </div>
+                    <button id="pause-btn" class="btn-icon">⏸</button>
                 </div>
             </div>
+
+            <!-- Task Display -->
+            <div id="task-display" class="hud-item hidden">
+                <span class="icon">🎯</span>
+                <span id="task-text">收集 10 颗星星</span>
+                <span id="task-progress">(0/10)</span>
+            </div>
+
+            <!-- Encouragement Text -->
+            <div id="message-display" class="hidden"></div>
             
             <!-- Start Screen -->
             <div id="start-screen" class="panel active">
                 <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
                 <p class="subtitle">穿梭在梦幻森林中，收集星星吧！</p>
-                <div class="instructions">
-                    <p>按 <strong>空格键</strong> 或 <strong>点击屏幕</strong> 让蝴蝶飞高。</p>
-                    <p>躲避带刺的藤蔓，收集发光的星星！</p>
+                
+                <div class="difficulty-selection">
+                    <p>选择难度：</p>
+                    <div class="btn-group">
+                        <button class="btn-diff active" data-diff="easy">简单</button>
+                        <button class="btn-diff" data-diff="normal">普通</button>
+                        <button class="btn-diff" data-diff="hard">挑战</button>
+                    </div>
                 </div>
-                <button id="start-btn" class="btn-primary">开始冒险</button>
+
+                <div class="menu-buttons">
+                    <button id="start-btn" class="btn-primary">开始冒险</button>
+                    <button id="how-to-play-btn" class="btn-secondary">怎么玩</button>
+                </div>
+            </div>
+
+            <!-- How To Play Screen -->
+            <div id="how-to-play-screen" class="panel">
+                <h1>怎么玩</h1>
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-num">1</span>
+                        <p>点击屏幕或按<strong>空格键</strong>让蝴蝶飞高，松开会掉落。</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">2</span>
+                        <p>收集<strong>星星</strong>和<strong>爱心</strong>，获得分数和生命。</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">3</span>
+                        <p>躲开<strong>带刺的藤蔓</strong>，不要碰到边缘！</p>
+                    </div>
+                </div>
+                <button id="close-how-to-btn" class="btn-primary">知道了</button>
+            </div>
+
+            <!-- Pause Screen -->
+            <div id="pause-screen" class="panel">
+                <h1>游戏暂停</h1>
+                <button id="resume-btn" class="btn-primary">继续游戏</button>
+                <button id="restart-from-pause-btn" class="btn-secondary">重新开始</button>
             </div>
 
             <!-- Game Over Screen -->
             <div id="game-over-screen" class="panel">
                 <h1>冒险结束</h1>
-                <p>你飞越了许多障碍，收集了 <span id="final-score" class="highlight">0</span> 颗星星！</p>
+                <p>这次飞得很棒，Iris！</p>
+                <div class="stats">
+                    <p>你收集了 <span id="final-score" class="highlight">0</span> 颗星星！</p>
+                    <p>最高纪录：<span id="record-score">0</span></p>
+                </div>
                 <button id="restart-btn" class="btn-primary">再次启程</button>
             </div>
         </div>
