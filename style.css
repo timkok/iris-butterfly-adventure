@@ -1,0 +1,189 @@
+:root {
+    --primary: #ff758c;
+    --secondary: #ff7eb3;
+    --accent: #70a1ff;
+    --bg-dark: #120c1f;
+    --panel-bg: rgba(255, 255, 255, 0.08);
+    --panel-border: rgba(255, 255, 255, 0.15);
+    --text: #ffffff;
+    --text-dim: #b3a0cc;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background: var(--bg-dark);
+    background-image: radial-gradient(circle at top right, #2a1b40, #120c1f);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    color: var(--text);
+}
+
+#game-container {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    background: #1a102f;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #1a102f, #2d1b4e);
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through to canvas if needed, but panels will enable them */
+}
+
+/* HUD */
+#hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.hud-item {
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--panel-border);
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+#score-box {
+    font-size: 1.2rem;
+    color: #ffd700;
+}
+
+#lives-box {
+    letter-spacing: 2px;
+}
+
+/* Panels */
+.panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    background: rgba(26, 16, 47, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--panel-border);
+    border-radius: 24px;
+    padding: 30px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 20;
+    pointer-events: auto;
+}
+
+.panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    background: linear-gradient(45deg, #ff758c, #ff7eb3, #70a1ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+}
+
+.glow-text {
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 5px #ff758c, 0 0 10px #ff758c; }
+    to { text-shadow: 0 0 15px #ff7eb3, 0 0 20px #70a1ff; }
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--text-dim);
+}
+
+.instructions {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 12px;
+    width: 100%;
+    font-size: 0.9rem;
+    color: #d1c4e9;
+    line-height: 1.6;
+}
+
+.instructions strong {
+    color: #ff758c;
+}
+
+.highlight {
+    font-size: 1.5rem;
+    color: #ffd700;
+    font-weight: 700;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+    border: none;
+    color: white;
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(255, 117, 140, 0.3);
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 200px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(255, 117, 140, 0.4);
+    background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}

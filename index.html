@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris's Butterfly Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- UI Overlay -->
+        <div id="ui-layer">
+            <!-- Score & Lives -->
+            <div id="hud">
+                <div class="hud-item" id="score-box">
+                    <span class="icon">✨</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="hud-item" id="lives-box">
+                    <span id="lives">❤️❤️❤️</span>
+                </div>
+            </div>
+            
+            <!-- Start Screen -->
+            <div id="start-screen" class="panel active">
+                <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
+                <p class="subtitle">穿梭在梦幻森林中，收集星星吧！</p>
+                <div class="instructions">
+                    <p>按 <strong>空格键</strong> 或 <strong>点击屏幕</strong> 让蝴蝶飞高。</p>
+                    <p>躲避带刺的藤蔓，收集发光的星星！</p>
+                </div>
+                <button id="start-btn" class="btn-primary">开始冒险</button>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over-screen" class="panel">
+                <h1>冒险结束</h1>
+                <p>你飞越了许多障碍，收集了 <span id="final-score" class="highlight">0</span> 颗星星！</p>
+                <button id="restart-btn" class="btn-primary">再次启程</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
