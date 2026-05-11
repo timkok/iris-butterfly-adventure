@@ -15,6 +15,7 @@ let lives = 3;
 let frameCount = 0;
 let gameTime = 0; // In seconds
 let stage = 1;
+let screenShake = 0; // Screen shake intensity
 
 // Difficulty Parameters
 const diffSettings = {
@@ -133,6 +134,7 @@ const player = {
     velocity: 0,
     rotation: 0,
     wingAngle: 0,
+    scale: 1, // Visual juice scale
     shield: true,
     shieldFlashing: false,
     featherMode: false,
@@ -193,6 +195,7 @@ function completeTask() {
     score += 10;
     showMessage("太棒了，Iris！完成了一个任务！");
     playSound('collect');
+    triggerJuice(5); // Juice up on task completion
     unlockSticker('star'); // Award star sticker for completing a task
     setTimeout(assignRandomTask, 3000);
 }
@@ -349,11 +352,16 @@ function applyParentSettings() {
 
 // --- Game Logic ---
 
+function triggerJuice(intensity = 5) {
+    screenShake = intensity;
+    player.scale = 1.5; // Quick pop
+}
+
 function jump() {
     if (gameState === 'PLAYING') {
         player.velocity = player.lift;
         const color = activeCosmetic === 'pink-wings' ? '#ff758c' : '#ff7eb3';
-        for (let i = 0; i < 3; i++) particles.push(new Particle(player.x, player.y, color));
+        for (let i = 0; i < 3; i++) particles.push(new Particle(player.x, player.y, color, 'magical'));
     }
 }
 
@@ -368,6 +376,7 @@ function startGame() {
     particles = [];
     player.y = 300;
     player.velocity = 0;
+    player.scale = 1;
     player.shield = true;
     player.shieldFlashing = false;
     player.featherMode = false;
@@ -419,17 +428,29 @@ function updateHUD() {
 // --- Classes ---
 
 class Particle {
-    constructor(x, y, color) {
+    constructor(x, y, color, type = 'normal') {
         this.x = x; this.y = y;
-        this.size = Math.random() * 4 + 1;
-        this.speedX = Math.random() * 2 - 1 - 1;
+        this.type = type;
+        this.size = type === 'magical' ? Math.random() * 5 + 2 : Math.random() * 4 + 1;
+        this.speedX = Math.random() * 2 - 1 - (type === 'trail' ? 2 : 1);
         this.speedY = Math.random() * 2 - 1;
         this.color = color; this.alpha = 1;
-        this.decay = Math.random() * 0.02 + 0.01;
+        this.decay = type === 'trail' ? 0.03 : Math.random() * 0.02 + 0.01;
     }
-    update() { this.x += this.speedX; this.y += this.speedY; this.alpha -= this.decay; }
+    update() { 
+        this.x += this.speedX; 
+        this.y += this.speedY; 
+        this.alpha -= this.decay; 
+        if (this.type === 'magical') this.size *= 0.95;
+    }
     draw() {
-        ctx.save(); ctx.globalAlpha = this.alpha; ctx.fillStyle = this.color;
+        ctx.save(); 
+        ctx.globalAlpha = this.alpha; 
+        ctx.fillStyle = this.color;
+        if (this.type === 'magical') {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+        }
         ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
     }
@@ -481,6 +502,16 @@ class Star {
 // --- Main Loop ---
 
 function loop() {
+    // Apply Screen Shake
+    ctx.save();
+    if (screenShake > 0) {
+        const dx = (Math.random() - 0.5) * screenShake;
+        const dy = (Math.random() - 0.5) * screenShake;
+        ctx.translate(dx, dy);
+        screenShake *= 0.9;
+        if (screenShake < 0.1) screenShake = 0;
+    }
+
     ctx.fillStyle = '#120c1f';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
@@ -505,6 +536,10 @@ function loop() {
             checkTaskProgress('time', 1);
         }
         
+        // Visual Juice: Scale Decay
+        if (player.scale > 1) player.scale -= 0.05;
+        if (player.scale < 1) player.scale = 1;
+
         if (player.featherMode) {
             player.gravity = 0.05;
             player.featherTimer--;
@@ -561,8 +596,9 @@ function loop() {
             stars[i].draw();
 
             const dist = Math.hypot(player.x - stars[i].x, player.y - stars[i].y);
-            if (dist < player.radius + stars[i].size) {
+            if (dist < (player.radius + stars[i].size) * 1.5) {
                 playSound('collect');
+                triggerJuice(4); // Feedback for collection
                 if (stars[i].type === 'normal') { score += 1; checkTaskProgress('collect', 1); }
                 else if (stars[i].type === 'gold') { score += 3; checkTaskProgress('collect', 3); }
                 else if (stars[i].type === 'heart') { if (lives < 5) lives++; checkTaskProgress('collect', 1); }
@@ -570,7 +606,7 @@ function loop() {
                 updateHUD();
                 checkMilestones();
 
-                for (let p = 0; p < 5; p++) particles.push(new Particle(player.x, player.y, '#ffd700'));
+                for (let p = 0; p < 8; p++) particles.push(new Particle(player.x, player.y, '#ffd700', 'magical'));
                 stars.splice(i, 1);
                 continue;
             }
@@ -578,9 +614,19 @@ function loop() {
             if (stars[i].x < -50) stars.splice(i, 1);
         }
 
+        // --- NEW: Magical Trail Effect ---
+        if (frameCount % 4 === 0) {
+            let trailColor = '#ffffff';
+            if (activeCosmetic === 'pink-wings') trailColor = '#ff758c';
+            else if (activeCosmetic === 'rainbow-wings') trailColor = `hsl(${frameCount % 360}, 100%, 70%)`;
+            else trailColor = 'rgba(255, 255, 255, 0.5)';
+            
+            particles.push(new Particle(player.x - 5, player.y, trailColor, 'trail'));
+        }
+
         // Cosmetics: Star Trail
         if (activeCosmetic === 'star-trail' && frameCount % 5 === 0) {
-            particles.push(new Particle(player.x - 10, player.y, '#ffd700'));
+            particles.push(new Particle(player.x - 10, player.y, '#ffd700', 'magical'));
         }
 
         // Particles
@@ -594,6 +640,7 @@ function loop() {
     // Draw Player
     ctx.save();
     ctx.translate(player.x, player.y);
+    ctx.scale(player.scale, player.scale); // Apply visual juice scale
     
     if (player.shield && !player.shieldFlashing) {
         ctx.beginPath(); ctx.arc(0, 0, player.radius + 8, 0, Math.PI * 2);
@@ -609,7 +656,7 @@ function loop() {
     // Apply Cosmetic: Wings Color
     if (activeCosmetic === 'pink-wings') {
         ctx.fillStyle = '#ff758c';
-        ctx.fillText('🦋', 0, 0); // Still use emoji but can tint or draw over
+        ctx.fillText('🦋', 0, 0); 
     } else if (activeCosmetic === 'rainbow-wings') {
         ctx.fillStyle = `hsl(${frameCount % 360}, 100%, 50%)`;
         ctx.fillText('🦋', 0, 0);
@@ -617,7 +664,8 @@ function loop() {
         ctx.fillText('🦋', 0, 0);
     }
     
-    ctx.restore();
+    ctx.restore(); // Restore Player Transform
+    ctx.restore(); // Restore Screen Shake Transform
 
     requestAnimationFrame(loop);
 }
@@ -625,6 +673,7 @@ function loop() {
 function handleCollision() {
     if (difficulty === 'practice') {
         playSound('hit');
+        triggerJuice(10); // Big shake even in practice
         if (score > 0) score--;
         updateHUD();
         showMessage("没关系，继续加油！");
@@ -638,13 +687,15 @@ function handleCollision() {
         player.shield = false;
         player.shieldFlashing = true;
         playSound('hit');
+        triggerJuice(8);
         showMessage("魔法护盾保护了 Iris！");
         setTimeout(() => { player.shieldFlashing = false; }, 2000);
     } else if (lives !== 99) {
         lives--;
         updateHUD();
         playSound('hit');
-        for (let i = 0; i < 15; i++) particles.push(new Particle(player.x, player.y, '#ff0000'));
+        triggerJuice(15); // Maximum shake on life loss
+        for (let i = 0; i < 20; i++) particles.push(new Particle(player.x, player.y, '#ff4757', 'magical'));
         
         if (lives <= 0) {
             gameOver();
