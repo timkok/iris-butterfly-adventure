@@ -7,17 +7,18 @@ canvas.height = 600;
 
 // --- Game State & Settings ---
 let gameState = 'START'; // START, TUTORIAL, PLAYING, PAUSED, GAMEOVER
-let difficulty = 'easy'; // easy, normal, hard
+let difficulty = 'practice'; // practice, easy, normal, hard
 let score = 0;
 let highScore = localStorage.getItem('iris_butterfly_highScore') || 0;
 let maxFlightTime = localStorage.getItem('iris_butterfly_maxFlightTime') || 0;
 let lives = 3;
 let frameCount = 0;
 let gameTime = 0; // In seconds
-let stage = 1; // 1: Dream Forest, 2: Starlight Garden, 3: Rainbow Valley
+let stage = 1;
 
 // Difficulty Parameters
 const diffSettings = {
+    practice: { speed: 1.0, gap: 200, spawnRate: 180, tolerance: 10, lives: 99 },
     easy: { speed: 1.2, gap: 180, spawnRate: 150, tolerance: 8, lives: 5 },
     normal: { speed: 1.8, gap: 150, spawnRate: 120, tolerance: 3, lives: 3 },
     hard: { speed: 2.5, gap: 130, spawnRate: 100, tolerance: -2, lives: 3 }
@@ -27,18 +28,24 @@ let currentSettings = diffSettings[difficulty];
 
 // Parent Settings (Assist Mode)
 let assistSettings = {
-    speedMult: 1, // slow: 0.7, normal: 1, fast: 1.3
-    toleranceAdd: 0, // loose: 5, standard: 0
-    livesOverride: null // null or specific number
+    speedMult: 1,
+    toleranceAdd: 0,
+    livesOverride: null
 };
 
 // Sound Settings
 let soundEnabled = true;
 
+// --- Cosmetics & Stickers (Progression) ---
+let ownedCosmetics = JSON.parse(localStorage.getItem('iris_butterfly_cosmetics')) || ['default'];
+let activeCosmetic = localStorage.getItem('iris_butterfly_activeCosmetic') || 'default';
+let ownedStickers = JSON.parse(localStorage.getItem('iris_butterfly_stickers')) || [];
+
 // --- UI Elements ---
 const startScreen = document.getElementById('start-screen');
 const howToPlayScreen = document.getElementById('how-to-play-screen');
 const parentSettingsScreen = document.getElementById('parent-settings-screen');
+const treasureScreen = document.getElementById('treasure-screen');
 const pauseScreen = document.getElementById('pause-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const scoreElement = document.getElementById('score');
@@ -58,6 +65,8 @@ const closeHowToBtn = document.getElementById('close-how-to-btn');
 const parentSettingsBtn = document.getElementById('parent-settings-btn');
 const closeSettingsBtn = document.getElementById('close-settings-btn');
 const resetHighScoreBtn = document.getElementById('reset-high-score-btn');
+const treasureBtn = document.getElementById('treasure-btn');
+const closeTreasureBtn = document.getElementById('close-treasure-btn');
 const pauseBtn = document.getElementById('pause-btn');
 const soundBtn = document.getElementById('sound-btn');
 const resumeBtn = document.getElementById('resume-btn');
@@ -67,17 +76,22 @@ const restartBtn = document.getElementById('restart-btn');
 const backToHomeBtn = document.getElementById('back-to-home-btn');
 const diffButtons = document.querySelectorAll('.btn-diff');
 
+// Tabs
+const tabStickers = document.getElementById('tab-stickers');
+const tabCosmetics = document.getElementById('tab-cosmetics');
+const stickersContent = document.getElementById('stickers-content');
+const cosmeticsContent = document.getElementById('cosmetics-content');
+
 // Selects
 const settingSpeedSelect = document.getElementById('setting-speed');
 const settingToleranceSelect = document.getElementById('setting-tolerance');
 const settingLivesSelect = document.getElementById('setting-lives');
 
-// --- Audio System (Web Audio API) ---
+// --- Audio System ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
     if (!soundEnabled) return;
-    
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     oscillator.connect(gainNode);
@@ -113,9 +127,9 @@ function playSound(type) {
 const player = {
     x: 80,
     y: 300,
-    radius: 10, // Small hitbox
-    gravity: 0.15, // Low gravity
-    lift: -4, // Gentle lift
+    radius: 10,
+    gravity: 0.15,
+    lift: -4,
     velocity: 0,
     rotation: 0,
     wingAngle: 0,
@@ -131,16 +145,12 @@ const player = {
 let obstacles = [];
 let stars = [];
 let particles = [];
-let bgElements = []; // For parallax
+let bgElements = [];
 
-// Parallax Background Setup
 function initBackground() {
     bgElements = [];
-    // Far layer
     for (let i = 0; i < 3; i++) bgElements.push({ x: i * 200, y: 400, w: 210, h: 200, speed: 0.1, type: 'hill', color: '#2a1b40' });
-    // Mid layer
     for (let i = 0; i < 5; i++) bgElements.push({ x: i * 100, y: 450, w: 40, h: 150, speed: 0.3, type: 'tree', color: '#1a2a40' });
-    // Near layer
     for (let i = 0; i < 10; i++) bgElements.push({ x: i * 50, y: 550, w: 10, h: 50, speed: 0.6, type: 'flower', color: '#ff758c' });
 }
 
@@ -180,9 +190,10 @@ function checkTaskProgress(type, amount = 1) {
 
 function completeTask() {
     currentTask.completed = true;
-    score += 50;
-    showMessage("太棒了，Iris！解锁了新的魔法！");
+    score += 10;
+    showMessage("太棒了，Iris！完成了一个任务！");
     playSound('collect');
+    unlockSticker('star'); // Award star sticker for completing a task
     setTimeout(assignRandomTask, 3000);
 }
 
@@ -192,21 +203,100 @@ function showMessage(text) {
     setTimeout(() => { messageDisplay.classList.add('hidden'); }, 2000);
 }
 
+// --- Progression Logic (Stickers & Cosmetics) ---
+function unlockSticker(id) {
+    if (!ownedStickers.includes(id)) {
+        ownedStickers.push(id);
+        localStorage.setItem('iris_butterfly_stickers', JSON.stringify(ownedStickers));
+        const el = document.getElementById(`sticker-${id}`);
+        if (el) el.classList.remove('locked');
+        showMessage(`获得了新贴纸：${id}！`);
+    }
+}
+
+function updateTreasureUI() {
+    ownedStickers.forEach(id => {
+        const el = document.getElementById(`sticker-${id}`);
+        if (el) el.classList.remove('locked');
+    });
+    
+    document.querySelectorAll('.cosmetic-item').forEach(item => {
+        const id = item.dataset.id;
+        const btn = item.querySelector('.btn-buy');
+        if (ownedCosmetics.includes(id)) {
+            btn.textContent = '已拥有';
+            btn.classList.add('owned');
+        }
+    });
+}
+
+// --- Stage Goals ---
+let stageMilestones = {
+    5: { message: "遇到了一只可爱的小兔子！🐰", sticker: 'bunny' },
+    10: { message: "开启了彩虹之门！🌈", sticker: 'rainbow' },
+    15: { message: "森林里的小动物都在为你鼓掌！", sticker: 'flower' },
+    20: { message: "完成了这次冒险！太棒了，Iris！", sticker: 'butterfly', end: true }
+};
+
+function checkMilestones() {
+    if (stageMilestones[score]) {
+        const m = stageMilestones[score];
+        showMessage(m.message);
+        if (m.sticker) unlockSticker(m.sticker);
+        if (m.end && difficulty !== 'practice') {
+            setTimeout(gameOver, 2000);
+        }
+    }
+}
+
 // --- Event Listeners ---
 window.addEventListener('keydown', (e) => { if (e.code === 'Space') jump(); });
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
 canvas.addEventListener('mousedown', jump);
-
-// Prevent scrolling on mobile
-document.body.addEventListener('touchmove', (e) => {
-    if (gameState === 'PLAYING') e.preventDefault();
-}, { passive: false });
 
 startBtn.addEventListener('click', () => { playSound('click'); startGame(); });
 howToPlayBtn.addEventListener('click', () => { playSound('click'); showPanel(howToPlayScreen); });
 closeHowToBtn.addEventListener('click', () => { playSound('click'); showPanel(startScreen); });
 parentSettingsBtn.addEventListener('click', () => { playSound('click'); showPanel(parentSettingsScreen); });
 closeSettingsBtn.addEventListener('click', () => { playSound('click'); applyParentSettings(); showPanel(startScreen); });
+treasureBtn.addEventListener('click', () => { playSound('click'); updateTreasureUI(); showPanel(treasureScreen); });
+closeTreasureBtn.addEventListener('click', () => { playSound('click'); showPanel(startScreen); });
+
+tabStickers.addEventListener('click', () => {
+    tabStickers.classList.add('active'); tabCosmetics.classList.remove('active');
+    stickersContent.classList.add('active'); cosmeticsContent.classList.remove('active');
+});
+tabCosmetics.addEventListener('click', () => {
+    tabCosmetics.classList.add('active'); tabStickers.classList.remove('active');
+    cosmeticsContent.classList.add('active'); stickersContent.classList.remove('active');
+});
+
+document.querySelectorAll('.cosmetic-item .btn-buy').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const item = e.target.closest('.cosmetic-item');
+        const id = item.dataset.id;
+        const cost = parseInt(item.dataset.cost);
+        
+        if (ownedCosmetics.includes(id)) {
+            activeCosmetic = id;
+            localStorage.setItem('iris_butterfly_activeCosmetic', id);
+            showMessage("已应用该外观！");
+            return;
+        }
+        
+        if (highScore >= cost) { // Use high score as currency for simplicity
+            ownedCosmetics.push(id);
+            localStorage.setItem('iris_butterfly_cosmetics', JSON.stringify(ownedCosmetics));
+            e.target.textContent = '已拥有';
+            e.target.classList.add('owned');
+            playSound('collect');
+            showMessage("解锁成功！");
+        } else {
+            showMessage("星星不够哦，继续加油！");
+        }
+    });
+});
+
 resetHighScoreBtn.addEventListener('click', () => {
     playSound('click');
     localStorage.setItem('iris_butterfly_highScore', 0);
@@ -262,7 +352,8 @@ function applyParentSettings() {
 function jump() {
     if (gameState === 'PLAYING') {
         player.velocity = player.lift;
-        for (let i = 0; i < 3; i++) particles.push(new Particle(player.x, player.y, '#ff7eb3'));
+        const color = activeCosmetic === 'pink-wings' ? '#ff758c' : '#ff7eb3';
+        for (let i = 0; i < 3; i++) particles.push(new Particle(player.x, player.y, color));
     }
 }
 
@@ -282,20 +373,22 @@ function startGame() {
     player.featherMode = false;
     player.rainbowMode = false;
     
-    // Apply difficulty + Parent settings
     currentSettings = {...diffSettings[difficulty]};
     currentSettings.speed *= assistSettings.speedMult;
     currentSettings.tolerance += assistSettings.toleranceAdd;
     
     lives = assistSettings.livesOverride !== null ? assistSettings.livesOverride : currentSettings.lives;
     
-    // Reset tasks
     tasks.forEach(t => t.completed = false);
     assignRandomTask();
     
     initBackground();
-    showPanel(document.getElementById('dummy-panel')); // Hide all
+    showPanel(document.getElementById('dummy-panel'));
     updateHUD();
+    
+    if (difficulty === 'practice') {
+        showMessage("练习模式：没有失败，尽情飞翔吧！");
+    }
 }
 
 function pauseGame() { if (gameState === 'PLAYING') { gameState = 'PAUSED'; showPanel(pauseScreen); } }
@@ -320,7 +413,7 @@ function gameOver() {
 function updateHUD() {
     scoreElement.textContent = score;
     highScoreElement.textContent = highScore;
-    livesElement.textContent = lives === 99 ? '♾️' : '❤️'.repeat(lives);
+    livesElement.textContent = difficulty === 'practice' || lives === 99 ? '♾️' : '❤️'.repeat(lives);
 }
 
 // --- Classes ---
@@ -347,33 +440,25 @@ class Obstacle {
         this.gap = currentSettings.gap;
         this.width = 50;
         this.x = canvas.width;
-        // 8s safety period
         if (gameTime < 8) this.topHeight = (canvas.height - this.gap) / 2;
         else this.topHeight = Math.random() * (canvas.height - this.gap - 100) + 50;
         this.bottomY = this.topHeight + this.gap;
         this.speed = currentSettings.speed;
         this.passed = false;
-        
-        if (stage === 1) this.color = '#ff758c';
-        else if (stage === 2) this.color = '#ffb3ff';
-        else this.color = '#ffd700';
+        this.color = '#ff758c';
     }
     update() { this.x -= this.speed; }
     draw() {
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, 0, this.width, this.topHeight);
         ctx.fillRect(this.x, this.bottomY, this.width, canvas.height - this.bottomY);
-        
-        ctx.fillStyle = '#ff4081';
-        ctx.beginPath(); ctx.arc(this.x + this.width/2, this.topHeight, 8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(this.x + this.width/2, this.bottomY, 8, 0, Math.PI * 2); ctx.fill();
     }
 }
 
 class Star {
     constructor(x, y, type = 'normal') {
         this.x = x; this.y = y;
-        this.type = type; // normal, gold, heart, feather, gem
+        this.type = type;
         this.size = 12;
         this.speed = currentSettings.speed;
         this.angle = 0;
@@ -386,13 +471,9 @@ class Star {
     draw() {
         ctx.save(); ctx.translate(this.x, this.y);
         ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        
         if (this.type === 'normal') ctx.fillText('⭐', 0, 0);
         else if (this.type === 'gold') ctx.fillText('🌟', 0, 0);
         else if (this.type === 'heart') ctx.fillText('❤️', 0, 0);
-        else if (this.type === 'feather') ctx.fillText('🪶', 0, 0);
-        else if (this.type === 'gem') ctx.fillText('💎', 0, 0);
-        
         ctx.restore();
     }
 }
@@ -400,24 +481,17 @@ class Star {
 // --- Main Loop ---
 
 function loop() {
-    let bgColor = '#120c1f';
-    if (stage === 2) bgColor = '#1a0c2f';
-    else if (stage === 3) bgColor = '#2a0c1f';
-    
-    ctx.fillStyle = bgColor;
+    ctx.fillStyle = '#120c1f';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Parallax Background
+    // Background
     bgElements.forEach(el => {
         ctx.fillStyle = el.color;
         if (el.type === 'hill') {
             ctx.beginPath(); ctx.arc(el.x + el.w/2, el.y + el.h, el.w/2, Math.PI, 0); ctx.fill();
-        } else if (el.type === 'tree') {
-            ctx.fillRect(el.x, el.y, el.w, el.h);
-        } else if (el.type === 'flower') {
+        } else if (el.type === 'tree' || el.type === 'flower') {
             ctx.fillRect(el.x, el.y, el.w, el.h);
         }
-        
         if (gameState === 'PLAYING') {
             el.x -= el.speed;
             if (el.x + el.w < 0) el.x = canvas.width;
@@ -429,20 +503,12 @@ function loop() {
         if (frameCount % 60 === 0) {
             gameTime++;
             checkTaskProgress('time', 1);
-            if (gameTime % 10 === 0) currentSettings.speed += 0.05;
         }
         
-        // Feather Mode (Slow fall)
         if (player.featherMode) {
             player.gravity = 0.05;
             player.featherTimer--;
             if (player.featherTimer <= 0) { player.featherMode = false; player.gravity = 0.15; }
-        }
-        
-        // Rainbow Mode
-        if (player.rainbowMode) {
-            player.rainbowTimer--;
-            if (player.rainbowTimer <= 0) player.rainbowMode = false;
         }
 
         player.velocity += player.gravity;
@@ -452,24 +518,19 @@ function loop() {
         if (player.y > canvas.height - player.radius) { player.y = canvas.height - player.radius; handleCollision(); }
         if (player.y < player.radius) { player.y = player.radius; player.velocity = 0; }
 
-        // Generate obstacles
         let rate = currentSettings.spawnRate;
         if (gameTime < 8) rate *= 1.5;
         if (frameCount % Math.floor(rate) === 0) obstacles.push(new Obstacle());
 
-        // Generate stars
         if (frameCount % 100 === 0) {
             let type = 'normal';
             const r = Math.random();
             if (r < 0.1) type = 'gold';
             else if (r < 0.15) type = 'heart';
-            else if (r < 0.2) type = 'feather';
-            else if (r < 0.23) type = 'gem';
-            
             stars.push(new Star(canvas.width + 20, Math.random() * (canvas.height - 100) + 50, type));
         }
 
-        // Update & Draw Obstacles
+        // Update Obstacles
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].update();
             obstacles[i].draw();
@@ -494,7 +555,7 @@ function loop() {
             if (obstacles[i].x + obstacles[i].width < 0) obstacles.splice(i, 1);
         }
 
-        // Update & Draw Stars
+        // Update Stars
         for (let i = stars.length - 1; i >= 0; i--) {
             stars[i].update();
             stars[i].draw();
@@ -505,14 +566,9 @@ function loop() {
                 if (stars[i].type === 'normal') { score += 1; checkTaskProgress('collect', 1); }
                 else if (stars[i].type === 'gold') { score += 3; checkTaskProgress('collect', 3); }
                 else if (stars[i].type === 'heart') { if (lives < 5) lives++; checkTaskProgress('collect', 1); }
-                else if (stars[i].type === 'feather') { player.featherMode = true; player.featherTimer = 300; showMessage("魔法羽毛：飞得更平稳！"); }
-                else if (stars[i].type === 'gem') { score += 5; player.rainbowMode = true; player.rainbowTimer = 180; showMessage("彩虹宝石！"); }
                 
                 updateHUD();
-                
-                // Stage check based on score
-                if (stage === 1 && score > 20) { stage = 2; showMessage("Iris 来到了星光花园！"); }
-                if (stage === 2 && score > 50) { stage = 3; showMessage("彩虹山谷就在前方！"); }
+                checkMilestones();
 
                 for (let p = 0; p < 5; p++) particles.push(new Particle(player.x, player.y, '#ffd700'));
                 stars.splice(i, 1);
@@ -520,6 +576,11 @@ function loop() {
             }
 
             if (stars[i].x < -50) stars.splice(i, 1);
+        }
+
+        // Cosmetics: Star Trail
+        if (activeCosmetic === 'star-trail' && frameCount % 5 === 0) {
+            particles.push(new Particle(player.x - 10, player.y, '#ffd700'));
         }
 
         // Particles
@@ -534,7 +595,6 @@ function loop() {
     ctx.save();
     ctx.translate(player.x, player.y);
     
-    // Shield / Flash
     if (player.shield && !player.shieldFlashing) {
         ctx.beginPath(); ctx.arc(0, 0, player.radius + 8, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(112, 161, 255, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
@@ -542,17 +602,20 @@ function loop() {
         ctx.beginPath(); ctx.arc(0, 0, player.radius + 8, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(255, 117, 140, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
     }
-    
-    // Rainbow trail
-    if (player.rainbowMode) {
-        for (let i = 0; i < 5; i++) {
-            particles.push(new Particle(player.x - 10, player.y, `hsl(${frameCount % 360}, 100%, 50%)`));
-        }
-    }
 
     ctx.rotate(player.velocity * 0.05);
     ctx.font = '24px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('🦋', 0, 0);
+    
+    // Apply Cosmetic: Wings Color
+    if (activeCosmetic === 'pink-wings') {
+        ctx.fillStyle = '#ff758c';
+        ctx.fillText('🦋', 0, 0); // Still use emoji but can tint or draw over
+    } else if (activeCosmetic === 'rainbow-wings') {
+        ctx.fillStyle = `hsl(${frameCount % 360}, 100%, 50%)`;
+        ctx.fillText('🦋', 0, 0);
+    } else {
+        ctx.fillText('🦋', 0, 0);
+    }
     
     ctx.restore();
 
@@ -560,6 +623,17 @@ function loop() {
 }
 
 function handleCollision() {
+    if (difficulty === 'practice') {
+        playSound('hit');
+        if (score > 0) score--;
+        updateHUD();
+        showMessage("没关系，继续加油！");
+        // Temporarily slow down
+        currentSettings.speed = 0.5;
+        setTimeout(() => { currentSettings.speed = diffSettings.practice.speed; }, 1000);
+        return;
+    }
+
     if (player.shield) {
         player.shield = false;
         player.shieldFlashing = true;
@@ -586,3 +660,4 @@ requestAnimationFrame(loop);
 updateHUD();
 assignRandomTask();
 showPanel(startScreen);
+updateTreasureUI();

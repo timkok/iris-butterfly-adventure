@@ -386,3 +386,103 @@ h1 {
 canvas {
     touch-action: none;
 }
+
+/* Tabs for Treasure Screen */
+.tabs {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-tab {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--panel-border);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-tab.active {
+    background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+    box-shadow: 0 4px 10px rgba(255, 117, 140, 0.3);
+    border: none;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Sticker Grid */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+
+.sticker {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.5rem;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.sticker.locked {
+    filter: grayscale(1) opacity(0.5);
+}
+
+.sticker-name {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 5px;
+}
+
+/* Cosmetics List */
+.cosmetics-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cosmetic-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    border-radius: 12px;
+    width: 100%;
+}
+
+.btn-buy {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.btn-buy.owned {
+    background: var(--success);
+    cursor: default;
+}

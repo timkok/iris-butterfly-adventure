@@ -52,9 +52,10 @@
                 <p class="welcome-text">准备好了吗，Iris？森林里的星星正在等你！</p>
                 
                 <div class="difficulty-selection">
-                    <p>选择难度：</p>
+                    <p>选择模式：</p>
                     <div class="btn-group">
-                        <button class="btn-diff active" data-diff="easy">轻松</button>
+                        <button class="btn-diff active" data-diff="practice">练习</button>
+                        <button class="btn-diff" data-diff="easy">轻松</button>
                         <button class="btn-diff" data-diff="normal">冒险</button>
                         <button class="btn-diff" data-diff="hard">挑战</button>
                     </div>
@@ -63,6 +64,7 @@
                 <div class="menu-buttons">
                     <button id="start-btn" class="btn-primary">开始冒险</button>
                     <button id="how-to-play-btn" class="btn-secondary">怎么玩</button>
+                    <button id="treasure-btn" class="btn-secondary">我的宝藏</button>
                     <button id="parent-settings-btn" class="btn-secondary">家长设置</button>
                 </div>
             </div>
@@ -141,6 +143,54 @@
                     <button id="restart-btn" class="btn-primary">再次启程</button>
                     <button id="back-to-home-btn" class="btn-secondary">返回首页</button>
                 </div>
+            </div>
+
+            <!-- Treasure Screen (Stickers and Cosmetics) -->
+            <div id="treasure-screen" class="panel">
+                <h1>我的宝藏</h1>
+                <div class="tabs">
+                    <button id="tab-stickers" class="btn-tab active">贴纸收藏</button>
+                    <button id="tab-cosmetics" class="btn-tab">翅膀魔法国</button>
+                </div>
+                
+                <!-- Stickers Content -->
+                <div id="stickers-content" class="tab-content active">
+                    <p class="subtitle">完成任务获得贴纸吧！</p>
+                    <div class="sticker-grid">
+                        <div class="sticker locked" id="sticker-flower">🌸<span class="sticker-name">小花</span></div>
+                        <div class="sticker locked" id="sticker-butterfly">🦋<span class="sticker-name">蝴蝶</span></div>
+                        <div class="sticker locked" id="sticker-rainbow">🌈<span class="sticker-name">彩虹</span></div>
+                        <div class="sticker locked" id="sticker-star">⭐<span class="sticker-name">星星</span></div>
+                        <div class="sticker locked" id="sticker-bunny">🐰<span class="sticker-name">小白兔</span></div>
+                        <div class="sticker locked" id="sticker-frog">🐸<span class="sticker-name">小青蛙</span></div>
+                        <div class="sticker locked" id="sticker-ladybug">🐞<span class="sticker-name">瓢虫</span></div>
+                    </div>
+                </div>
+
+                <!-- Cosmetics Content -->
+                <div id="cosmetics-content" class="tab-content">
+                    <p class="subtitle">用星星换取新魔法！</p>
+                    <div class="cosmetics-list">
+                        <div class="cosmetic-item" data-cost="10" data-id="pink-wings">
+                            <span>粉色翅膀</span>
+                            <button class="btn-buy">10 ⭐</button>
+                        </div>
+                        <div class="cosmetic-item" data-cost="20" data-id="rainbow-wings">
+                            <span>彩虹翅膀</span>
+                            <button class="btn-buy">20 ⭐</button>
+                        </div>
+                        <div class="cosmetic-item" data-cost="15" data-id="star-trail">
+                            <span>星星拖尾</span>
+                            <button class="btn-buy">15 ⭐</button>
+                        </div>
+                        <div class="cosmetic-item" data-cost="5" data-id="flower-crown">
+                            <span>小花环</span>
+                            <button class="btn-buy">5 ⭐</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="close-treasure-btn" class="btn-primary">返回</button>
             </div>
         </div>
     </div>
