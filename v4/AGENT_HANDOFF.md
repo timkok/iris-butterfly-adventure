@@ -1,24 +1,24 @@
-# Agent Handoff - Cycle 12
+# Agent Handoff - Cycle 13
 
-## Cycle 11 Agent Dialogue
+## Cycle 12 Agent Dialogue
 
 1. **Strategist (Product)**:
-   "We completed the quality-control cycle (Cycle 11) to stabilize visual density. Adding the central EFFECTS_POLICY ensures we do not over-stimulate young players."
+   "We completed Cycle 12 (Browser Evidence QA Cycle) without introducing new gameplay features, ensuring the core game remains extremely stable, simple, and clean."
 
 2. **UX Designer**:
-   "UI density is audited. Capping ambient leaves, particles, and ripples prevents visual clutter and keeps the gameplay area clear and readable."
+   "Visual verification across all game screens (Home, Playing, Pause, Treasure, Settings, Game Over) confirms UI layouts are clean, interactive, and responsive under 320px width constraints."
 
 3. **Accessibility Reviewer**:
-   "Accessibility is strengthened. Reduced Motion now completely disables ambient leaves, tap ripple expansions, sticker celebration sparkles, and card staggers, yielding a calm, static experience."
+   "Verified Reduced Motion and Calm Mode displays. Interactive layouts and custom focus indicators remain fully accessible, ensuring a high-quality experience."
 
 4. **Builder**:
-   "We created EFFECTS_POLICY in config.js and modified entities.js, game.js, rewards.js, and canvas.js to respect it. We also exposed metrics and status (OK/HIGH) in the Debug Panel."
+   "Successfully created QA_EVIDENCE.md and automated headless Google Chrome to capture visual state screenshots for documentation."
 
 5. **QA**:
-   "We updated smoke-tests.js with tests asserting caps and Calm/Reduced motion density scaling, which all pass successfully. Visual and programmatic click tests pass."
+   "All 16 programmatic unit tests pass cleanly, and manual/visual checks show no console errors. The game initializes and plays correctly."
 
 6. **Release Manager**:
-   "Bumping version to v=17 across HTML imports and pushing to origin."
+   "Added QA_EVIDENCE.md with screenshots, verified all tests pass, and pushed Cycle 12 updates to the main branch."
 
 ---
 
@@ -56,21 +56,21 @@
 ---
 
 ## Current Sprint
-本轮 Cycle 12 任务：
+本轮 Cycle 13 任务：
 1. **P1 (Product)**: 宝贝仓库的贴纸页面支持按解锁类型（如 milestone/score 等）进行高亮和分组过滤。
 2. **P2 (UX)**: 暂停画面增加动态背景虚化效果。
 
 ---
 
 ## Release Notes
-- Cycle: Cycle 11
+- Cycle: Cycle 12
 - Pushed Branch: main
-- Commit Hash: 2de75b7
+- Commit Hash: a67bf04
 - Pages Source: main / root
 - Game URL: https://timkok.github.io/iris-butterfly-adventure/v4/
 - Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
 - Asset Version: v=17
-- QA Status: PASS (16/16)
+- QA Status: PASS (16/16 tests passing, screenshots generated)
 - Remaining Issues:
   - None
 - Next Cycle Starts Automatically: yes
