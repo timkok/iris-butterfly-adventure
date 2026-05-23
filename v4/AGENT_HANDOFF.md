@@ -26,6 +26,29 @@ Before any future cycle modifies implementation code, the agents must write the 
 - Stability or QA-only cycles that do not change code still need QA evidence, but do not need an asset version bump.
 - If code changes after the discussion, update the same cycle section with implementation notes, QA results, release notes, commit hashes, and any deviations.
 
+## Simplification Audit Every 5 Cycles
+Every 5 cycles, run a Simplification Audit instead of adding features. The audit must answer:
+
+1. Is V4 still easy for a child to understand?
+2. Are there too many effects?
+3. Does start still work?
+4. Does browser QA pass?
+5. Does reduced motion suppress animations?
+6. Is Calm Mode noticeably calmer?
+7. Is code becoming too coupled?
+8. Can any recent feature be simplified?
+9. Are tests covering browser startup?
+10. Are protected versions untouched?
+
+Audit output must classify findings as:
+
+- `keep`
+- `simplify`
+- `defer`
+- `remove only with user confirmation`
+
+Do not remove files, protected versions, or product features during the audit without explicit user confirmation.
+
 ---
 
 # Agent Handoff - Cycle 12 Animation Budget + Calm Mode Guardrails
