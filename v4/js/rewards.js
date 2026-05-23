@@ -5,6 +5,7 @@ window.IrisGame.rewards = {
         const state = window.IrisGame.state;
         const config = window.IrisGame.config;
         const storage = window.IrisGame.storage;
+        const i18n = window.IrisGame.i18n;
         
         const stickersContainer = document.getElementById('stickers-container');
         const cosmeticsContainer = document.getElementById('cosmetics-container');
@@ -40,14 +41,16 @@ window.IrisGame.rewards = {
                 }
                 stickerDiv.className = className;
                 stickerDiv.id = `sticker-${item.id}`;
-                stickerDiv.setAttribute('title', isOwned ? item.label : `需最高分 ${item.requirementHighScore} 解锁`);
+                stickerDiv.setAttribute('title', isOwned ? item.label : i18n.format('treasure.unlockAt', { score: item.requirementHighScore }));
                 
                 // ARIA accessibility & keyboard traversal for sticker cards
                 stickerDiv.setAttribute('tabindex', '0');
                 stickerDiv.setAttribute('role', 'img');
-                const ariaLabelText = isOwned 
-                    ? (isNewlyUnlocked ? `新解锁贴纸：${item.label}！恭喜！` : `贴纸：${item.label}，已解锁。`)
-                    : `未解锁贴纸：${item.label}，需要最高分达到 ${item.requirementHighScore} 解锁。`;
+                const ariaLabelText = isOwned
+                    ? (isNewlyUnlocked
+                        ? i18n.format('treasure.stickerNewAria', { label: item.label })
+                        : i18n.format('treasure.stickerOwnedAria', { label: item.label }))
+                    : i18n.format('treasure.stickerLockedAria', { label: item.label, score: item.requirementHighScore });
                 stickerDiv.setAttribute('aria-label', ariaLabelText);
                 
                 if (isNewlyUnlocked) {
@@ -62,14 +65,14 @@ window.IrisGame.rewards = {
                 if (isNewlyUnlocked) {
                     const newBadge = document.createElement('span');
                     newBadge.className = 'sticker-new-badge';
-                    newBadge.textContent = '新!';
+                    newBadge.textContent = i18n.t('treasure.newly');
                     newBadge.setAttribute('aria-hidden', 'true');
                     stickerDiv.appendChild(newBadge);
                 }
                 
                 const statusSpan = document.createElement('span');
                 statusSpan.className = 'sticker-status';
-                statusSpan.textContent = isOwned ? '已解锁' : '未解锁';
+                statusSpan.textContent = isOwned ? i18n.t('treasure.unlocked') : i18n.t('treasure.locked');
                 
                 statusSpan.style.color = isOwned ? '#322b5f' : '#6c6a86';
                 statusSpan.style.fontWeight = 'bold';
@@ -114,22 +117,22 @@ window.IrisGame.rewards = {
                     }
                     
                     if (activeCosmetic === item.id) {
-                        button.textContent = '使用中';
+                        button.textContent = i18n.t('treasure.using');
                         button.className = 'btn-buy owned active-cosmetic';
                         button.setAttribute('aria-pressed', 'true');
-                        button.setAttribute('aria-label', `外观：${item.label}，当前使用中`);
+                        button.setAttribute('aria-label', i18n.format('treasure.cosmeticUsingAria', { label: item.label }));
                     } else {
-                        button.textContent = '使用';
+                        button.textContent = i18n.t('treasure.use');
                         button.className = 'btn-buy owned';
                         button.setAttribute('aria-pressed', 'false');
-                        button.setAttribute('aria-label', `外观：${item.label}，已解锁，点击使用`);
+                        button.setAttribute('aria-label', i18n.format('treasure.cosmeticUseAria', { label: item.label }));
                     }
                 } else {
-                    button.textContent = `最高分 ${item.requirementHighScore} 解锁`;
+                    button.textContent = i18n.format('treasure.unlockAt', { score: item.requirementHighScore });
                     button.className = 'btn-buy locked-cosmetic';
                     button.setAttribute('disabled', 'true');
                     button.setAttribute('aria-pressed', 'false');
-                    button.setAttribute('aria-label', `未解锁外观：${item.label}，需要最高分达到 ${item.requirementHighScore} 解锁`);
+                    button.setAttribute('aria-label', i18n.format('treasure.cosmeticLockedAria', { label: item.label, score: item.requirementHighScore }));
                 }
                 
                 button.addEventListener('click', (e) => {
@@ -163,12 +166,13 @@ window.IrisGame.rewards = {
         const state = window.IrisGame.state;
         const storage = window.IrisGame.storage;
         const ui = window.IrisGame.ui;
+        const i18n = window.IrisGame.i18n;
         
         const ownedCosmetics = storage.getCosmetics();
         
         const isUnlocked = state.game.highScore >= cost || ownedCosmetics.includes(id);
         if (!isUnlocked) {
-            ui.showMessage('星星还不够，继续收集吧！', 1, 1400);
+            ui.showMessage(i18n.t('treasure.notEnough'), 1, 1400);
             return;
         }
         

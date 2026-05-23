@@ -1,3 +1,73 @@
+# QA Evidence - Cycle 14 Internationalization QA and English Polish
+
+## Summary
+
+- Date/time: 2026-05-23 17:20-17:45 EDT
+- Role: Codex QA / Browser Tester
+- Scope: `/v4/`
+- Commit hash tested: 525a4de2ec0b4e36c392cb08bfecaee16a5b36c8
+- Branch: `main`
+- Pages source: `main / root`
+- Asset version tested locally: `v=24`
+- Recommendation: **PASS TO RELEASE**
+
+## URLs Tested
+
+- `http://localhost:8000/v4/test.html?cycle14=v24`
+- `http://localhost:8000/v4/?cycle14=v24`
+- `http://localhost:8000/v4/?debug=1&cycle14=v24`
+
+## Pass / Fail Table
+
+| # | Check | Result | Evidence / Notes |
+|---|---|---|---|
+| 1 | `/v4/test.html` passes | PASS | Local browser smoke tests reported `Total: 25`, `Passed: 25`, `Failed: 0`, `lang=en`. |
+| 2 | English default loads | PASS | With saved language cleared, `/v4/` rendered `lang="en"` and `Start Flying`. |
+| 3 | Sound muted by default | PASS | State sound flag was false and sound button showed `🔇`. |
+| 4 | Start button works in English | PASS | Tapping `Start Flying` entered `PLAYING`. |
+| 5 | HUD appears | PASS | HUD and task display became visible after start. |
+| 6 | Canvas updates | PASS | Frame count advanced during PLAYING. |
+| 7 | Space jump works | PASS | Space key set butterfly velocity upward. |
+| 8 | Touch jump works | PASS | Mobile touch tap on the game area set butterfly velocity upward. |
+| 9 | Pause/resume works | PASS | Pause opened with English copy; resume returned to PLAYING. |
+| 10 | Chinese switch works | PASS | Tapping `中文` set `lang="zh-CN"`, persisted `iris_butterfly_language=zh`, and changed start copy to `开始飞行`. |
+| 11 | Language status is announced politely | PASS | `#language-status` contained `已切换到中文。`. |
+| 12 | Start button works in Chinese | PASS | Tapping `开始飞行` entered `PLAYING`. |
+| 13 | Mission text changes language | PASS | Chinese mission text rendered with 星星/花藤/秒/彩虹 wording. |
+| 14 | Treasure opens in Chinese | PASS | Treasure screen opened, sticker tab said `魔法贴纸`, locked labels said `未解锁`. |
+| 15 | Settings opens in Chinese | PASS | After closing Treasure and immediately tapping settings, settings opened with Chinese heading. |
+| 16 | Debug panel opens | PASS | `/v4/?debug=1` opened the debug panel. |
+| 17 | Console has no errors | PASS | Final local Playwright run captured zero console errors and zero page errors. |
+
+## Console Errors
+
+None in final local browser run. A browser favicon 404 was observed during earlier validation and fixed by adding a data favicon to `/v4/index.html` and `/v4/test.html`.
+
+## Screenshots / Artifacts
+
+- No screenshot files were committed.
+- Temporary Playwright tooling was installed under `/tmp/iris-pw` only; no dependency files were added to the repository.
+
+## Issues Found
+
+### P0
+
+- None.
+
+### P1
+
+- Fixed during QA: inactive panel children could intercept fast taps during fade-out after closing Treasure. CSS now limits pointer events to active panels.
+
+### P2
+
+- Some static HTML still contains fallback copy for no-JS readability; primary runtime UI is dictionary-driven and covered by tests.
+
+## Release Recommendation
+
+**PASS TO RELEASE**
+
+Rationale: bilingual startup and primary UI flows pass, smoke tests pass 25/25, touch and keyboard controls work, debug opens, and final console capture has no errors.
+
 # QA Evidence - Cycle 13 Safety and QA Guardrails
 
 ## Summary

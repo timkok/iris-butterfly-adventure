@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iris's Butterfly Adventure - V4</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=23">
+    <link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
     <div id="game-container">
         <!-- Screen reader live region for sound state announcements -->
         <div id="sound-announcement" class="sr-only" aria-live="polite"></div>
-        
+        <div id="language-status" class="sr-only" aria-live="polite"></div>
+
         <!-- Game Canvas -->
         <canvas id="gameCanvas"></canvas>
 
@@ -43,7 +45,7 @@
 
             <!-- Encouragement Text -->
             <div id="message-display" class="hidden" aria-live="polite"></div>
-            
+
             <!-- Parent Easter Egg -->
             <div id="easter-egg-msg" class="hidden" aria-live="polite">
                 <div id="egg-text"></div>
@@ -60,7 +62,7 @@
                 <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
                 <p class="start-subtitle">V4 引擎重构实验版</p>
                 <div id="start-greeting" class="start-greeting-card hidden" aria-live="polite"></div>
-                
+
                 <div class="diff-selector" role="radiogroup" aria-label="选择游戏难度">
                     <button class="btn-diff" data-diff="practice" aria-label="选择练习课">
                         <span class="diff-title">练习课</span>
@@ -86,6 +88,7 @@
                     <button id="how-to-play-btn" class="btn-aux" aria-label="怎么玩">❓ 怎么玩</button>
                     <button id="treasure-btn" class="btn-aux" aria-label="我的宝贝">🎁 宝贝</button>
                     <button id="parent-settings-btn" class="btn-aux" aria-label="家长设置">⚙️ 家长</button>
+                    <button id="language-toggle-btn" class="btn-aux" aria-label="Switch language to Chinese" title="Switch language">中文</button>
                 </div>
                 <div class="button-row" style="margin-top: 8px;">
                     <button id="back-to-v3-btn" class="btn-aux" aria-label="返回 V3 实验版" onclick="window.location.href='../v3/'">🔙 实验版 V3</button>
@@ -98,7 +101,7 @@
                 <p class="settings-desc">这些设置会在下一局开始时生效。</p>
                 <p id="reduced-motion-notice" class="parent-info-note hidden" style="background: #eaf6ff; border-color: rgba(125, 200, 255, 0.2); color: #3b7cff; font-weight: bold; text-align: left; width: 100%;"></p>
                 <p class="parent-info-note">✨ 这个游戏默认静音，没有广告，没有购买，适合短时间陪伴游玩。</p>
-                
+
                 <div class="input-group">
                     <label for="setting-speed">飞行速度</label>
                     <select id="setting-speed" aria-label="飞行速度">
@@ -127,7 +130,7 @@
                     <label for="setting-message">亲子鼓励寄语 (在游戏结束/高分时弹出)</label>
                     <input type="text" id="setting-message" placeholder="例如：Iris 你真棒，爱你！" maxlength="20" aria-label="亲子鼓励寄语">
                 </div>
-                
+
                 <div class="checkbox-group">
                     <label><input type="checkbox" id="setting-rest-reminder" checked> 休息提醒</label>
                 </div>
@@ -137,7 +140,7 @@
                 <div class="checkbox-group">
                     <label><input type="checkbox" id="setting-calm-mode" checked> 低刺激模式</label>
                 </div>
-                <div class="setting-tip" style="text-align: left; margin-bottom: 12px; margin-top: -4px; padding-left: 26px; font-size: 0.72rem; color: var(--muted-text); line-height: 1.4;">
+                <div id="calm-mode-tip" class="setting-tip" style="text-align: left; margin-bottom: 12px; margin-top: -4px; padding-left: 26px; font-size: 0.72rem; color: var(--muted-text); line-height: 1.4;">
                     （开启时：降低震动、减慢彩虹闪烁、减少 50% 粒子和背景移动，提供更宁静的游玩环境）
                 </div>
 
@@ -205,18 +208,19 @@
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <!-- Game Engine Scripts -->
-    <script src="js/config.js?v=23"></script>
-    <script src="js/state.js?v=23"></script>
-    <script src="js/storage.js?v=23"></script>
-    <script src="js/audio.js?v=23"></script>
-    <script src="js/director.js?v=23"></script>
-    <script src="js/debug.js?v=23"></script>
-    <script src="js/ui.js?v=23"></script>
-    <script src="js/entities.js?v=23"></script>
-    <script src="js/canvas.js?v=23"></script>
-    <script src="js/missions.js?v=23"></script>
-    <script src="js/rewards.js?v=23"></script>
-    <script src="js/game.js?v=23"></script>
-    <script src="js/main.js?v=23"></script>
+    <script src="js/i18n.js?v=24"></script>
+    <script src="js/config.js?v=24"></script>
+    <script src="js/state.js?v=24"></script>
+    <script src="js/storage.js?v=24"></script>
+    <script src="js/audio.js?v=24"></script>
+    <script src="js/director.js?v=24"></script>
+    <script src="js/debug.js?v=24"></script>
+    <script src="js/ui.js?v=24"></script>
+    <script src="js/entities.js?v=24"></script>
+    <script src="js/canvas.js?v=24"></script>
+    <script src="js/missions.js?v=24"></script>
+    <script src="js/rewards.js?v=24"></script>
+    <script src="js/game.js?v=24"></script>
+    <script src="js/main.js?v=24"></script>
 </body>
 </html>

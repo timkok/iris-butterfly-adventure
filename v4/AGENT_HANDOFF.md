@@ -398,7 +398,7 @@ Do not remove files, protected versions, or product features during the audit wi
   - Browser QA on `/v4/?hotfix=overlayqa`: treasure opens, settings opens, Game Over path observed, no new `/v4/` console errors.
   - Browser visual movement check: screenshots differ while playing, confirming the canvas continues updating.
 - Asset Version: v=19
-- Commit Hash: pending until release commit; final pushed hash reported in release response.
+- Commit Hash: 525a4de2ec0b4e36c392cb08bfecaee16a5b36c8; final pushed hash reported in release response.
 
 ---
 
@@ -483,3 +483,144 @@ Do not remove files, protected versions, or product features during the audit wi
 
 ## Next Sprint Proposal
 - **P2 (UX)**: 新增贴纸历史记录面板，支持展示解锁日期和时间。
+---
+
+# Agent Handoff - Cycle 14 Internationalization QA and English Polish
+
+## Planner Agent Discussion
+- Task Type: accessibility + UI improvement + QA.
+- Scope: `/v4/` only. Protected versions remain untouched.
+- Baseline Finding:
+  - User reported V4 is English-first with Chinese switching, but current `main` at `be2e7af0908d3ff733ca72ad1187df450e894665` still has `/v4/index.html` as `lang="zh-CN"` and primary UI copy in Chinese.
+  - Current asset version before this cycle: `v=23`.
+- Proposed Tasks, max 3:
+  1. Establish a core i18n architecture with English default, Chinese switch, persisted language choice, `<html lang>` updates, and polite switch announcements.
+  2. Localize primary player-facing surfaces: home, difficulty labels, HUD controls, how-to, settings, treasure, pause, Game Over, missions, reward labels, sound messages, and high-priority gameplay messages.
+  3. Add bilingual smoke coverage and backlog notes for any remaining lower-priority strings that should be cleaned in a later cycle.
+- Why They Matter:
+  - English-first must be real at startup, not just a partial copy pass.
+  - Children and assistive-tech users need labels, visible text, and announcements in the same language.
+  - Start reliability remains the hard gate; i18n must not break the game loop.
+- Risk Level:
+  - Medium to High, because this touches script load order, UI binding, storage, and text used during gameplay.
+  - Risk is contained by avoiding gameplay feature changes and limiting implementation to primary player-facing text.
+- Acceptance Criteria:
+  - `/v4/` defaults to English and `document.documentElement.lang === "en"` when no saved language exists.
+  - Language switch changes visible labels, ARIA/title attributes, mission display, treasure cards, settings, pause, and Game Over text.
+  - Chinese mode persists in localStorage and sets `lang="zh-CN"`.
+  - Language switch announces politely: `Language switched to English.` or `已切换到中文。`
+  - Clicking `Start Flying` and `开始飞行` both enter PLAYING and show HUD/task UI.
+  - `/v4/test.html` passes with bilingual smoke tests.
+  - No protected files change.
+
+## Builder Agent Discussion
+- Implementation Plan:
+  1. Add `/v4/js/i18n.js` with `window.IrisGame.i18n`, English and Chinese dictionaries, language persistence, DOM application helpers, and config synchronization helpers.
+  2. Load `i18n.js` before `config.js`, update `/v4/index.html` to English defaults plus language switch/status live region, and bump `/v4/index.html` plus `/v4/test.html` from `v=23` to `v=24`.
+  3. Wire existing modules to use i18n helpers for primary UI and dynamic messages: `main.js`, `audio.js`, `ui.js`, `missions.js`, `rewards.js`, and `game.js`.
+  4. Update smoke tests for default English, Chinese switching, storage, HTML lang, mission/reward/Game Over localization, and translation-key coverage.
+  5. Update backlog and QA evidence after validation.
+- Files To Modify:
+  - `/v4/index.html`
+  - `/v4/test.html`
+  - `/v4/js/i18n.js`
+  - `/v4/js/config.js`
+  - `/v4/js/main.js`
+  - `/v4/js/audio.js`
+  - `/v4/js/ui.js`
+  - `/v4/js/missions.js`
+  - `/v4/js/rewards.js`
+  - `/v4/js/game.js`
+  - `/v4/js/smoke-tests.js`
+  - `/v4/CODEX_BACKLOG.md`
+  - `/v4/QA_EVIDENCE.md`
+  - `/v4/AGENT_HANDOFF.md`
+- Rollback Plan:
+  - Revert the Cycle 14 commit if startup or tests regress.
+  - If tests fail after two repair attempts, stop and return a Builder bug report.
+
+## QA Agent Discussion
+- Test Plan:
+  - Run syntax checks for all `/v4/js/*.js`.
+  - Run `/v4/test.html` locally in browser.
+  - Start a local static server and perform browser startup QA for `/v4/`, `/v4/test.html`, and `/v4/?debug=1`.
+- Browser Scenarios:
+  - English default: home loads, `Start Flying` starts game, HUD/task appear, canvas updates, Space and mouse/touch jump work, pause/resume works, treasure/settings open, sound muted by default and toggle works.
+  - Chinese switch: switch to Chinese, `开始飞行` starts game, mission/pause/treasure/settings/Game Over surfaces show Chinese, sound labels update, no console errors.
+  - Reduced Motion and Calm Mode paths do not crash.
+  - Debug panel opens with `?debug=1`.
+- Pass/Fail Criteria:
+  - PASS only if start works in both languages, `/v4/test.html` passes, and no visible init/runtime error appears.
+  - BLOCK RELEASE for any P0 startup, language-switch, or protected-file issue.
+
+## Release Manager Discussion
+- Release Checklist:
+  - Confirm QA says `PASS TO RELEASE`.
+  - Confirm `git diff --name-only` is limited to `/v4/`.
+  - Confirm no dependencies, build tools, deletions, or GitHub Pages source changes.
+  - Confirm asset versions are bumped to `v=24` in `/v4/index.html` and `/v4/test.html`.
+  - Confirm `/v4/test.html` passes.
+  - Commit as `Cycle 14: Internationalization QA and English polish`.
+  - Push to `main` only after tests and browser QA pass.
+- Pages Source:
+  - Expected unchanged: `main / root`.
+
+## Implementation Notes
+- Added `/v4/js/i18n.js` as the central English/Chinese dictionary and language runtime.
+- Default language is English when no saved language exists.
+- Language choice persists to `iris_butterfly_language`.
+- Switching language updates:
+  - `<html lang>`
+  - home/start controls
+  - difficulty labels and ARIA labels
+  - sound/pause labels
+  - how-to, settings, treasure, pause, Game Over
+  - mission titles/progress text
+  - reward labels/status/ARIA/title
+  - key gameplay messages and debug action labels
+- Added bilingual smoke coverage for:
+  - English default
+  - language key parity
+  - language switch DOM/storage/lang updates
+  - mission/reward/Game Over localized rendering
+  - primary visible UI not staying in the wrong language
+- Added `/v4/js/i18n-check.js` coverage for missing keys, empty translations, and visible fallback key leaks.
+- Fixed a panel-transition click interception bug found during QA by ensuring inactive panels and their children do not receive pointer events.
+- Added empty data favicon links to avoid browser `favicon.ico` 404 console noise.
+- Asset Version:
+  - `/v4/index.html`: `v=24`
+  - `/v4/test.html`: `v=24`
+
+## QA Results
+- JS syntax check: PASS
+  - `for f in v4/js/*.js; do node --check "$f" || exit 1; done`
+- Diff whitespace check: PASS
+  - `git diff --check`
+- Local browser smoke tests: PASS
+  - `http://localhost:8000/v4/test.html?cycle14=v24`: 25 total, 25 passed, 0 failed.
+- Local bilingual browser QA: PASS
+  - English default loads with `lang="en"` and `Start Flying`.
+  - `Start Flying` enters PLAYING, HUD/task appears, canvas frame count advances.
+  - Space and touch input make the butterfly jump.
+  - Pause/resume works in English.
+  - Language switch sets `lang="zh-CN"`, persists `iris_butterfly_language=zh`, and announces `已切换到中文。`.
+  - `开始飞行` enters PLAYING.
+  - Chinese mission, treasure, and settings surfaces render correctly.
+  - Settings opens after immediately closing treasure, verifying inactive overlays no longer intercept fast taps.
+  - `/v4/?debug=1&cycle14=v24` opens the debug panel.
+  - Final browser console/page-error capture: 0 errors.
+- QA Evidence:
+  - `/v4/QA_EVIDENCE.md` updated with Cycle 14 PASS TO RELEASE.
+
+## Release Notes
+- Cycle: Cycle 14 Internationalization QA and English polish
+- Commit Hash: 525a4de2ec0b4e36c392cb08bfecaee16a5b36c8.
+- Pushed Branch: main.
+- Pages Source: main / root.
+- Asset Version: v=24.
+- QA Status: PASS TO RELEASE.
+- V4 URL: https://timkok.github.io/iris-butterfly-adventure/v4/
+- Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
+
+## Next Cycle Proposal
+- Cycle 15 should avoid gameplay feature additions unless requested. Recommended next work: a focused cleanup pass for remaining static fallback text and debug-only i18n polish, or a Simplification Audit if cycle numbering is reconciled to a 5-cycle boundary.

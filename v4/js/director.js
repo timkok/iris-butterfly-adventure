@@ -168,11 +168,11 @@ window.IrisGame.director = {
         
         if (phase === 'onboarding' && !state.game.hintFlags.onboardingHint) {
             state.game.hintFlags.onboardingHint = true;
-            return window.IrisGame.config.UI_TEXT.message || "轻轻点击，让小蝴蝶飞起来 🦋";
+            return window.IrisGame.config.UI_TEXT.message || window.IrisGame.i18n.t('messages.onboarding');
         }
         if (state.game.consecutiveCollisions >= 3 && !state.game.hintFlags.slowDownHint) {
             state.game.hintFlags.slowDownHint = true;
-            return "慢一点也没关系，稳稳飞 🦋";
+            return window.IrisGame.i18n.t('messages.slow');
         }
         return null;
     },

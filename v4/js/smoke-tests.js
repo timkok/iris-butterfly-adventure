@@ -27,6 +27,7 @@
                 <div id="hud" class="hidden"><span id="score"></span><span id="lives"></span><span id="hud-shield"></span></div>
                 <div id="task-display" class="hidden"><span id="task-text"></span><span id="task-progress"></span></div>
                 <div id="message-display" class="hidden"></div>
+                <div id="language-status"></div>
                 <div id="easter-egg-msg" class="hidden"><div id="egg-text"></div></div>
                 <button id="sound-btn" aria-label="声音开关"></button>
                 <button id="pause-btn" aria-label="暂停游戏"></button>
@@ -37,6 +38,7 @@
                     <button id="how-to-play-btn" aria-label="怎么玩"></button>
                     <button id="treasure-btn" aria-label="我的宝贝"></button>
                     <button id="parent-settings-btn" aria-label="家长设置"></button>
+                    <button id="language-toggle-btn" aria-label="Switch language to Chinese"></button>
                     <div id="start-greeting"></div>
                 </div>
                 <div id="how-to-play-screen" class="panel"><button id="close-how-to-btn" aria-label="关闭怎么玩"></button></div>
@@ -80,6 +82,130 @@
     }
 
     // --- Test Cases ---
+
+    test('i18n defaults to English and has complete language keys', () => {
+        const i18n = window.IrisGame.i18n;
+        const originalStorage = localStorage.getItem(i18n.STORAGE_KEY);
+
+        try {
+            localStorage.removeItem(i18n.STORAGE_KEY);
+            i18n.init();
+            const missing = i18n.validateKeys();
+
+            assert(i18n.currentLang === 'en', 'Default language should be English');
+            assert(document.documentElement.lang === 'en', 'HTML lang should be en by default');
+            assert(missing.missingInZh.length === 0, `Missing zh translation keys: ${missing.missingInZh.join(', ')}`);
+            assert(missing.missingInEn.length === 0, `Missing en translation keys: ${missing.missingInEn.join(', ')}`);
+        } finally {
+            if (originalStorage) {
+                localStorage.setItem(i18n.STORAGE_KEY, originalStorage);
+            } else {
+                localStorage.removeItem(i18n.STORAGE_KEY);
+            }
+            i18n.setLanguage('en', false);
+        }
+    });
+
+    test('i18n-check reports no missing keys, empty values, or fallback UI text', () => {
+        ensureGameFixture();
+        window.IrisGame.ui.cacheDOM();
+        window.IrisGame.i18n.setLanguage('en', false);
+
+        const report = window.IrisGame.i18nCheck.validate();
+        assert(report.missingInEn.length === 0, `Missing English keys: ${report.missingInEn.join(', ')}`);
+        assert(report.missingInZh.length === 0, `Missing Chinese keys: ${report.missingInZh.join(', ')}`);
+        assert(report.emptyValues.length === 0, `Empty translations: ${report.emptyValues.join(', ')}`);
+        assert(report.missingFallbacks.length === 0, `Missing key fallbacks in visible UI: ${report.missingFallbacks.join(', ')}`);
+        assert(report.passed === true, 'i18n-check should pass');
+    });
+
+    test('Language switch updates DOM, localStorage, html lang, mission, rewards, and Game Over text', () => {
+        const i18n = window.IrisGame.i18n;
+        const ui = window.IrisGame.ui;
+        const rewards = window.IrisGame.rewards;
+        const missions = window.IrisGame.missions;
+        const state = window.IrisGame.state;
+        const originalElements = {
+            overBestPerformance: ui.elements.overBestPerformance,
+            finalMode: ui.elements.finalMode,
+            finalStage: ui.elements.finalStage,
+            finalScore: ui.elements.finalScore,
+            finalVines: ui.elements.finalVines,
+            recordScore: ui.elements.recordScore,
+            finalTask: ui.elements.finalTask
+        };
+
+        try {
+            ensureGameFixture();
+            ui.cacheDOM();
+            i18n.setLanguage('en', false);
+
+            assert(document.getElementById('start-btn').textContent === 'Start Flying', 'English start button should render');
+            assert(document.getElementById('how-to-play-btn').getAttribute('aria-label') === '❓ How to Play', 'English aria label should render');
+
+            i18n.setLanguage('zh', true);
+            assert(document.documentElement.lang === 'zh-CN', 'HTML lang should switch to zh-CN');
+            assert(localStorage.getItem(i18n.STORAGE_KEY) === 'zh', 'Language switch should persist in localStorage');
+            assert(document.getElementById('start-btn').textContent === '开始飞行', 'Chinese start button should render');
+            assert(document.getElementById('language-status').textContent === '已切换到中文。', 'Language switch should announce Chinese status');
+
+            state.game.mission = window.IrisGame.config.MISSIONS.collect_stars_10;
+            state.game.missionCompleted = false;
+            assert(missions.getDisplayText() === '收集 10 颗星星', 'Mission should render Chinese title');
+
+            state.game.highScore = 0;
+            rewards.renderTreasure();
+            assert(document.getElementById('stickers-container').innerText.includes('未解锁'), 'Reward labels should render Chinese locked state');
+
+            ui.elements.overBestPerformance = { textContent: '' };
+            ui.elements.finalMode = { textContent: '' };
+            ui.elements.finalStage = { textContent: '' };
+            ui.elements.finalScore = { textContent: '' };
+            ui.elements.finalVines = { textContent: '' };
+            ui.elements.recordScore = { textContent: '' };
+            ui.elements.finalTask = { textContent: '' };
+            state.game.missionCompleted = true;
+            ui.renderGameOver();
+            assert(ui.elements.overBestPerformance.textContent.includes('飞行课任务'), 'Game Over should render Chinese best-performance copy');
+
+            i18n.setLanguage('en', false);
+            assert(document.documentElement.lang === 'en', 'HTML lang should switch back to en');
+            assert(document.getElementById('start-btn').textContent === 'Start Flying', 'English start button should return');
+        } finally {
+            Object.assign(ui.elements, originalElements);
+            i18n.setLanguage('en', false);
+        }
+    });
+
+    test('Primary visible UI does not stay in the wrong language after switching', () => {
+        const i18n = window.IrisGame.i18n;
+        const ui = window.IrisGame.ui;
+
+        ensureGameFixture();
+        ui.cacheDOM();
+
+        i18n.setLanguage('en', false);
+        const englishPrimaryText = [
+            document.getElementById('start-btn').textContent,
+            document.getElementById('how-to-play-btn').textContent,
+            document.getElementById('treasure-btn').textContent,
+            document.getElementById('parent-settings-btn').textContent,
+            document.getElementById('close-settings-btn').textContent
+        ].join(' ');
+        assert(!/[\u4e00-\u9fff]/.test(englishPrimaryText), `English primary UI should not contain Chinese text: ${englishPrimaryText}`);
+
+        i18n.setLanguage('zh', false);
+        const chinesePrimaryText = [
+            document.getElementById('start-btn').textContent,
+            document.getElementById('how-to-play-btn').textContent,
+            document.getElementById('treasure-btn').textContent,
+            document.getElementById('parent-settings-btn').textContent,
+            document.getElementById('close-settings-btn').textContent
+        ].join(' ');
+        assert(/开始飞行/.test(chinesePrimaryText), 'Chinese primary UI should render Chinese start copy');
+
+        i18n.setLanguage('en', false);
+    });
 
     test('Config Object Validity', () => {
         const config = window.IrisGame.config;
@@ -188,11 +314,12 @@
         });
 
         assert(document.querySelectorAll('.btn-diff').length >= 2, 'Difficulty buttons should be present');
-        assert(document.getElementById('how-to-play-btn').getAttribute('aria-label') === '怎么玩', 'How-to button should have an accessible name');
-        assert(document.getElementById('treasure-btn').getAttribute('aria-label') === '我的宝贝', 'Treasure button should have an accessible name');
-        assert(document.getElementById('parent-settings-btn').getAttribute('aria-label') === '家长设置', 'Settings button should have an accessible name');
-        assert(document.getElementById('sound-btn').getAttribute('aria-label') === '声音开关', 'Sound button should have an accessible name');
-        assert(document.getElementById('pause-btn').getAttribute('aria-label') === '暂停游戏', 'Pause button should have an accessible name');
+        window.IrisGame.i18n.setLanguage('en', false);
+        assert(document.getElementById('how-to-play-btn').getAttribute('aria-label') === '❓ How to Play', 'How-to button should have an accessible name');
+        assert(document.getElementById('treasure-btn').getAttribute('aria-label') === '🎁 Treasures', 'Treasure button should have an accessible name');
+        assert(document.getElementById('parent-settings-btn').getAttribute('aria-label') === '⚙️ Grown-ups', 'Settings button should have an accessible name');
+        assert(document.getElementById('sound-btn').getAttribute('aria-label') === 'Sound toggle', 'Sound button should have an accessible name');
+        assert(document.getElementById('pause-btn').getAttribute('aria-label') === 'Pause game', 'Pause button should have an accessible name');
     });
 
     test('Parent lives setting applies on next startGame', () => {
@@ -381,8 +508,10 @@
         const origGetStickers = storage.getStickers;
         const origGetCosmetics = storage.getCosmetics;
         const origGreetingElement = ui.elements.greeting;
+        const origLang = window.IrisGame.i18n.currentLang;
 
         try {
+            window.IrisGame.i18n.setLanguage('en', false);
             // Mock greeting element
             ui.elements.greeting = {
                 classList: {
@@ -407,21 +536,22 @@
             ui.elements.greeting.classList.add('hidden');
             ui.renderGreeting();
             assert(!ui.elements.greeting.classList.contains('hidden'), 'Greeting should be shown if highScore > 0');
-            assert(ui.elements.greeting.innerHTML.includes('最高飞到 4 颗星'), 'Greeting should report correct highScore');
-            assert(!ui.elements.greeting.innerHTML.includes('解锁了'), 'Greeting should not mention unlocks if none');
+            assert(ui.elements.greeting.innerHTML.includes('Best flight: 4 stars'), 'Greeting should report correct highScore');
+            assert(!ui.elements.greeting.innerHTML.includes('unlocked'), 'Greeting should not mention unlocks if none');
 
             // Case 3: Stickers unlocked
             storage.getHighScore = () => 12; // Unlocks 'star' (5) and 'flower' (10)
             storage.getStickers = () => ['star', 'flower'];
             storage.getCosmetics = () => ['default'];
             ui.renderGreeting();
-            assert(ui.elements.greeting.innerHTML.includes('解锁了 2 个小宝贝'), 'Should report 2 unlocked items (2 stickers)');
+            assert(ui.elements.greeting.innerHTML.includes('unlocked 2 treasures'), 'Should report 2 unlocked items (2 stickers)');
         } finally {
             // Restore original functions
             storage.getHighScore = origGetHighScore;
             storage.getStickers = origGetStickers;
             storage.getCosmetics = origGetCosmetics;
             ui.elements.greeting = origGreetingElement;
+            window.IrisGame.i18n.setLanguage(origLang, false);
         }
     });
 
@@ -476,32 +606,34 @@
         const ui = window.IrisGame.ui;
 
         const origBestElement = ui.elements.overBestPerformance;
+        const origLang = window.IrisGame.i18n.currentLang;
 
         try {
+            window.IrisGame.i18n.setLanguage('en', false);
             ui.elements.overBestPerformance = { textContent: '' };
 
             // Case 1: Mission completed
             state.game.missionCompleted = true;
             ui.renderGameOver();
-            assert(ui.elements.overBestPerformance.textContent.includes('飞行课任务'), 'Should select mission completed first');
+            assert(ui.elements.overBestPerformance.textContent.includes('completed the flying mission'), 'Should select mission completed first');
 
             // Case 2: No mission completed, but rainbow stars collected
             state.game.missionCompleted = false;
             state.game.rainbowStarsCollected = 1;
             ui.renderGameOver();
-            assert(ui.elements.overBestPerformance.textContent.includes('彩虹星'), 'Should select rainbow stars second');
+            assert(ui.elements.overBestPerformance.textContent.includes('rainbow star'), 'Should select rainbow stars second');
 
             // Case 3: Passed obstacles
             state.game.rainbowStarsCollected = 0;
             state.game.passedObstacles = 6;
             ui.renderGameOver();
-            assert(ui.elements.overBestPerformance.textContent.includes('6 组花藤'), 'Should select passed obstacles third');
+            assert(ui.elements.overBestPerformance.textContent.includes('6 flower vines'), 'Should select passed obstacles third');
 
             // Case 4: High score
             state.game.passedObstacles = 2;
             state.game.score = 8;
             ui.renderGameOver();
-            assert(ui.elements.overBestPerformance.textContent.includes('8 颗星星'), 'Should select score fourth');
+            assert(ui.elements.overBestPerformance.textContent.includes('8 stars'), 'Should select score fourth');
 
             // Case 5: Fallback encouraging tip
             state.game.score = 2;
@@ -509,6 +641,7 @@
             assert(ui.elements.overBestPerformance.textContent !== '', 'Should populate standard encouraging fallback');
         } finally {
             ui.elements.overBestPerformance = origBestElement;
+            window.IrisGame.i18n.setLanguage(origLang, false);
         }
     });
 

@@ -80,7 +80,7 @@ canvas {
     pointer-events: auto;
 }
 
-.panel {
+#ui-layer .panel {
     position: absolute;
     inset: 0;
     background:
@@ -98,11 +98,18 @@ canvas {
     visibility: hidden;
     transition: opacity 0.28s ease, visibility 0.28s ease;
     z-index: 100;
+    pointer-events: none;
 }
 
-.panel.active {
+#ui-layer .panel.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
+}
+
+#ui-layer .panel:not(.active),
+#ui-layer .panel:not(.active) * {
+    pointer-events: none;
 }
 
 .panel h1,
@@ -284,13 +291,13 @@ canvas {
 }
 
 @keyframes breathingStart {
-    0%, 100% { 
-        transform: scale(1); 
-        box-shadow: 0 12px 24px rgba(255, 126, 179, 0.28); 
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 12px 24px rgba(255, 126, 179, 0.28);
     }
-    50% { 
-        transform: scale(1.045); 
-        box-shadow: 0 14px 30px rgba(255, 126, 179, 0.45), 0 0 12px rgba(125, 200, 255, 0.35); 
+    50% {
+        transform: scale(1.045);
+        box-shadow: 0 14px 30px rgba(255, 126, 179, 0.45), 0 0 12px rgba(125, 200, 255, 0.35);
     }
 }
 
@@ -829,23 +836,23 @@ input:focus-visible {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
-    
+
     .panel h2 {
         font-size: 1.3rem;
         margin-top: 10px;
         margin-bottom: 8px;
     }
-    
+
     .settings-desc,
     .parent-info-note,
     .setting-tip {
         font-size: 0.75rem;
     }
-    
+
     .input-group label {
         font-size: 0.8rem;
     }
-    
+
     .input-group select,
     .input-group input {
         padding: 8px 10px;

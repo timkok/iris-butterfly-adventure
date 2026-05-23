@@ -11,7 +11,8 @@ window.IrisGame.storage = {
         restReminder: 'iris_butterfly_restReminder',
         gentleMode: 'iris_butterfly_gentleMode',
         calmMode: 'iris_butterfly_calmMode',
-        seenStickers: 'iris_butterfly_seenStickers'
+        seenStickers: 'iris_butterfly_seenStickers',
+        language: 'iris_butterfly_language'
     },
 
     _isStorageAvailable: null,
@@ -87,6 +88,17 @@ window.IrisGame.storage = {
 
     setSoundEnabled(enabled) {
         this.setItem(this.KEYS.soundEnabled, String(enabled));
+    },
+
+    getLanguage() {
+        const lang = this.getItem(this.KEYS.language);
+        return lang === 'zh' || lang === 'en' ? lang : 'en';
+    },
+
+    setLanguage(lang) {
+        if (lang === 'zh' || lang === 'en') {
+            this.setItem(this.KEYS.language, lang);
+        }
     },
 
     getSettings() {

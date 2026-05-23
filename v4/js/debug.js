@@ -5,7 +5,7 @@ window.IrisGame.debug = {
     lastDKeyTime: 0,
     fpsLastTime: performance.now(),
     fpsFrames: 0,
-    
+
     init() {
         // Listen to D key press three times
         window.addEventListener('keydown', (e) => {
@@ -16,21 +16,21 @@ window.IrisGame.debug = {
                 }
                 this.dKeyPressCount++;
                 this.lastDKeyTime = now;
-                
+
                 if (this.dKeyPressCount >= 3) {
                     this.dKeyPressCount = 0;
                     this.toggleDebugPanel();
                 }
             }
         });
-        
+
         // Check URL parameter ?debug=1
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('debug') === '1') {
             this.showDebugPanel();
         }
     },
-    
+
     toggleDebugPanel() {
         const state = window.IrisGame.state;
         if (state.debugActive) {
@@ -39,11 +39,11 @@ window.IrisGame.debug = {
             this.showDebugPanel();
         }
     },
-    
+
     showDebugPanel() {
         const state = window.IrisGame.state;
         state.debugActive = true;
-        
+
         let panel = document.getElementById('debug-tuning-panel');
         if (!panel) {
             panel = this.createDebugPanelDOM();
@@ -53,7 +53,7 @@ window.IrisGame.debug = {
         panel.style.display = 'block';
         this.syncSlidersToUI();
     },
-    
+
     hideDebugPanel() {
         const state = window.IrisGame.state;
         state.debugActive = false;
@@ -62,7 +62,7 @@ window.IrisGame.debug = {
             panel.style.display = 'none';
         }
     },
-    
+
     updateFPS() {
         const now = performance.now();
         this.fpsFrames++;
@@ -71,13 +71,13 @@ window.IrisGame.debug = {
             state.fps = Math.round((this.fpsFrames * 1000) / (now - this.fpsLastTime));
             this.fpsFrames = 0;
             this.fpsLastTime = now;
-            
+
             if (state.debugActive) {
                 this.updateRealtimeDataUI();
             }
         }
     },
-    
+
     createDebugPanelDOM() {
         const panel = document.createElement('div');
         panel.id = 'debug-tuning-panel';
@@ -97,13 +97,14 @@ window.IrisGame.debug = {
         panel.style.zIndex = '9999';
         panel.style.boxShadow = '0 0 15px rgba(0, 255, 204, 0.4)';
         panel.style.pointerEvents = 'auto';
-        
+
+        const i18n = window.IrisGame.i18n;
         panel.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #00ffcc; padding-bottom: 6px; margin-bottom: 10px;">
                 <span style="font-weight: bold; font-size: 13px;">🦋 IRIS DEBUG PANEL</span>
                 <button id="debug-close-btn" style="background: red; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; min-height:20px;">X</button>
             </div>
-            
+
             <!-- Realtime Metrics -->
             <div style="margin-bottom: 12px; line-height: 1.4; border-bottom: 1px dashed rgba(0,255,204,0.3); padding-bottom: 8px;">
                 <strong>[REALTIME DATA]</strong><br>
@@ -115,7 +116,7 @@ window.IrisGame.debug = {
                 Mute: <span id="db-mute">-</span> | Calm: <span id="db-calm">-</span> | RMotion: <span id="db-rm">-</span><br>
                 FX Budget: <span id="db-fx-budget">-</span> | P:<span id="db-p-budget">0/80</span> L:<span id="db-l-budget">0/12</span> R:<span id="db-r-budget">0/4</span> | Shield: <span id="db-shield-status">-</span>
             </div>
-            
+
             <!-- Sliders -->
             <div style="margin-bottom: 12px;">
                 <strong>[LIVE TUNING]</strong><br>
@@ -148,54 +149,70 @@ window.IrisGame.debug = {
                     <input type="range" id="sl-shake" min="0.0" max="3.0" step="0.1" value="1.0" style="width:100%;">
                 </div>
             </div>
-            
+
             <!-- Actions -->
             <div style="margin-top: 10px; display: flex; gap: 4px; flex-wrap: wrap;">
-                <button id="db-reset-btn" style="flex:1; min-width:80px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">重置参数</button>
-                <button id="db-copy-btn" style="flex:1; min-width:80px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">复制 JSON</button>
-                <button id="db-qa-btn" style="width:100%; margin-top:4px; background:#444; border:1px solid #ffaa00; color:#ffaa00; border-radius:4px; padding:4px; cursor:pointer; min-height:28px; font-weight:bold;">复制 QA 摘要</button>
+                <button id="db-reset-btn" style="flex:1; min-width:80px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">${i18n.t('debug.reset')}</button>
+                <button id="db-copy-btn" style="flex:1; min-width:80px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">${i18n.t('debug.copy')}</button>
+                <button id="db-qa-btn" style="width:100%; margin-top:4px; background:#444; border:1px solid #ffaa00; color:#ffaa00; border-radius:4px; padding:4px; cursor:pointer; min-height:28px; font-weight:bold;">${i18n.t('debug.qa')}</button>
             </div>
-            
+
             <!-- Import Area -->
             <div style="margin-top: 10px;">
                 <strong>[IMPORT OVERRIDES]</strong><br>
                 <textarea id="db-import-area" placeholder='{"speedMultiplier":1.1,"gapBonus":10}' style="width:100%; height:46px; background:#222; color:#fff; border:1px solid #555; font-family:monospace; font-size:10px; border-radius:4px; margin-top:4px;"></textarea>
-                <button id="db-import-btn" style="width:100%; margin-top:4px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">导入 JSON</button>
+                <button id="db-import-btn" style="width:100%; margin-top:4px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">${i18n.t('debug.import')}</button>
             </div>
         `;
         return panel;
     },
-    
+
+    refreshLanguage() {
+        const panel = document.getElementById('debug-tuning-panel');
+        if (!panel) return;
+        const i18n = window.IrisGame.i18n;
+        const labels = {
+            'db-reset-btn': 'debug.reset',
+            'db-copy-btn': 'debug.copy',
+            'db-qa-btn': 'debug.qa',
+            'db-import-btn': 'debug.import'
+        };
+        Object.keys(labels).forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = i18n.t(labels[id]);
+        });
+    },
+
     syncSlidersToUI() {
         const state = window.IrisGame.state;
         const overrides = state.tuningOverrides;
-        
+
         document.getElementById('sl-speed-mult').value = overrides.speedMultiplier;
         document.getElementById('v-speed-mult').textContent = overrides.speedMultiplier.toFixed(2);
-        
+
         document.getElementById('sl-gap-bonus').value = overrides.gapBonus;
         document.getElementById('v-gap-bonus').textContent = (overrides.gapBonus > 0 ? '+' : '') + overrides.gapBonus;
-        
+
         document.getElementById('sl-spawn-mult').value = overrides.spawnRateMultiplier;
         document.getElementById('v-spawn-mult').textContent = overrides.spawnRateMultiplier.toFixed(2);
-        
+
         document.getElementById('sl-star-mult').value = overrides.starRateMultiplier;
         document.getElementById('v-star-mult').textContent = overrides.starRateMultiplier.toFixed(2);
-        
+
         document.getElementById('sl-rainbow-chance').value = overrides.rainbowStarChance;
         document.getElementById('v-rainbow-chance').textContent = overrides.rainbowStarChance.toFixed(2);
-        
+
         document.getElementById('sl-invincible').value = overrides.invincibilityFrames;
         document.getElementById('v-invincible').textContent = overrides.invincibilityFrames;
-        
+
         document.getElementById('sl-shake').value = overrides.screenShakeAmount;
         document.getElementById('v-shake').textContent = overrides.screenShakeAmount.toFixed(1);
     },
-    
+
     bindDebugPanelEvents() {
         const state = window.IrisGame.state;
         const self = this;
-        
+
         const onInput = (id, labelId, key, formatter = (v) => v) => {
             const el = document.getElementById(id);
             if (el) {
@@ -206,7 +223,7 @@ window.IrisGame.debug = {
                 });
             }
         };
-        
+
         onInput('sl-speed-mult', 'v-speed-mult', 'speedMultiplier', (v) => v.toFixed(2));
         onInput('sl-gap-bonus', 'v-gap-bonus', 'gapBonus', (v) => (v > 0 ? '+' : '') + v);
         onInput('sl-spawn-mult', 'v-spawn-mult', 'spawnRateMultiplier', (v) => v.toFixed(2));
@@ -214,11 +231,11 @@ window.IrisGame.debug = {
         onInput('sl-rainbow-chance', 'v-rainbow-chance', 'rainbowStarChance', (v) => v.toFixed(2));
         onInput('sl-invincible', 'v-invincible', 'invincibilityFrames', (v) => Math.round(v));
         onInput('sl-shake', 'v-shake', 'screenShakeAmount', (v) => v.toFixed(1));
-        
+
         document.getElementById('debug-close-btn').addEventListener('click', () => {
             self.hideDebugPanel();
         });
-        
+
         document.getElementById('db-reset-btn').addEventListener('click', () => {
             state.tuningOverrides = {
                 speedMultiplier: 1.0,
@@ -231,19 +248,19 @@ window.IrisGame.debug = {
             };
             self.syncSlidersToUI();
         });
-        
+
         document.getElementById('db-copy-btn').addEventListener('click', () => {
             const jsonText = JSON.stringify(state.tuningOverrides);
             navigator.clipboard.writeText(jsonText).then(() => {
-                alert('Tuning overrides JSON copied to clipboard!');
+                alert(window.IrisGame.i18n.t('debug.copied'));
             }).catch(() => {
                 const textarea = document.getElementById('db-import-area');
                 textarea.value = jsonText;
                 textarea.select();
-                alert('Copied to bottom textarea! Please copy manually.');
+                alert(window.IrisGame.i18n.t('debug.copiedFallback'));
             });
         });
-        
+
         document.getElementById('db-qa-btn').addEventListener('click', () => {
             const currentDiff = window.IrisGame.director.getCurrentDifficulty();
             const qaSummary = {
@@ -267,15 +284,15 @@ window.IrisGame.debug = {
             };
             const jsonText = JSON.stringify(qaSummary, null, 2);
             navigator.clipboard.writeText(jsonText).then(() => {
-                alert('QA Summary JSON copied to clipboard!');
+                alert(window.IrisGame.i18n.t('debug.qaCopied'));
             }).catch(() => {
                 const textarea = document.getElementById('db-import-area');
                 textarea.value = jsonText;
                 textarea.select();
-                alert('Copied QA summary to bottom textarea! Please copy manually.');
+                alert(window.IrisGame.i18n.t('debug.qaFallback'));
             });
         });
-        
+
         document.getElementById('db-import-btn').addEventListener('click', () => {
             const areaText = document.getElementById('db-import-area').value.trim();
             if (areaText === '') return;
@@ -291,24 +308,24 @@ window.IrisGame.debug = {
                     screenShakeAmount: parsed.screenShakeAmount !== undefined ? Number(parsed.screenShakeAmount) : 1.0
                 };
                 self.syncSlidersToUI();
-                alert('Tuning overrides imported successfully!');
+                alert(window.IrisGame.i18n.t('debug.imported'));
             } catch (e) {
-                alert('Invalid JSON structure! Please check details.');
+                alert(window.IrisGame.i18n.t('debug.invalid'));
             }
         });
     },
-    
+
     updateRealtimeDataUI() {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
-        
+
         const setText = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;
         };
-        
+
         const currentDiff = director.getCurrentDifficulty();
-        
+
         setText('db-fps', state.fps);
         setText('db-stage', state.game.currentStage);
         setText('db-state', state.gameState);
@@ -326,17 +343,17 @@ window.IrisGame.debug = {
         setText('db-calm', state.game.calmModeEnabled ? 'YES' : 'NO');
         setText('db-rm', state.prefersReducedMotion ? 'YES' : 'NO');
         setText('db-shield-status', state.game.starShield ? 'YES' : 'NO');
-        
+
         const config = window.IrisGame.config;
         const maxParticles = config.EFFECTS_POLICY.maxParticles;
         const maxLeavesBase = config.EFFECTS_POLICY.maxLeaves;
         const maxLeaves = state.game.calmModeEnabled ? Math.max(1, Math.round(maxLeavesBase * config.EFFECTS_POLICY.calmModeParticleMultiplier)) : maxLeavesBase;
         const maxRipples = config.EFFECTS_POLICY.maxTapRipples;
-        
+
         setText('db-p-budget', `${state.particles.length}/${maxParticles}`);
         setText('db-l-budget', `${state.leaves.length}/${maxLeaves}`);
         setText('db-r-budget', `${state.tapRipples.length}/${maxRipples}`);
-        
+
         const isHigh = state.particles.length > maxParticles || state.leaves.length > maxLeaves || state.tapRipples.length > maxRipples;
         const statusEl = document.getElementById('db-fx-budget');
         if (statusEl) {
@@ -345,19 +362,19 @@ window.IrisGame.debug = {
             statusEl.style.fontWeight = 'bold';
         }
     },
-    
+
     drawOverlays(ctx) {
         const state = window.IrisGame.state;
         const player = window.IrisGame.player || { x: 82, y: 300, radius: 12 };
-        
+
         if (!state.debugActive) return;
-        
+
         ctx.save();
-        
+
         // 1. Player collision circle
         const settings = window.IrisGame.director.getCurrentDifficulty();
         const playerRadius = Math.max(4, player.radius - settings.tolerance);
-        
+
         ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
         ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
         ctx.lineWidth = 2;
@@ -365,29 +382,29 @@ window.IrisGame.debug = {
         ctx.arc(player.x, player.y, playerRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        
+
         // 2. Obstacle collision bounds
         ctx.strokeStyle = 'rgba(255, 128, 0, 0.7)';
         ctx.fillStyle = 'rgba(255, 128, 0, 0.15)';
         ctx.lineWidth = 1.5;
-        
+
         state.obstacles.forEach(obs => {
             const topHeight = obs.gapY - obs.gap / 2;
             const bottomY = obs.gapY + obs.gap / 2;
             const width = obs.width;
-            
+
             // Top box
             ctx.beginPath();
             ctx.rect(obs.x + 8, 0, width - 16, topHeight);
             ctx.fill();
             ctx.stroke();
-            
+
             // Bottom box
             ctx.beginPath();
             ctx.rect(obs.x + 8, bottomY, width - 16, 600 - bottomY);
             ctx.fill();
             ctx.stroke();
-            
+
             // Gap center line
             ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
             ctx.lineWidth = 1;
@@ -395,12 +412,12 @@ window.IrisGame.debug = {
             ctx.moveTo(obs.x + 8, obs.gapY);
             ctx.lineTo(obs.x + width - 8, obs.gapY);
             ctx.stroke();
-            
+
             // Reset stroke
             ctx.strokeStyle = 'rgba(255, 128, 0, 0.7)';
             ctx.lineWidth = 1.5;
         });
-        
+
         // 3. Star pickup radius
         ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
         ctx.fillStyle = 'rgba(255, 255, 0, 0.08)';
@@ -411,7 +428,7 @@ window.IrisGame.debug = {
             ctx.fill();
             ctx.stroke();
         });
-        
+
         ctx.restore();
     }
 };

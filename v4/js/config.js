@@ -208,3 +208,7 @@ window.IrisGame.config = {
         calmModeMultiplier: 0.90
     }
 };
+
+if (window.IrisGame.i18n) {
+    window.IrisGame.i18n.syncConfig(window.IrisGame.config);
+}

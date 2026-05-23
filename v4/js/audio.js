@@ -90,7 +90,7 @@ window.IrisGame.audio = {
         
         const announcement = document.getElementById('sound-announcement');
         if (announcement) {
-            announcement.textContent = state.game.soundEnabled ? '声音已开启' : '声音已关闭';
+            announcement.textContent = state.game.soundEnabled ? window.IrisGame.i18n.t('hud.soundOn') : window.IrisGame.i18n.t('hud.soundOff');
         }
         
         if (state.game.soundEnabled) {
@@ -107,7 +107,8 @@ window.IrisGame.audio = {
             soundBtn.setAttribute('aria-pressed', String(state.game.soundEnabled));
             soundBtn.setAttribute('aria-checked', String(state.game.soundEnabled));
             soundBtn.setAttribute('role', 'switch');
-            soundBtn.setAttribute('aria-label', '声音开关');
+            soundBtn.setAttribute('aria-label', window.IrisGame.i18n.t('hud.sound'));
+            soundBtn.setAttribute('title', window.IrisGame.i18n.t('hud.sound'));
         }
     }
 };

@@ -16,6 +16,10 @@ Last reviewed against:
 - `/v4/js/rewards.js`
 - `/v4/js/smoke-tests.js`
 
+Latest i18n review:
+- Cycle 14 established English default plus Chinese switching for primary player-facing UI.
+- Remaining i18n backlog should focus on reducing static fallback text in HTML and polishing developer-only debug labels without changing gameplay.
+
 Design constraints:
 - Child-friendly rainbow garden flying game.
 - Default muted.
@@ -31,10 +35,10 @@ Design constraints:
 
 ## Current Baseline
 
-- Latest completed release: Cycle 14.
-- Current asset version: `v=20`.
-- Next sequential cycle: Cycle 15.
-- Hard gate before any feature work: clicking "开始飞行" must enter PLAYING, show HUD/task UI, and keep the canvas loop running with no console errors.
+- Latest completed release before current work: Cycle 13 safety and QA guardrails.
+- Current asset version before Cycle 14 i18n work: `v=23`.
+- Current cycle in progress: Cycle 14 Internationalization QA and English polish.
+- Hard gate before any feature work: clicking "Start Flying" or "开始飞行" must enter PLAYING, show HUD/task UI, and keep the canvas loop running with no console errors.
 
 ## Next 5 Cycles
 
@@ -53,6 +57,24 @@ Cycle 15 should implement at most 3 low-risk stability/QA items after baseline Q
 3. **P1-13**: Add smoke coverage for required buttons and overlays where deterministic and isolated.
 
 ## 1. P0 Hotfix / Stability
+
+### P0-4: Preserve bilingual start reliability
+
+- Problem: Internationalization touches startup labels, script order, and config-driven mission copy. Any language change that breaks `Start Flying` or `开始飞行` is a release blocker.
+- Proposed change: Keep bilingual start-path smoke tests and browser QA as a hard gate for future cycles.
+- Files likely affected: `/v4/js/smoke-tests.js`, `/v4/QA_EVIDENCE.md`, `/v4/AGENT_HANDOFF.md`.
+- Risk level: Medium. Startup regressions can hide behind passing logic-only tests.
+- Test plan: Run `/v4/test.html`; browser QA English default start; switch to Chinese; browser QA Chinese start.
+- Acceptance criteria: Both language start buttons enter PLAYING, HUD appears, canvas advances, and console has no script errors.
+
+### P0-5: Prevent inactive panels from intercepting clicks
+
+- Problem: During panel fade transitions, hidden panels can still sit over the start screen and intercept fast taps after returning home.
+- Proposed change: Keep pointer-event rules so only `.panel.active` and its children can receive input.
+- Files likely affected: `/v4/style.css`, `/v4/js/smoke-tests.js`.
+- Risk level: Low. CSS-scoped to panels, but it affects all overlays.
+- Test plan: Open treasure, close it, immediately tap settings. Repeat on 400x600 mobile viewport.
+- Acceptance criteria: Returned-home buttons respond immediately; no inactive overlay child captures the tap.
 
 ### P0-1: Lock down the start-game path after the recent runtime failure
 
@@ -158,6 +180,24 @@ Cycle 15 should implement at most 3 low-risk stability/QA items after baseline Q
 - Acceptance criteria: No visible regressions; named classes cover the same styles; future reviewers can find and adjust UI styling in CSS.
 
 ## 4. P1 Accessibility / Safety
+
+### P1-16: Reduce remaining hardcoded fallback text
+
+- Problem: The core i18n dictionary now drives primary UI, but some static HTML text remains as no-JS fallback and some developer/debug copy remains less polished.
+- Proposed change: Gradually replace remaining static fallback strings with `data-i18n` or documented no-JS fallback conventions, and finish debug panel bilingual polish only where user-facing.
+- Files likely affected: `/v4/index.html`, `/v4/test.html`, `/v4/js/debug.js`, `/v4/js/i18n.js`, `/v4/js/i18n-check.js`.
+- Risk level: Low to Medium. Text wiring can affect accessibility labels.
+- Test plan: Run i18n smoke tests, search visible UI for Chinese in English mode and English in Chinese mode, browser QA debug panel.
+- Acceptance criteria: Primary visible UI stays in current language; any intentional fallback text is documented; no missing translation keys.
+
+### P1-17: Expand language-switch accessibility coverage
+
+- Problem: Language switch now has a visible label and polite status, but future copy changes could desynchronize visible labels, `aria-label`, and `html lang`.
+- Proposed change: Keep tests for language status announcements, `html lang`, storage persistence, and ARIA names in both languages.
+- Files likely affected: `/v4/js/smoke-tests.js`, `/v4/js/i18n-check.js`, `/v4/QA_EVIDENCE.md`.
+- Risk level: Low. Test-only guardrail.
+- Test plan: Switch English -> Chinese -> English; inspect visible labels, ARIA labels, status live region, and stored language.
+- Acceptance criteria: Screen reader labels match the visible language and the switch is never emoji-only.
 
 ### P1-9: Complete ARIA labels and roles for all overlay controls
 

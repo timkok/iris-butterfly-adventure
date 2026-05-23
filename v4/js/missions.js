@@ -62,7 +62,7 @@ window.IrisGame.missions = {
     getDisplayText() {
         const state = window.IrisGame.state;
         if (state.game.missionCompleted) {
-            return "挑战最高分";
+            return window.IrisGame.i18n.t('missions.completedTitle');
         }
         return state.game.mission ? state.game.mission.title : "";
     },
@@ -70,7 +70,9 @@ window.IrisGame.missions = {
     getDisplayProgress() {
         const state = window.IrisGame.state;
         if (state.game.missionCompleted) {
-            return state.game.newHighScoreThisRun ? "✨ 新记录！" : `(目标: ${state.game.highScore})`;
+            return state.game.newHighScoreThisRun
+                ? window.IrisGame.i18n.t('missions.newRecord')
+                : window.IrisGame.i18n.format('missions.goal', { score: state.game.highScore });
         }
         if (!state.game.mission) return "";
         
@@ -84,7 +86,7 @@ window.IrisGame.missions = {
             val = m.getProgress(state.game);
         }
         
-        const suffix = m.id === 'survive_30s' ? '秒' : '';
+        const suffix = m.id === 'survive_30s' ? window.IrisGame.i18n.t('missions.seconds') : '';
         return `(${Math.min(val, m.target)}/${m.target}${suffix})`;
     },
     
