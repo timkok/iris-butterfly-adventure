@@ -69,7 +69,7 @@
 ## Release Notes
 - Cycle: Cycle 7
 - Pushed Branch: main
-- Commit Hash: ef0e047
+- Commit Hash: bfeec72
 - Pages Source: main / root
 - Game URL: https://timkok.github.io/iris-butterfly-adventure/v4/
 - Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
