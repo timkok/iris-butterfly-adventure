@@ -55,6 +55,8 @@ window.IrisGame.state = {
     particles: [],
     windLines: [],
     bgElements: [],
+    leaves: [],
+    tapRipples: [],
     
     // Accessibility
     prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -100,5 +102,7 @@ window.IrisGame.state = {
         this.stars = [];
         this.particles = [];
         this.windLines = [];
+        this.leaves = [];
+        this.tapRipples = [];
     }
 };

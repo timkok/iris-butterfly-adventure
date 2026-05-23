@@ -27,6 +27,11 @@ window.IrisGame.player = {
             this.scale = 1.15;
             window.IrisGame.entities.createParticles(this.x - 6, this.y + 8, '#ffffff', 3);
             window.IrisGame.audio.playSound('click');
+            
+            // Tap ripple effect (suppressed under reduced motion)
+            if (!state.prefersReducedMotion) {
+                state.tapRipples.push(new window.IrisGame.entities.TapRipple(this.x, this.y));
+            }
         }
     }
 };
@@ -132,6 +137,66 @@ window.IrisGame.entities = {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
+        }
+    },
+    
+    Leaf: class {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.vx = -(0.3 + Math.random() * 0.5);
+            this.vy = 0.2 + Math.random() * 0.4;
+            this.rotation = Math.random() * Math.PI * 2;
+            this.rotationSpeed = (Math.random() - 0.5) * 0.04;
+            this.alpha = 0.7 + Math.random() * 0.3;
+            this.emoji = Math.random() < 0.5 ? '🍃' : '🌿';
+            this.size = 10 + Math.random() * 6;
+            this.swayPhase = Math.random() * Math.PI * 2;
+        }
+        update(calmMode) {
+            const speedMult = calmMode ? 0.4 : 1.0;
+            this.x += this.vx * speedMult;
+            this.y += this.vy * speedMult;
+            this.rotation += this.rotationSpeed * speedMult;
+            this.swayPhase += 0.02 * speedMult;
+            this.x += Math.sin(this.swayPhase) * 0.3 * speedMult;
+        }
+        draw(ctx) {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.font = `${this.size}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.emoji, 0, 0);
+            ctx.restore();
+        }
+    },
+    
+    TapRipple: class {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.radius = 4;
+            this.maxRadius = 22;
+            this.alpha = 0.5;
+            this.expandSpeed = 1.5;
+        }
+        update() {
+            this.radius += this.expandSpeed;
+            this.alpha -= 0.035;
+        }
+        draw(ctx) {
+            if (this.alpha <= 0) return;
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.alpha);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.stroke();
             ctx.restore();
         }
     }

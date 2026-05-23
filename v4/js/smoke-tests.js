@@ -375,6 +375,48 @@
         }
     });
     
+    test('Leaf and TapRipple Entities', () => {
+        const entities = window.IrisGame.entities;
+        
+        // 1. Leaf entity construction and properties
+        const leaf = new entities.Leaf(300, 100);
+        assert(typeof leaf.x === 'number' && leaf.x === 300, 'Leaf x should be 300');
+        assert(typeof leaf.y === 'number' && leaf.y === 100, 'Leaf y should be 100');
+        assert(leaf.vx < 0, 'Leaf vx should be negative (moving left)');
+        assert(leaf.vy > 0, 'Leaf vy should be positive (moving down)');
+        assert(typeof leaf.rotation === 'number', 'Leaf should have rotation');
+        assert(['🍃', '🌿'].includes(leaf.emoji), 'Leaf emoji should be a leaf');
+        assert(leaf.size >= 10 && leaf.size <= 16, 'Leaf size should be in range [10, 16]');
+        
+        // 2. Leaf update moves position
+        const startX = leaf.x;
+        const startY = leaf.y;
+        leaf.update(false);
+        assert(leaf.x < startX, 'Leaf should drift left after update');
+        assert(leaf.y > startY, 'Leaf should drift down after update');
+        
+        // 3. Leaf calm mode update is slower
+        const leaf2 = new entities.Leaf(300, 100);
+        const leaf3 = new entities.Leaf(300, 100);
+        leaf2.vx = leaf3.vx; leaf2.vy = leaf3.vy; // sync velocities
+        leaf2.swayPhase = leaf3.swayPhase;
+        leaf2.update(false); // normal
+        leaf3.update(true);  // calm
+        assert(Math.abs(300 - leaf3.x) < Math.abs(300 - leaf2.x), 'Calm mode leaf should move less than normal');
+        
+        // 4. TapRipple entity construction
+        const ripple = new entities.TapRipple(150, 200);
+        assert(ripple.x === 150, 'Ripple x should be 150');
+        assert(ripple.y === 200, 'Ripple y should be 200');
+        assert(ripple.radius === 4, 'Ripple initial radius should be 4');
+        assert(ripple.alpha === 0.5, 'Ripple initial alpha should be 0.5');
+        
+        // 5. TapRipple update expands and fades
+        ripple.update();
+        assert(ripple.radius > 4, 'Ripple radius should expand');
+        assert(ripple.alpha < 0.5, 'Ripple alpha should decrease');
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {

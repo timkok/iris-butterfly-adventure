@@ -399,11 +399,17 @@ window.IrisGame.canvas = {
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBackground();
         
+        // Draw ambient leaves (behind obstacles, in front of background)
+        state.leaves.forEach(leaf => leaf.draw(ctx));
+        
         state.obstacles.forEach(obs => this.drawObstacle(obs));
         state.stars.forEach(star => star.draw(ctx));
         state.particles.forEach(p => p.draw(ctx));
         
         this.drawPlayer();
+        
+        // Draw tap ripples (in front of player)
+        state.tapRipples.forEach(ripple => ripple.draw(ctx));
         
         window.IrisGame.debug.drawOverlays(ctx);
     }

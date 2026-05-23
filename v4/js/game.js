@@ -461,6 +461,34 @@ window.IrisGame.game = {
             }
         }
         
+        // Spawn ambient leaves (garden, breeze, rainbow stages only)
+        if (!state.prefersReducedMotion && ['garden', 'breeze', 'rainbow'].includes(state.game.currentStage)) {
+            const maxLeaves = state.game.calmModeEnabled ? 3 : 6;
+            const spawnChance = state.game.calmModeEnabled ? 0.008 : 0.02;
+            if (state.leaves.length < maxLeaves && Math.random() < spawnChance) {
+                state.leaves.push(new window.IrisGame.entities.Leaf(
+                    400 + 20,
+                    30 + Math.random() * 200
+                ));
+            }
+        }
+        
+        // Update leaves
+        for (let i = state.leaves.length - 1; i >= 0; i--) {
+            state.leaves[i].update(state.game.calmModeEnabled);
+            if (state.leaves[i].x < -30 || state.leaves[i].y > 620) {
+                state.leaves.splice(i, 1);
+            }
+        }
+        
+        // Update tap ripples
+        for (let i = state.tapRipples.length - 1; i >= 0; i--) {
+            state.tapRipples[i].update();
+            if (state.tapRipples[i].alpha <= 0) {
+                state.tapRipples.splice(i, 1);
+            }
+        }
+        
         // Time progress mission trigger
         if (state.game.flightFrames % 60 === 0) {
             window.IrisGame.missions.trigger('time', 1);
