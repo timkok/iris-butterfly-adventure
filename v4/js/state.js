@@ -39,6 +39,8 @@ window.IrisGame.state = {
         consecutiveCollisions: 0,
         consecutivePasses: 0,
         starsCollectedSinceLastRainbow: 0,
+        consecutiveStarsNoHit: 0,
+        speedBoostFrames: 0,
         hintFlags: {}
     },
     
@@ -86,6 +88,8 @@ window.IrisGame.state = {
         this.game.consecutiveCollisions = 0;
         this.game.consecutivePasses = 0;
         this.game.starsCollectedSinceLastRainbow = 0;
+        this.game.consecutiveStarsNoHit = 0;
+        this.game.speedBoostFrames = 0;
         this.game.hintFlags = {};
         
         this.frameCount = 0;

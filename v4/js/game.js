@@ -245,6 +245,8 @@ window.IrisGame.game = {
         
         // Notify director of collision
         director.onCollision();
+        state.game.consecutiveStarsNoHit = 0;
+        state.game.speedBoostFrames = 0;
         window.IrisGame.missions.trigger('hit');
         
         const hint = director.getHintMessage();
@@ -278,6 +280,13 @@ window.IrisGame.game = {
         
         window.IrisGame.entities.createParticles(star.x, star.y, star.type === 'rainbow' ? '#ff7eb3' : '#ffd36e', 12);
         state.stars.splice(index, 1);
+        
+        state.game.consecutiveStarsNoHit = (state.game.consecutiveStarsNoHit || 0) + 1;
+        if (state.game.consecutiveStarsNoHit >= 3) {
+            state.game.speedBoostFrames = 120;
+            ui.showMessage("速度冲刺！✨", 1, 1000);
+            window.IrisGame.entities.createParticles(player.x, player.y, '#ffd36e', 16);
+        }
         
         if (star.type === 'rainbow') {
             window.IrisGame.missions.trigger('rainbow', 1);
@@ -351,6 +360,10 @@ window.IrisGame.game = {
         state.frameCount++;
         state.gameTime++;
         state.game.flightFrames++;
+        
+        if (state.game.speedBoostFrames > 0) {
+            state.game.speedBoostFrames--;
+        }
         
         // Physics updates
         player.scale += (1 - player.scale) * 0.1;

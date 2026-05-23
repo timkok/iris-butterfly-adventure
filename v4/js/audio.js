@@ -88,6 +88,11 @@ window.IrisGame.audio = {
             soundBtn.setAttribute('aria-checked', String(state.game.soundEnabled));
         }
         
+        const announcement = document.getElementById('sound-announcement');
+        if (announcement) {
+            announcement.textContent = state.game.soundEnabled ? '声音已开启' : '声音已关闭';
+        }
+        
         if (state.game.soundEnabled) {
             this.ensureAudio();
             this.playSound('click');
