@@ -1,3 +1,33 @@
+# Agent Handoff - Multi-Agent Discussion Protocol
+
+## Required Pre-Code Discussion
+Before any future cycle modifies implementation code, the agents must write the discussion in this file first. Builder may not modify code until all four role sections below are present for the cycle.
+
+1. **Planner**
+   - Proposed tasks.
+   - Why each task matters.
+   - Risk level.
+   - Acceptance criteria.
+2. **Builder**
+   - Implementation plan.
+   - Files to modify.
+   - Rollback plan.
+3. **QA**
+   - Test plan.
+   - Browser scenarios.
+   - Pass/fail criteria.
+4. **Release Manager**
+   - Release checklist.
+   - Version bump requirement.
+
+## Enforcement Rules
+- The discussion must be written into `/v4/AGENT_HANDOFF.md`.
+- Only after the discussion is complete may Builder modify code.
+- Stability or QA-only cycles that do not change code still need QA evidence, but do not need an asset version bump.
+- If code changes after the discussion, update the same cycle section with implementation notes, QA results, release notes, commit hashes, and any deviations.
+
+---
+
 # Agent Handoff - Cycle 12 Animation Budget + Calm Mode Guardrails
 
 ## Builder Plan
