@@ -226,6 +226,80 @@
         }
     });
     
+    test('Adaptive Gap Scaling', () => {
+        const state = window.IrisGame.state;
+        const director = window.IrisGame.director;
+        
+        state.resetGameState();
+        state.game.mode = 'easy';
+        state.game.currentStage = 'warmup';
+        state.game.lives = 5;
+        state.game.consecutiveCollisions = 0;
+        
+        const diffNormal = director.getCurrentDifficulty();
+        const baseGap = diffNormal.gap;
+        
+        // 1. 2 consecutive collisions should widen the gap
+        state.game.consecutiveCollisions = 2;
+        const diffWidened = director.getCurrentDifficulty();
+        assert(diffWidened.gap === baseGap + 20, `Gap should widen by 20px on 2 consecutive collisions (got ${diffWidened.gap} vs ${baseGap})`);
+        
+        // 2. 1 remaining life in easy mode should widen the gap by 30px
+        state.game.consecutiveCollisions = 0;
+        state.game.lives = 1;
+        const diffLowLife = director.getCurrentDifficulty();
+        assert(diffLowLife.gap === baseGap + 30, `Gap should widen by 30px when lives === 1 (got ${diffLowLife.gap} vs ${baseGap})`);
+        
+        // 3. Practice mode should have an extra 30px gap padding
+        state.game.mode = 'practice';
+        state.game.lives = 99;
+        const diffPractice = director.getCurrentDifficulty();
+        const practiceBaseConf = window.IrisGame.config.GAME_MODES.practice;
+        const expectedPracticeGap = practiceBaseConf.baseGap + 30; // since modeConf.baseGap = 240
+        assert(diffPractice.gap === expectedPracticeGap, `Practice mode gap should have 30px padding (got ${diffPractice.gap} vs ${expectedPracticeGap})`);
+    });
+    
+    test('Game Over Best Performance', () => {
+        const state = window.IrisGame.state;
+        const ui = window.IrisGame.ui;
+        
+        const origBestElement = ui.elements.overBestPerformance;
+        
+        try {
+            ui.elements.overBestPerformance = { textContent: '' };
+            
+            // Case 1: Mission completed
+            state.game.missionCompleted = true;
+            ui.renderGameOver();
+            assert(ui.elements.overBestPerformance.textContent.includes('飞行课任务'), 'Should select mission completed first');
+            
+            // Case 2: No mission completed, but rainbow stars collected
+            state.game.missionCompleted = false;
+            state.game.rainbowStarsCollected = 1;
+            ui.renderGameOver();
+            assert(ui.elements.overBestPerformance.textContent.includes('彩虹星'), 'Should select rainbow stars second');
+            
+            // Case 3: Passed obstacles
+            state.game.rainbowStarsCollected = 0;
+            state.game.passedObstacles = 6;
+            ui.renderGameOver();
+            assert(ui.elements.overBestPerformance.textContent.includes('6 组花藤'), 'Should select passed obstacles third');
+            
+            // Case 4: High score
+            state.game.passedObstacles = 2;
+            state.game.score = 8;
+            ui.renderGameOver();
+            assert(ui.elements.overBestPerformance.textContent.includes('8 颗星星'), 'Should select score fourth');
+            
+            // Case 5: Fallback encouraging tip
+            state.game.score = 2;
+            ui.renderGameOver();
+            assert(ui.elements.overBestPerformance.textContent !== '', 'Should populate standard encouraging fallback');
+        } finally {
+            ui.elements.overBestPerformance = origBestElement;
+        }
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {

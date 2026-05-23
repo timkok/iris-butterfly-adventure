@@ -251,6 +251,15 @@ window.IrisGame.ui = {
                 bestText = `你穿过了 ${state.game.passedObstacles} 组花藤！🌿`;
             } else if (state.game.score >= 5) {
                 bestText = `你收集了 ${state.game.score} 颗星星！⭐`;
+            } else {
+                const standardFallbackTips = [
+                    "每一次轻轻飞起，都是很棒的尝试 💖",
+                    "慢慢来，小蝴蝶正在一点点进步哦 ✨",
+                    "飞得开心最重要，小蝴蝶很喜欢和你一起玩 🦋",
+                    "今天也是非常努力的一天，抱抱自己吧 🌸",
+                    "只要轻轻起飞，就是最美的小蝴蝶 🌼"
+                ];
+                bestText = standardFallbackTips[state.game.score % standardFallbackTips.length];
             }
             this.elements.overBestPerformance.textContent = bestText;
         }
