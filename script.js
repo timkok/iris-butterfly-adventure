@@ -20,9 +20,13 @@ let lives = 99;
 let frameCount = 0;
 let gameTime = 0;
 let screenShake = 0;
-let soundEnabled = true;
+let soundEnabled = localStorage.getItem('iris_butterfly_soundEnabled') === 'true';
 let audioCtx = null;
 let currentMessageTimer = null;
+let newHighScoreThisRun = false;
+
+let hasReached10 = localStorage.getItem('iris_butterfly_reached10') === 'true';
+let hasReached15 = localStorage.getItem('iris_butterfly_reached15') === 'true';
 
 const diffSettings = {
     practice: { speed: 0.9, gap: 260, spawnRate: 185, starRate: 95, tolerance: 18, lives: 99 },
@@ -39,7 +43,8 @@ const defaultAssistSettings = {
 };
 
 let assistSettings = loadAssistSettings();
-let currentSettings = buildSettings();
+let baseSettings = buildSettings();
+let currentSettings = { ...baseSettings };
 
 let ownedCosmetics = JSON.parse(localStorage.getItem(storage.cosmetics) || '["default"]');
 let activeCosmetic = localStorage.getItem(storage.activeCosmetic) || 'default';
@@ -123,6 +128,47 @@ function buildSettings() {
         starRate: Math.round(base.starRate / Math.max(0.88, speedMult)),
         lives: difficulty === 'practice' ? 99 : Number.isFinite(livesOverride) ? livesOverride : base.lives
     };
+}
+
+function getDifficultyScale() {
+    if (score <= 5) return 0;
+    if (score >= 30) return 1;
+    return (score - 5) / 25;
+}
+
+function updateDynamicSettings() {
+    const scale = getDifficultyScale();
+    let maxSpeedMult = 1.0;
+    let maxGapReduce = 0;
+    let maxSpawnRateReducePercent = 0.0;
+
+    if (difficulty === 'practice') {
+        maxSpeedMult = 1.05;
+        maxGapReduce = 10;
+        maxSpawnRateReducePercent = 0.05;
+    } else if (difficulty === 'easy') {
+        maxSpeedMult = 1.15;
+        maxGapReduce = 20;
+        maxSpawnRateReducePercent = 0.10;
+    } else if (difficulty === 'normal') {
+        maxSpeedMult = 1.25;
+        maxGapReduce = 30;
+        maxSpawnRateReducePercent = 0.18;
+    } else if (difficulty === 'hard') {
+        maxSpeedMult = 1.35;
+        maxGapReduce = 40;
+        maxSpawnRateReducePercent = 0.25;
+    }
+
+    const currentSpeedMult = 1 + (maxSpeedMult - 1) * scale;
+    const currentGapReduce = maxGapReduce * scale;
+    const currentSpawnRateReduce = maxSpawnRateReducePercent * scale;
+
+    currentSettings.speed = baseSettings.speed * currentSpeedMult;
+    currentSettings.starSpeed = baseSettings.starSpeed * currentSpeedMult;
+    currentSettings.gap = Math.max(90, baseSettings.gap - currentGapReduce);
+    currentSettings.spawnRate = Math.round(baseSettings.spawnRate * (1 - currentSpawnRateReduce));
+    currentSettings.tolerance = baseSettings.tolerance;
 }
 
 function showScreen(screen) {
@@ -222,7 +268,7 @@ function updateGame() {
 
     if (player.y > canvas.height - player.radius - 16) {
         player.y = canvas.height - player.radius - 16;
-        handleCollision(difficulty === 'practice' ? '练习模式，继续飞！' : '轻轻点一下，继续飞起来！');
+        handleCollision('小蝴蝶碰到草地啦，轻轻飞起来！');
     }
 
     if (player.y < player.radius) {
@@ -230,7 +276,12 @@ function updateGame() {
         player.velocity = 0;
     }
 
-    if (frameCount === firstObstacleFrame || (frameCount > firstObstacleFrame && (frameCount - firstObstacleFrame) % currentSettings.spawnRate === 0)) spawnObstacle();
+    if (frameCount >= 120) {
+        const obstacleFrames = frameCount - 120;
+        if (obstacleFrames === 0 || (obstacleFrames > 0 && obstacleFrames % currentSettings.spawnRate === 0)) {
+            spawnObstacle();
+        }
+    }
     if (frameCount % currentSettings.starRate === 0) spawnStar();
 
     updateObstacles();
@@ -240,17 +291,24 @@ function updateGame() {
 
 function spawnObstacle() {
     const margin = 76;
-    const minGapCenter = margin + currentSettings.gap / 2;
-    const maxGapCenter = canvas.height - 70 - currentSettings.gap / 2;
+    let gap = currentSettings.gap;
+    const isFirstObstacle = (obstacles.length === 0 && frameCount <= 300);
+    if (isFirstObstacle) {
+        gap += 25;
+    }
+
+    const minGapCenter = margin + gap / 2;
+    const maxGapCenter = canvas.height - 70 - gap / 2;
     const gapY = minGapCenter + Math.random() * (maxGapCenter - minGapCenter);
     const width = 58;
     obstacles.push({
         x: canvas.width + 12,
         width,
         gapY,
-        gap: currentSettings.gap,
+        gap,
         passed: false,
-        flowerOffset: Math.random() * 100
+        flowerOffset: Math.random() * 100,
+        isFirst: isFirstObstacle
     });
 }
 
@@ -272,7 +330,7 @@ function updateObstacles() {
             obstacle.passed = true;
         }
         if (collidesWithObstacle(obstacle)) {
-            handleCollision(difficulty === 'practice' ? '练习模式，继续飞！' : '碰到花藤啦，没关系再试一次！');
+            handleCollision(difficulty === 'practice' ? '练习模式，继续飞！' : '碰到花藤啦，没关系，再试一次！');
         }
         if (obstacle.x + obstacle.width < -30) obstacles.splice(i, 1);
     }
@@ -290,6 +348,7 @@ function updateStars() {
             createParticles(star.x, star.y, '#ffd36e', 9);
             stars.splice(i, 1);
             saveHighScoreIfNeeded();
+            updateDynamicSettings();
             checkMilestones();
             updateHUD();
         } else if (star.x < -24) {
@@ -302,6 +361,7 @@ function saveHighScoreIfNeeded() {
     if (score <= highScore) return false;
     highScore = score;
     localStorage.setItem(storage.highScore, String(highScore));
+    newHighScoreThisRun = true;
     return true;
 }
 
@@ -416,8 +476,8 @@ function drawPlayer() {
     const flap = Math.sin(player.wingPhase) * 0.18;
     ctx.globalAlpha = player.invincibleFrames > 0 ? 0.72 : 1;
     ctx.font = '28px serif';
-    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
 
     if (activeCosmetic === 'star-trail') {
         ctx.fillText('✨', -20, 10);
@@ -489,7 +549,6 @@ class Star {
 }
 
 function jump() {
-    ensureAudio();
     if (gameState === 'START') return;
     if (gameState === 'PLAYING') {
         player.velocity = player.lift;
@@ -518,8 +577,8 @@ function handleCollision(message) {
 }
 
 function startGame() {
-    ensureAudio();
-    currentSettings = buildSettings();
+    baseSettings = buildSettings();
+    currentSettings = { ...baseSettings };
     gameState = 'PLAYING';
     score = 0;
     frameCount = 0;
@@ -532,11 +591,13 @@ function startGame() {
     stars = [];
     particles = [];
     screenShake = 0;
+    newHighScoreThisRun = false;
     ui.message.classList.add('hidden');
     initBackground();
     spawnStarterStars();
     showScreen(null);
     setGameUiVisible(true);
+    updateDynamicSettings();
     showMessage('穿过花藤空隙，收集星星吧！', 1700);
     updateHUD();
 }
@@ -574,7 +635,7 @@ function backToHome() {
 
 function gameOver() {
     gameState = 'GAMEOVER';
-    if (saveHighScoreIfNeeded()) {
+    if (newHighScoreThisRun) {
         showParentMessage();
     }
     ui.finalScore.textContent = score;
@@ -586,6 +647,16 @@ function gameOver() {
 }
 
 function checkMilestones() {
+    if (score === 10 && !hasReached10) {
+        hasReached10 = true;
+        localStorage.setItem('iris_butterfly_reached10', 'true');
+        showParentMessage();
+    } else if (score === 15 && !hasReached15) {
+        hasReached15 = true;
+        localStorage.setItem('iris_butterfly_reached15', 'true');
+        showParentMessage();
+    }
+
     if (score === 5 || score === 10 || score === 15) {
         const text = score === 10 ? '任务完成！继续挑战更高分吧 ✨' : `太棒了，已经收集 ${score} 颗星星！`;
         showMessage(text, 2200);
@@ -633,18 +704,24 @@ function renderTreasure() {
     document.querySelectorAll('.cosmetic-item').forEach(item => {
         const id = item.dataset.id;
         const button = item.querySelector('.btn-buy');
+        const cost = Number(item.dataset.cost || 0);
         if (ownedCosmetics.includes(id)) {
-            button.textContent = activeCosmetic === id ? '使用中' : '使用';
-            button.classList.add('owned');
+            if (activeCosmetic === id) {
+                button.textContent = '使用中';
+                button.className = 'btn-buy owned active-cosmetic';
+            } else {
+                button.textContent = '使用';
+                button.className = 'btn-buy owned';
+            }
         } else {
-            button.textContent = `${item.dataset.cost} ✨`;
-            button.classList.remove('owned');
+            button.textContent = `${cost} ✨`;
+            button.className = 'btn-buy';
         }
     });
 }
 
 function ensureAudio() {
-    if (audioCtx || !soundEnabled) return;
+    if (audioCtx) return;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     audioCtx = new Ctx();
@@ -670,21 +747,22 @@ function playSound(type, x = null) {
 
     if (type === 'collect') {
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.12);
-        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.22);
+        oscillator.frequency.setValueAtTime(988, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1318, audioCtx.currentTime + 0.08);
+        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
     } else if (type === 'hit') {
         oscillator.type = 'triangle';
-        oscillator.frequency.setValueAtTime(230, audioCtx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(130, audioCtx.currentTime + 0.18);
-        gainNode.gain.setValueAtTime(0.11, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
-    } else {
+        oscillator.frequency.setValueAtTime(180, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.25);
+        gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+    } else if (type === 'click') {
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(520, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        oscillator.frequency.setValueAtTime(659, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.05);
+        gainNode.gain.setValueAtTime(0.008, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
     }
 
     oscillator.start();
@@ -721,7 +799,8 @@ function setupListeners() {
             difficulty = button.dataset.diff;
             document.querySelectorAll('.btn-diff').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            currentSettings = buildSettings();
+            baseSettings = buildSettings();
+            currentSettings = { ...baseSettings };
             playSound('click');
         });
     });
@@ -737,10 +816,13 @@ function setupListeners() {
 
     on('sound-btn', 'click', () => {
         soundEnabled = !soundEnabled;
+        localStorage.setItem('iris_butterfly_soundEnabled', String(soundEnabled));
         ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
-        ui.sound.setAttribute('aria-label', '声音开关');
         ui.sound.setAttribute('aria-pressed', String(soundEnabled));
-        if (soundEnabled) playSound('click');
+        if (soundEnabled) {
+            ensureAudio();
+            playSound('click');
+        }
     });
 
     on('parent-settings-btn', 'click', () => {
@@ -750,6 +832,8 @@ function setupListeners() {
 
     on('close-settings-btn', 'click', () => {
         saveSettingsFromUI();
+        baseSettings = buildSettings();
+        currentSettings = { ...baseSettings };
         showScreen(screens.start);
         showMessage('设置已保存', 1200);
     });
@@ -757,6 +841,10 @@ function setupListeners() {
     on('reset-high-score-btn', 'click', () => {
         highScore = 0;
         localStorage.setItem(storage.highScore, '0');
+        localStorage.removeItem('iris_butterfly_reached10');
+        localStorage.removeItem('iris_butterfly_reached15');
+        hasReached10 = false;
+        hasReached15 = false;
         updateHUD();
         showMessage('最高分已重置。', 1200);
     });
@@ -787,10 +875,16 @@ function setupListeners() {
         jump();
     }, { passive: false });
     window.addEventListener('touchstart', event => {
-        if (gameState === 'PLAYING') event.preventDefault();
+        if (gameState === 'PLAYING') {
+            if (event.target.closest('button, select, input')) return;
+            event.preventDefault();
+        }
     }, { passive: false });
     window.addEventListener('touchmove', event => {
-        if (gameState === 'PLAYING') event.preventDefault();
+        if (gameState === 'PLAYING') {
+            if (event.target.closest('button, select, input')) return;
+            event.preventDefault();
+        }
     }, { passive: false });
     window.addEventListener('dblclick', event => {
         event.preventDefault();
@@ -821,6 +915,7 @@ function selectCosmetic(item) {
         }
         ownedCosmetics.push(id);
         localStorage.setItem(storage.cosmetics, JSON.stringify(ownedCosmetics));
+        playSound('click');
     }
     activeCosmetic = id;
     localStorage.setItem(storage.activeCosmetic, activeCosmetic);
@@ -834,6 +929,7 @@ function init() {
     renderTreasure();
     updateHUD();
     setGameUiVisible(false);
+    ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
     ui.sound.setAttribute('aria-pressed', String(soundEnabled));
     ui.sound.setAttribute('aria-label', '声音开关');
     showScreen(screens.start);
