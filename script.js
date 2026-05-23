@@ -25,8 +25,8 @@ let audioCtx = null;
 let currentMessageTimer = null;
 
 const diffSettings = {
-    practice: { speed: 0.95, gap: 270, spawnRate: 185, starRate: 95, tolerance: 18, lives: 99 },
-    easy: { speed: 1.32, gap: 230, spawnRate: 160, starRate: 100, tolerance: 12, lives: 5 },
+    practice: { speed: 0.9, gap: 260, spawnRate: 185, starRate: 95, tolerance: 18, lives: 99 },
+    easy: { speed: 1.32, gap: 225, spawnRate: 160, starRate: 100, tolerance: 12, lives: 5 },
     normal: { speed: 1.95, gap: 180, spawnRate: 126, starRate: 110, tolerance: 5, lives: 3 },
     hard: { speed: 2.55, gap: 145, spawnRate: 98, starRate: 122, tolerance: -1, lives: 3 }
 };
@@ -257,6 +257,11 @@ function spawnObstacle() {
 function spawnStar() {
     const y = 78 + Math.random() * (canvas.height - 178);
     stars.push(new Star(canvas.width + 24, y, currentSettings.starSpeed));
+}
+
+function spawnStarterStars() {
+    stars.push(new Star(canvas.width * 0.72, 230, currentSettings.starSpeed));
+    stars.push(new Star(canvas.width + 80, 340, currentSettings.starSpeed));
 }
 
 function updateObstacles() {
@@ -529,6 +534,7 @@ function startGame() {
     screenShake = 0;
     ui.message.classList.add('hidden');
     initBackground();
+    spawnStarterStars();
     showScreen(null);
     setGameUiVisible(true);
     showMessage('穿过花藤空隙，收集星星吧！', 1700);
@@ -560,6 +566,7 @@ function backToHome() {
     obstacles = [];
     stars = [];
     particles = [];
+    ui.message.classList.add('hidden');
     setGameUiVisible(false);
     showScreen(screens.start);
     updateHUD();
@@ -572,6 +579,7 @@ function gameOver() {
     }
     ui.finalScore.textContent = score;
     ui.recordScore.textContent = highScore;
+    ui.message.classList.add('hidden');
     setGameUiVisible(false);
     showScreen(screens.gameOver);
     updateHUD();
@@ -730,7 +738,7 @@ function setupListeners() {
     on('sound-btn', 'click', () => {
         soundEnabled = !soundEnabled;
         ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
-        ui.sound.setAttribute('aria-label', soundEnabled ? '关闭声音' : '打开声音');
+        ui.sound.setAttribute('aria-label', '声音开关');
         ui.sound.setAttribute('aria-pressed', String(soundEnabled));
         if (soundEnabled) playSound('click');
     });
@@ -827,7 +835,7 @@ function init() {
     updateHUD();
     setGameUiVisible(false);
     ui.sound.setAttribute('aria-pressed', String(soundEnabled));
-    ui.sound.setAttribute('aria-label', '关闭声音');
+    ui.sound.setAttribute('aria-label', '声音开关');
     showScreen(screens.start);
     requestAnimationFrame(loop);
 }

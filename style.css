@@ -30,7 +30,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100dvh;
     overscroll-behavior: none;
     touch-action: none;
     -webkit-text-size-adjust: 100%;
@@ -53,7 +53,7 @@ button {
 #game-container {
     position: relative;
     width: min(400px, 100vw);
-    height: min(600px, 100vh);
+    height: min(600px, 100dvh);
     background: linear-gradient(#d7f8ff, #fff5d9);
     box-shadow: 0 24px 62px rgba(95, 84, 142, 0.18);
     border: 5px solid rgba(255, 255, 255, 0.95);
@@ -366,6 +366,15 @@ input:focus-visible {
     display: block;
 }
 
+#treasure-screen .tab-content {
+    flex: 1;
+    min-height: 0;
+}
+
+#close-treasure-btn {
+    margin-top: auto;
+}
+
 .sticker-grid,
 .cosmetic-grid {
     display: grid;
@@ -462,7 +471,7 @@ input:focus-visible {
         border-radius: 0;
         border: 0;
         width: 100vw;
-        height: min(600px, 100vh);
+        height: min(600px, 100dvh);
     }
 
     .panel {
