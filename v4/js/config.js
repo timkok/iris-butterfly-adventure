@@ -174,7 +174,9 @@ window.IrisGame.config = {
         leavesEnabled: true,
         shieldHaloEnabled: true,
         calmModeParticleMultiplier: 0.45,
-        reducedMotionDisableAmbient: true
+        reducedMotionDisableAmbient: true,
+        reducedMotionDisableStagger: true,
+        reducedMotionDisableRipple: true
     },
     
     defaultAssistSettings: {

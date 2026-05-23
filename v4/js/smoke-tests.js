@@ -634,6 +634,7 @@
         const config = window.IrisGame.config;
         const entities = window.IrisGame.entities;
         const game = window.IrisGame.game;
+        const player = window.IrisGame.player;
 
         // Save original states
         const origPrefersReduced = state.prefersReducedMotion;
@@ -654,6 +655,10 @@
                 entities.createParticles(100, 100, '#ffffff', 10);
             }
             assert(state.particles.length === config.EFFECTS_POLICY.maxParticles, `Particles should be capped at maxParticles (${config.EFFECTS_POLICY.maxParticles}), got ${state.particles.length}`);
+            assert(Number.isFinite(config.EFFECTS_POLICY.stickerCelebrationMs), 'stickerCelebrationMs should be centralized in EFFECTS_POLICY');
+            assert(config.EFFECTS_POLICY.reducedMotionDisableAmbient === true, 'Reduced motion should disable ambient effects by policy');
+            assert(config.EFFECTS_POLICY.reducedMotionDisableStagger === true, 'Reduced motion should disable stagger effects by policy');
+            assert(config.EFFECTS_POLICY.reducedMotionDisableRipple === true, 'Reduced motion should disable tap ripples by policy');
 
             // 2. Calm Mode reduces particle density
             state.particles = [];
@@ -661,6 +666,7 @@
             entities.createParticles(100, 100, '#ffffff', 10);
             const expectedCalmCount = Math.round(10 * config.EFFECTS_POLICY.calmModeParticleMultiplier);
             assert(state.particles.length === expectedCalmCount, `Calm mode particles should scale down, expected ${expectedCalmCount}, got ${state.particles.length}`);
+            assert(state.particles.length < 10, 'Calm mode should reduce effect density below the requested particle count');
 
             // 3. Leaves capping and calm mode behavior
             state.game.calmModeEnabled = false;
@@ -695,6 +701,11 @@
             state.leaves = [];
             const disableAmbientLeaves = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
             assert(disableAmbientLeaves === true, 'Reduced motion should flag ambient leaf disable');
+
+            state.gameState = 'PLAYING';
+            state.tapRipples = [];
+            player.jump();
+            assert(state.tapRipples.length === 0, 'Reduced motion should suppress expanding tap ripples');
 
         } finally {
             state.prefersReducedMotion = origPrefersReduced;

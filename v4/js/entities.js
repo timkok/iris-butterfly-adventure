@@ -30,7 +30,7 @@ window.IrisGame.player = {
             window.IrisGame.audio.playSound('click');
             
             // Tap ripple effect (suppressed under reduced motion policy)
-            const disableRipple = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
+            const disableRipple = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableRipple;
             if (config.EFFECTS_POLICY.tapRippleEnabled && !disableRipple) {
                 if (state.tapRipples.length < config.EFFECTS_POLICY.maxTapRipples) {
                     state.tapRipples.push(new window.IrisGame.entities.TapRipple(this.x, this.y));

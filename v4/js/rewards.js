@@ -77,7 +77,7 @@ window.IrisGame.rewards = {
                 stickerDiv.appendChild(statusSpan);
                 
                 // Entrance stagger animation
-                const disableStagger = (state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient) || !config.EFFECTS_POLICY.treasureStaggerEnabled;
+                const disableStagger = (state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableStagger) || !config.EFFECTS_POLICY.treasureStaggerEnabled;
                 if (!disableStagger) {
                     stickerDiv.classList.add('treasure-enter');
                     stickerDiv.style.animationDelay = `${stickerIndex * 60}ms`;
@@ -139,7 +139,7 @@ window.IrisGame.rewards = {
                 itemDiv.appendChild(button);
                 
                 // Entrance stagger animation
-                const disableCosmeticStagger = (state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient) || !config.EFFECTS_POLICY.treasureStaggerEnabled;
+                const disableCosmeticStagger = (state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableStagger) || !config.EFFECTS_POLICY.treasureStaggerEnabled;
                 if (!disableCosmeticStagger) {
                     itemDiv.classList.add('treasure-enter');
                     itemDiv.style.animationDelay = `${cosmeticIndex * 60}ms`;
@@ -155,7 +155,7 @@ window.IrisGame.rewards = {
             clearTimeout(this._seenTimer);
             this._seenTimer = setTimeout(() => {
                 this.markNewStickersAsSeen(newlyUnlockedIds);
-            }, 3000);
+            }, config.EFFECTS_POLICY.stickerCelebrationMs);
         }
     },
     
