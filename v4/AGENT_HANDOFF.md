@@ -69,12 +69,12 @@
 ## Release Notes
 - Cycle: Cycle 8
 - Pushed Branch: main
-- Commit Hash: (pending)
+- Commit Hash: c80c456
 - Pages Source: main / root
 - Game URL: https://timkok.github.io/iris-butterfly-adventure/v4/
 - Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
 - Asset Version: v=13
-- QA Status: (pending)
+- QA Status: PASS (14/14)
 - Remaining Issues:
   - None
 - Next Cycle Starts Automatically: yes
