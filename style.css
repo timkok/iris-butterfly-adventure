@@ -30,12 +30,15 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
     height: 100dvh;
     overscroll-behavior: none;
     touch-action: none;
     -webkit-text-size-adjust: 100%;
     -webkit-user-select: none;
     user-select: none;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 button,
@@ -88,6 +91,8 @@ canvas {
     justify-content: center;
     align-items: center;
     padding: 34px;
+    padding-left: calc(34px + env(safe-area-inset-left));
+    padding-right: calc(34px + env(safe-area-inset-right));
     text-align: center;
     opacity: 0;
     visibility: hidden;
@@ -205,6 +210,8 @@ input:focus-visible {
     left: 0;
     width: 100%;
     padding: 14px;
+    padding-left: calc(14px + env(safe-area-inset-left));
+    padding-right: calc(14px + env(safe-area-inset-right));
     display: flex;
     justify-content: space-between;
     pointer-events: none;
@@ -278,6 +285,14 @@ input:focus-visible {
     border: 2px solid rgba(155, 140, 255, 0.18);
     color: var(--text-color);
     outline: none;
+}
+
+.setting-tip {
+    font-size: 0.72rem;
+    color: var(--muted-text);
+    margin-top: 5px;
+    line-height: 1.35;
+    font-weight: 600;
 }
 
 .hidden {
@@ -489,6 +504,14 @@ input:focus-visible {
     box-shadow: 0 4px 10px rgba(95, 184, 106, 0.25);
 }
 
+.btn-buy.locked-cosmetic {
+    font-size: 0.68rem;
+    background: linear-gradient(135deg, #bbbbbb, #999999);
+    box-shadow: none;
+    padding: 6px 4px;
+    cursor: not-allowed;
+}
+
 .rainbow-anim {
     animation: hueSpin 3s linear infinite;
 }
@@ -515,6 +538,8 @@ input:focus-visible {
 
     .panel {
         padding: 24px;
+        padding-left: calc(24px + env(safe-area-inset-left));
+        padding-right: calc(24px + env(safe-area-inset-right));
     }
 
     #start-screen h1 {
@@ -530,6 +555,8 @@ input:focus-visible {
         gap: 16px;
         justify-content: center;
         width: 100%;
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 
     .btn-icon {
@@ -545,5 +572,7 @@ input:focus-visible {
 
     #hud {
         padding: 10px;
+        padding-left: calc(10px + env(safe-area-inset-left));
+        padding-right: calc(10px + env(safe-area-inset-right));
     }
 }

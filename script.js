@@ -28,6 +28,10 @@ let newHighScoreThisRun = false;
 let hasReached10 = localStorage.getItem('iris_butterfly_reached10') === 'true';
 let hasReached15 = localStorage.getItem('iris_butterfly_reached15') === 'true';
 
+let shownStage6 = false;
+let shownStage16 = false;
+let shownStage30 = false;
+
 const diffSettings = {
     practice: { speed: 0.9, gap: 260, spawnRate: 185, starRate: 95, tolerance: 18, lives: 99 },
     easy: { speed: 1.32, gap: 225, spawnRate: 160, starRate: 100, tolerance: 12, lives: 5 },
@@ -141,23 +145,33 @@ function updateDynamicSettings() {
     let maxSpeedMult = 1.0;
     let maxGapReduce = 0;
     let maxSpawnRateReducePercent = 0.0;
+    let minGap = 120;
+    let minSpawnRate = 75;
 
     if (difficulty === 'practice') {
         maxSpeedMult = 1.05;
         maxGapReduce = 10;
         maxSpawnRateReducePercent = 0.05;
+        minGap = 240;
+        minSpawnRate = 160;
     } else if (difficulty === 'easy') {
         maxSpeedMult = 1.15;
         maxGapReduce = 20;
         maxSpawnRateReducePercent = 0.10;
+        minGap = 200;
+        minSpawnRate = 130;
     } else if (difficulty === 'normal') {
         maxSpeedMult = 1.25;
         maxGapReduce = 30;
         maxSpawnRateReducePercent = 0.18;
+        minGap = 150;
+        minSpawnRate = 95;
     } else if (difficulty === 'hard') {
         maxSpeedMult = 1.35;
         maxGapReduce = 40;
         maxSpawnRateReducePercent = 0.25;
+        minGap = 120;
+        minSpawnRate = 75;
     }
 
     const currentSpeedMult = 1 + (maxSpeedMult - 1) * scale;
@@ -166,8 +180,8 @@ function updateDynamicSettings() {
 
     currentSettings.speed = baseSettings.speed * currentSpeedMult;
     currentSettings.starSpeed = baseSettings.starSpeed * currentSpeedMult;
-    currentSettings.gap = Math.max(90, baseSettings.gap - currentGapReduce);
-    currentSettings.spawnRate = Math.round(baseSettings.spawnRate * (1 - currentSpawnRateReduce));
+    currentSettings.gap = Math.max(minGap, baseSettings.gap - currentGapReduce);
+    currentSettings.spawnRate = Math.max(minSpawnRate, Math.round(baseSettings.spawnRate * (1 - currentSpawnRateReduce)));
     currentSettings.tolerance = baseSettings.tolerance;
 }
 
@@ -592,6 +606,9 @@ function startGame() {
     particles = [];
     screenShake = 0;
     newHighScoreThisRun = false;
+    shownStage6 = false;
+    shownStage16 = false;
+    shownStage30 = false;
     ui.message.classList.add('hidden');
     initBackground();
     spawnStarterStars();
@@ -657,7 +674,16 @@ function checkMilestones() {
         showParentMessage();
     }
 
-    if (score === 5 || score === 10 || score === 15) {
+    if (score >= 6 && score < 16 && !shownStage6) {
+        shownStage6 = true;
+        showMessage("进入花园挑战区 🌿", 2200);
+    } else if (score >= 16 && score < 30 && !shownStage16) {
+        shownStage16 = true;
+        showMessage("风变快啦，稳稳飞 ✨", 2200);
+    } else if (score >= 30 && !shownStage30) {
+        shownStage30 = true;
+        showMessage("最高挑战开始！你太棒了 🌈", 2200);
+    } else if (score === 5 || score === 10 || score === 15) {
         const text = score === 10 ? '任务完成！继续挑战更高分吧 ✨' : `太棒了，已经收集 ${score} 颗星星！`;
         showMessage(text, 2200);
     }
@@ -714,13 +740,14 @@ function renderTreasure() {
                 button.className = 'btn-buy owned';
             }
         } else {
-            button.textContent = `${cost} ✨`;
-            button.className = 'btn-buy';
+            button.textContent = `最高分达 ${cost} 解锁`;
+            button.className = 'btn-buy locked-cosmetic';
         }
     });
 }
 
 function ensureAudio() {
+    if (!soundEnabled) return;
     if (audioCtx) return;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
@@ -749,19 +776,19 @@ function playSound(type, x = null) {
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(988, audioCtx.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(1318, audioCtx.currentTime + 0.08);
-        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.015, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
     } else if (type === 'hit') {
         oscillator.type = 'triangle';
         oscillator.frequency.setValueAtTime(180, audioCtx.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.25);
-        gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
     } else if (type === 'click') {
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(659, audioCtx.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.05);
-        gainNode.gain.setValueAtTime(0.008, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.004, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
     }
 
@@ -819,6 +846,7 @@ function setupListeners() {
         localStorage.setItem('iris_butterfly_soundEnabled', String(soundEnabled));
         ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
         ui.sound.setAttribute('aria-pressed', String(soundEnabled));
+        ui.sound.setAttribute('aria-checked', String(soundEnabled));
         if (soundEnabled) {
             ensureAudio();
             playSound('click');
@@ -826,6 +854,10 @@ function setupListeners() {
     });
 
     on('parent-settings-btn', 'click', () => {
+        if (gameState === 'PLAYING' || gameState === 'PAUSED') {
+            showMessage('请先返回首页再调整设置', 1500);
+            return;
+        }
         syncSettingsUI();
         showScreen(screens.settings);
     });
@@ -835,7 +867,7 @@ function setupListeners() {
         baseSettings = buildSettings();
         currentSettings = { ...baseSettings };
         showScreen(screens.start);
-        showMessage('设置已保存', 1200);
+        showMessage('设置已保存，下一局生效。', 1500);
     });
 
     on('reset-high-score-btn', 'click', () => {
@@ -894,7 +926,31 @@ function setupListeners() {
             event.preventDefault();
             jump();
         }
-        if (event.code === 'KeyP') pauseGame();
+        if (event.code === 'KeyP') {
+            if (gameState === 'PLAYING') {
+                pauseGame();
+            } else if (gameState === 'PAUSED') {
+                resumeGame();
+            }
+        }
+        if (event.code === 'Escape') {
+            event.preventDefault();
+            if (gameState === 'PAUSED') {
+                resumeGame();
+            } else if (screens.howTo.classList.contains('active')) {
+                showScreen(screens.start);
+            } else if (screens.settings.classList.contains('active')) {
+                saveSettingsFromUI();
+                baseSettings = buildSettings();
+                currentSettings = { ...baseSettings };
+                showScreen(screens.start);
+                showMessage('设置已保存，下一局生效。', 1500);
+            } else if (screens.treasure.classList.contains('active')) {
+                showScreen(screens.start);
+            } else if (screens.gameOver.classList.contains('active')) {
+                backToHome();
+            }
+        }
     });
 }
 
@@ -931,6 +987,8 @@ function init() {
     setGameUiVisible(false);
     ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
     ui.sound.setAttribute('aria-pressed', String(soundEnabled));
+    ui.sound.setAttribute('role', 'switch');
+    ui.sound.setAttribute('aria-checked', String(soundEnabled));
     ui.sound.setAttribute('aria-label', '声音开关');
     showScreen(screens.start);
     requestAnimationFrame(loop);
