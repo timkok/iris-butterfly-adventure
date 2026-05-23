@@ -51,6 +51,113 @@ Do not remove files, protected versions, or product features during the audit wi
 
 ---
 
+# Agent Handoff - Cycle 13 Safety and QA Guardrails
+
+## Start Gate
+- Live URL checked: `https://timkok.github.io/iris-butterfly-adventure/v4/?start-gate=cycle13`
+- Result: PASS.
+- Evidence: before start, home was visible and HUD/task were hidden; after clicking "开始飞行", home hid and HUD/task appeared; no `INIT ERROR` banner.
+- Current asset version before Cycle 13: `v=22`.
+
+## Planner Discussion
+- Proposed Tasks:
+  1. **P1-11**: Add a smoke test that scans player-facing safety text for addictive or purchase-like patterns while allowing explicit "no purchase" safety statements.
+  2. **P1-10**: Add a concise reduced-motion and Calm Mode QA matrix under `/v4/docs/`.
+  3. **P1-15**: Add responsive browser QA checkpoints to the same QA matrix so small-screen checks are repeatable.
+- Why They Matter:
+  - The game is for children, so future contributors need guardrails against daily pressure, gacha-like framing, purchase wording, and animation overload.
+  - Reduced motion and Calm Mode now span several files; a written matrix makes release review less dependent on memory.
+  - Responsive QA is required for the narrow mobile game container, but the current release notes scatter that expectation.
+- Risk Level:
+  - Low. This cycle adds test/documentation guardrails and does not add gameplay systems or visual effects.
+- Acceptance Criteria:
+  - `/v4/test.html` passes.
+  - Browser QA confirms V4 still starts.
+  - The safety text test rejects banned retention/purchase patterns but does not fail on approved "no purchase" notices.
+  - `/v4/docs/QA_MATRIX.md` exists and covers reduced motion, Calm Mode, and responsive scenarios.
+  - Protected versions remain untouched.
+
+## Builder Discussion
+- Implementation Plan:
+  - Add a deterministic smoke test in `/v4/js/smoke-tests.js` for player-facing reward/safety copy and config strings.
+  - Add `/v4/docs/QA_MATRIX.md` with reduced-motion, Calm Mode, and responsive browser QA checkpoints.
+  - Increment `/v4/index.html` and `/v4/test.html` assets from `v=22` to `v=23` because test JavaScript changes.
+- Files To Modify:
+  - `/v4/js/smoke-tests.js`
+  - `/v4/docs/QA_MATRIX.md`
+  - `/v4/index.html`
+  - `/v4/test.html`
+  - `/v4/AGENT_HANDOFF.md`
+  - `/v4/QA_EVIDENCE.md`
+- Rollback Plan:
+  - Revert the Cycle 13 commit to remove the smoke test, QA matrix, version bump, and docs updates.
+  - If the new smoke test is too broad, narrow its text source to config and explicitly player-facing DOM copy before retrying.
+
+## QA Discussion
+- Test Plan:
+  - Run JS syntax checks for all `/v4/js/*.js`.
+  - Run `git diff --check`.
+  - Run `/v4/test.html` locally and confirm all tests pass.
+  - Perform browser startup QA locally on `/v4/`.
+  - Check `/v4/?debug=1` for debug panel and FX budget fields.
+- Browser Scenarios:
+  - Home loads, start button works, HUD/task appear.
+  - Space and canvas click keep gameplay active.
+  - Pause/resume works.
+  - Treasure and settings open.
+  - `/v4/test.html` reports all tests passing.
+  - Debug panel opens with `?debug=1`.
+- Pass/Fail Criteria:
+  - PASS if tests pass, start works, no visible `INIT ERROR` or broken state appears, and only `/v4/` files changed.
+  - FAIL if start regresses, smoke tests fail, protected files change, or any P0 runtime issue appears.
+
+## Release Manager Discussion
+- Release Checklist:
+  - Confirm diff is limited to `/v4/`.
+  - Confirm no dependencies, build tools, protected versions, deletions, or Pages source changes.
+  - Confirm `/v4/index.html` and `/v4/test.html` use `v=23`.
+  - Confirm `/v4/test.html` passes.
+  - Confirm browser startup QA passes.
+  - Commit and push to `main`.
+  - Confirm GitHub Pages build reaches `built`.
+- Version Bump Requirement:
+  - Required, because `/v4/js/smoke-tests.js` changes.
+
+## Implementation Notes
+- Added `Child safety reward text avoids pressure and purchase framing` smoke test.
+- Added `/v4/docs/QA_MATRIX.md` with reduced-motion, Calm Mode, responsive, and child-safety copy checklists.
+- Incremented `/v4/index.html` and `/v4/test.html` assets from `v=22` to `v=23`.
+- No gameplay systems or visual effects were added.
+
+## QA Results
+- JS syntax check: PASS
+  - `for f in v4/js/*.js; do node --check "$f" || exit 1; done`
+- Diff whitespace check: PASS
+  - `git diff --check`
+- Local browser smoke tests: PASS
+  - `http://localhost:8000/v4/test.html?cycle13=v23`: 21 total, 21 passed, 0 failed.
+- Local browser startup QA: PASS
+  - `http://localhost:8000/v4/?cycle13=v23` loaded with home HUD/task hidden.
+  - Clicking "开始飞行" showed HUD/task and hid the start screen.
+  - Space and canvas click paths were exercised.
+  - Pause/resume, treasure, settings, and debug panel paths were exercised.
+  - No visible `INIT ERROR` banner or broken UI state was observed.
+
+## Release Notes
+- Cycle: Cycle 13
+- Commit Hash: pending until release commit.
+- Pushed Branch: pending.
+- Pages Source: main / root.
+- Asset Version: v=23.
+- QA Status: PASS TO RELEASE.
+- V4 URL: https://timkok.github.io/iris-butterfly-adventure/v4/
+- Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
+
+## Next Cycle Proposal
+- Cycle 14 should pick at most 3 items. Candidate: keyboard-only focus restoration, settings next-run-effect tests, or treasure locked-state comprehension.
+
+---
+
 # Agent Handoff - Cycle 12 Animation Budget + Calm Mode Guardrails
 
 ## Builder Plan

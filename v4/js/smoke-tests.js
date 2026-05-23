@@ -717,6 +717,61 @@
         }
     });
 
+    test('Child safety reward text avoids pressure and purchase framing', () => {
+        const config = window.IrisGame.config;
+        const state = window.IrisGame.state;
+        const rewards = window.IrisGame.rewards;
+
+        ensureGameFixture();
+
+        const collectStrings = (value, out = []) => {
+            if (typeof value === 'string') {
+                out.push(value);
+            } else if (Array.isArray(value)) {
+                value.forEach(item => collectStrings(item, out));
+            } else if (value && typeof value === 'object') {
+                Object.values(value).forEach(item => collectStrings(item, out));
+            }
+            return out;
+        };
+
+        const originalHighScore = state.game.highScore;
+        const originalStickersHtml = document.getElementById('stickers-container').innerHTML;
+        const originalCosmeticsHtml = document.getElementById('cosmetics-container').innerHTML;
+
+        try {
+            state.game.highScore = 0;
+            rewards.renderTreasure();
+
+            const playerFacingText = [
+                ...collectStrings(config.UI_TEXT),
+                ...collectStrings(config.MISSIONS),
+                ...collectStrings(config.UNLOCKS),
+                document.getElementById('stickers-container').innerText,
+                document.getElementById('cosmetics-container').innerText
+            ].join(' ');
+
+            const normalized = playerFacingText
+                .replace(/没有购买内容/g, '')
+                .replace(/没有购买/g, '')
+                .replace(/no purchases?/gi, '');
+
+            const bannedPatterns = [
+                /购买|买|付费|充值|商店|商城|抽卡|扭蛋|每日|每天|连续登录|连胜|倒计时|明天再来/,
+                /\b(buy|purchase|shop|store|gacha|daily|streak|countdown)\b/i,
+                /come back tomorrow/i
+            ];
+
+            bannedPatterns.forEach(pattern => {
+                assert(!pattern.test(normalized), `Player-facing text should avoid pressure or purchase framing: ${pattern}`);
+            });
+        } finally {
+            state.game.highScore = originalHighScore;
+            document.getElementById('stickers-container').innerHTML = originalStickersHtml;
+            document.getElementById('cosmetics-container').innerHTML = originalCosmeticsHtml;
+        }
+    });
+
     // --- Render Results ---
 
     document.addEventListener('DOMContentLoaded', () => {
