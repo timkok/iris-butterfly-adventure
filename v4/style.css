@@ -1007,3 +1007,65 @@ input:focus-visible {
         animation: none !important;
     }
 }
+
+/* ============================================= */
+/* Keyboard Focus Ring (Accessibility)           */
+/* ============================================= */
+
+/* Global focus-visible ring for all interactive elements */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+.sticker:focus-visible,
+.cosmetic-item:focus-visible,
+.tab-btn:focus-visible,
+.btn-diff:focus-visible,
+.btn-icon:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 2px;
+    border-radius: 8px;
+    box-shadow: 0 0 0 5px rgba(155, 140, 255, 0.2);
+}
+
+/* Ensure focus ring is never suppressed (even in reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible,
+    .sticker:focus-visible,
+    a:focus-visible {
+        outline: 3px solid var(--secondary-color);
+        outline-offset: 2px;
+    }
+}
+
+/* ============================================= */
+/* Treasure Card Entrance Animation              */
+/* ============================================= */
+
+.sticker.treasure-enter,
+.cosmetic-item.treasure-enter {
+    animation: treasureCardEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes treasureCardEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Suppress entrance animation for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .sticker.treasure-enter,
+    .cosmetic-item.treasure-enter {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+    }
+}

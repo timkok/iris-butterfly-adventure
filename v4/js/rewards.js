@@ -20,6 +20,8 @@ window.IrisGame.rewards = {
         
         const isReduced = state.prefersReducedMotion || state.game.calmModeEnabled;
         const newlyUnlockedIds = [];
+        let stickerIndex = 0;
+        let cosmeticIndex = 0;
         
         config.UNLOCKS.forEach(item => {
             const isOwned = state.game.highScore >= item.requirementHighScore || ownedStickers.includes(item.id);
@@ -70,6 +72,14 @@ window.IrisGame.rewards = {
                 statusSpan.style.fontWeight = 'bold';
                 
                 stickerDiv.appendChild(statusSpan);
+                
+                // Entrance stagger animation
+                if (!state.prefersReducedMotion) {
+                    stickerDiv.classList.add('treasure-enter');
+                    stickerDiv.style.animationDelay = `${stickerIndex * 60}ms`;
+                }
+                stickerIndex++;
+                
                 stickersContainer.appendChild(stickerDiv);
             } else if (item.type === 'cosmetic') {
                 const itemDiv = document.createElement('div');
@@ -123,6 +133,14 @@ window.IrisGame.rewards = {
                     this.selectCosmetic(item.id, item.requirementHighScore);
                 });
                 itemDiv.appendChild(button);
+                
+                // Entrance stagger animation
+                if (!state.prefersReducedMotion) {
+                    itemDiv.classList.add('treasure-enter');
+                    itemDiv.style.animationDelay = `${cosmeticIndex * 60}ms`;
+                }
+                cosmeticIndex++;
+                
                 cosmeticsContainer.appendChild(itemDiv);
             }
         });
