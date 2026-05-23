@@ -16,6 +16,69 @@
         }
     }
 
+    function ensureGameFixture() {
+        if (document.getElementById('gameCanvas')) return;
+
+        const fixture = document.createElement('div');
+        fixture.id = 'game-fixture';
+        fixture.innerHTML = `
+            <div id="game-container">
+                <canvas id="gameCanvas"></canvas>
+                <div id="hud" class="hidden"><span id="score"></span><span id="lives"></span><span id="hud-shield"></span></div>
+                <div id="task-display" class="hidden"><span id="task-text"></span><span id="task-progress"></span></div>
+                <div id="message-display" class="hidden"></div>
+                <div id="easter-egg-msg" class="hidden"><div id="egg-text"></div></div>
+                <button id="sound-btn" aria-label="声音开关"></button>
+                <button id="pause-btn" aria-label="暂停游戏"></button>
+                <div id="start-screen" class="panel active">
+                    <button class="btn-diff active" data-diff="easy" role="radio" aria-checked="true"></button>
+                    <button class="btn-diff" data-diff="practice" role="radio" aria-checked="false"></button>
+                    <button id="start-btn" aria-label="开始飞行"></button>
+                    <button id="how-to-play-btn" aria-label="怎么玩"></button>
+                    <button id="treasure-btn" aria-label="我的宝贝"></button>
+                    <button id="parent-settings-btn" aria-label="家长设置"></button>
+                    <div id="start-greeting"></div>
+                </div>
+                <div id="how-to-play-screen" class="panel"><button id="close-how-to-btn" aria-label="关闭怎么玩"></button></div>
+                <div id="parent-settings-screen" class="panel">
+                    <select id="setting-speed"><option value="normal">normal</option></select>
+                    <select id="setting-tolerance"><option value="standard">standard</option></select>
+                    <select id="setting-lives"><option value="difficulty">difficulty</option><option value="3">3</option><option value="5">5</option></select>
+                    <input id="setting-message">
+                    <input type="checkbox" id="setting-rest-reminder">
+                    <input type="checkbox" id="setting-gentle-mode">
+                    <input type="checkbox" id="setting-calm-mode">
+                    <div id="reduced-motion-notice"></div>
+                    <button id="close-settings-btn" aria-label="保存设置并返回首页"></button>
+                    <button id="reset-high-score-btn" aria-label="重置最高分"></button>
+                </div>
+                <div id="treasure-screen" class="panel">
+                    <div class="tabs" role="tablist">
+                        <button id="tab-stickers"></button>
+                        <button id="tab-cosmetics"></button>
+                    </div>
+                    <div id="stickers-content"><div id="stickers-container"></div></div>
+                    <div id="cosmetics-content"><div id="cosmetics-container"></div></div>
+                    <button id="close-treasure-btn" aria-label="返回首页"></button>
+                </div>
+                <div id="pause-screen" class="panel">
+                    <span id="pause-mode"></span><span id="pause-score"></span><span id="pause-task"></span><span id="pause-rest-tip"></span>
+                    <button id="resume-btn" aria-label="继续游戏"></button>
+                    <button id="restart-from-pause-btn" aria-label="从暂停菜单重新开始"></button>
+                    <button id="back-to-home-from-pause-btn" aria-label="从暂停菜单回到首页"></button>
+                </div>
+                <div id="game-over-screen" class="panel">
+                    <span id="final-score"></span><span id="final-vines"></span><span id="final-mode"></span><span id="final-stage"></span>
+                    <span id="final-task"></span><span id="record-score"></span><span id="over-title"></span>
+                    <span id="over-encouragement"></span><span id="over-best-performance"></span><span id="over-rest-tip"></span>
+                    <button id="restart-btn" aria-label="重新开始"></button>
+                    <button id="back-to-home-btn" aria-label="从游戏结束页回到首页"></button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(fixture);
+    }
+
     // --- Test Cases ---
 
     test('Config Object Validity', () => {
@@ -32,28 +95,7 @@
         const canvas = window.IrisGame.canvas;
         const game = window.IrisGame.game;
 
-        if (!document.getElementById('gameCanvas')) {
-            const fixture = document.createElement('div');
-            fixture.id = 'game-fixture';
-            fixture.innerHTML = `
-                <canvas id="gameCanvas"></canvas>
-                <div id="hud" class="hidden"><span id="score"></span><span id="lives"></span><span id="hud-shield"></span></div>
-                <div id="task-display" class="hidden"><span id="task-text"></span><span id="task-progress"></span></div>
-                <div id="message-display" class="hidden"></div>
-                <div id="easter-egg-msg" class="hidden"><div id="egg-text"></div></div>
-                <button id="sound-btn"></button><button id="pause-btn"></button>
-                <div id="start-screen"></div><div id="how-to-play-screen"></div><div id="parent-settings-screen"></div>
-                <div id="treasure-screen"></div><div id="pause-screen"></div><div id="game-over-screen"></div>
-                <span id="final-score"></span><span id="final-vines"></span><span id="final-mode"></span><span id="final-stage"></span>
-                <span id="final-task"></span><span id="record-score"></span><span id="over-title"></span>
-                <span id="over-encouragement"></span><span id="over-best-performance"></span><span id="over-rest-tip"></span>
-                <select id="setting-speed"></select><select id="setting-tolerance"></select><select id="setting-lives"></select>
-                <input id="setting-message"><input type="checkbox" id="setting-rest-reminder">
-                <input type="checkbox" id="setting-gentle-mode"><input type="checkbox" id="setting-calm-mode">
-                <div id="reduced-motion-notice"></div><div id="start-greeting"></div>
-            `;
-            document.body.appendChild(fixture);
-        }
+        ensureGameFixture();
 
         ui.cacheDOM();
         canvas.initCanvas(document.getElementById('gameCanvas'));
@@ -70,6 +112,87 @@
 
         state.gameState = 'START';
         state.resetGameState();
+    });
+
+    test('Lifecycle transitions keep HUD, task, and overlays in sync', () => {
+        const state = window.IrisGame.state;
+        const ui = window.IrisGame.ui;
+        const canvas = window.IrisGame.canvas;
+        const game = window.IrisGame.game;
+
+        ensureGameFixture();
+        ui.cacheDOM();
+        canvas.initCanvas(document.getElementById('gameCanvas'));
+
+        state.gameState = 'START';
+        state.game.mode = 'easy';
+        state.resetGameState();
+
+        game.startGame();
+        assert(state.gameState === 'PLAYING', 'startGame should enter PLAYING');
+        assert(!ui.elements.hud.classList.contains('hidden'), 'HUD should be visible in PLAYING');
+        assert(!ui.elements.taskDisplay.classList.contains('hidden'), 'Task display should be visible in PLAYING');
+        assert(!ui.screens.start.classList.contains('active'), 'Start panel should close in PLAYING');
+
+        game.pauseGame();
+        assert(state.gameState === 'PAUSED', 'pauseGame should enter PAUSED');
+        assert(ui.screens.pause.classList.contains('active'), 'Pause panel should be active in PAUSED');
+        assert(!ui.elements.hud.classList.contains('hidden'), 'HUD should remain visible in PAUSED');
+        assert(ui.elements.taskDisplay.classList.contains('hidden'), 'Task display should hide in PAUSED');
+
+        game.resumeGame();
+        assert(state.gameState === 'PLAYING', 'resumeGame should return to PLAYING');
+        assert(!ui.screens.pause.classList.contains('active'), 'Pause panel should close after resume');
+        assert(!ui.elements.taskDisplay.classList.contains('hidden'), 'Task display should return after resume');
+
+        game.gameOver();
+        assert(state.gameState === 'GAMEOVER', 'gameOver should enter GAMEOVER');
+        assert(ui.screens.gameOver.classList.contains('active'), 'Game Over panel should be active');
+        assert(ui.elements.hud.classList.contains('hidden'), 'HUD should hide on GAMEOVER');
+        assert(ui.elements.taskDisplay.classList.contains('hidden'), 'Task display should hide on GAMEOVER');
+
+        game.backToHome();
+        assert(state.gameState === 'START', 'backToHome should enter START');
+        assert(ui.screens.start.classList.contains('active'), 'Start panel should be active after backToHome');
+        assert(ui.elements.hud.classList.contains('hidden'), 'HUD should hide on START');
+        assert(ui.elements.taskDisplay.classList.contains('hidden'), 'Task display should hide on START');
+        assert(state.obstacles.length === 0 && state.stars.length === 0 && state.particles.length === 0, 'backToHome should clear active gameplay entities');
+    });
+
+    test('Required UI controls and overlays expose stable hooks', () => {
+        ensureGameFixture();
+
+        const requiredIds = [
+            'start-btn',
+            'sound-btn',
+            'pause-btn',
+            'how-to-play-btn',
+            'close-how-to-btn',
+            'parent-settings-btn',
+            'close-settings-btn',
+            'treasure-btn',
+            'close-treasure-btn',
+            'tab-stickers',
+            'tab-cosmetics',
+            'restart-btn',
+            'restart-from-pause-btn',
+            'back-to-home-btn',
+            'back-to-home-from-pause-btn',
+            'reset-high-score-btn',
+            'stickers-content',
+            'cosmetics-content'
+        ];
+
+        requiredIds.forEach(id => {
+            assert(document.getElementById(id), `Missing required UI hook: #${id}`);
+        });
+
+        assert(document.querySelectorAll('.btn-diff').length >= 2, 'Difficulty buttons should be present');
+        assert(document.getElementById('how-to-play-btn').getAttribute('aria-label') === '怎么玩', 'How-to button should have an accessible name');
+        assert(document.getElementById('treasure-btn').getAttribute('aria-label') === '我的宝贝', 'Treasure button should have an accessible name');
+        assert(document.getElementById('parent-settings-btn').getAttribute('aria-label') === '家长设置', 'Settings button should have an accessible name');
+        assert(document.getElementById('sound-btn').getAttribute('aria-label') === '声音开关', 'Sound button should have an accessible name');
+        assert(document.getElementById('pause-btn').getAttribute('aria-label') === '暂停游戏', 'Pause button should have an accessible name');
     });
 
     test('Parent lives setting applies on next startGame', () => {

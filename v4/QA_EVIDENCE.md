@@ -1,3 +1,82 @@
+# QA Evidence - Cycle 15 Browser Validation
+
+## Summary
+
+- Date/time: 2026-05-23 16:09-16:17 EDT
+- Role: Codex QA / Browser Tester
+- Scope: `/v4/`
+- Commit hash tested: Cycle 15 local working tree; final pushed commit reported in release response
+- Branch: `main`
+- Pages source: `main / root`
+- Asset version tested locally: `v=21`
+- Live baseline asset version before Cycle 15: `v=20`
+- Recommendation: **PASS TO RELEASE**
+
+## URLs Tested
+
+- `https://timkok.github.io/iris-butterfly-adventure/v4/?baseline=cycle15f`
+- `https://timkok.github.io/iris-butterfly-adventure/v4/test.html?baseline=cycle15`
+- `http://localhost:8000/v4/?cycle15=v21b`
+- `http://localhost:8000/v4/?debug=1&cycle15=v21`
+- `http://localhost:8000/v4/?debug=1&cycle15=sound`
+- `http://localhost:8000/v4/test.html?cycle15=v21`
+
+## Pass / Fail Table
+
+| # | Check | Result | Evidence / Notes |
+|---|---|---|---|
+| 1 | Home loads | PASS | Live baseline and local `v=21` home rendered. Local home had start screen visible, HUD/task hidden, and no `INIT ERROR` banner. |
+| 2 | Start button works | PASS | Clicking `开始飞行` hid the start panel and entered gameplay. |
+| 3 | HUD appears | PASS | Local `v=21` showed HUD and task display after start. |
+| 4 | Canvas updates | PASS | Existing gameplay loop stayed active during startup QA; local smoke tests cover `startGame` and lifecycle transitions without throwing. |
+| 5 | Space jump works | PASS | Space key was exercised during PLAYING with gameplay UI still active afterward. |
+| 6 | Mouse/touch jump works | PASS with limitation | Canvas click path was exercised successfully. True mobile `touchstart` synthesis was not available in this browser automation environment. |
+| 7 | Pause/resume works | PASS | Pause panel opened, task display hid during pause, and resume restored gameplay/task UI. |
+| 8 | Treasure opens | PASS | Treasure panel opened and sticker tab had `aria-selected="true"`. |
+| 9 | Settings opens | PASS | Parent settings panel opened successfully. |
+| 10 | Sound muted by default | PASS | Sound button started as `🔇` with `aria-checked="false"`. |
+| 11 | Sound toggle works | PASS | Sound toggled to `🔊` / `aria-checked="true"` and back to `🔇` / `aria-checked="false"`. |
+| 12 | Starlight Shield simulated or verified | PASS | `/v4/test.html` includes `Starlight Shield Mechanics`; local `v=21` test passed. |
+| 13 | Calm Mode does not produce excessive animation | PASS | Existing `Effects Policy Caps & Modes validation` smoke test passed. |
+| 14 | Reduced Motion path checked if possible | PASS with limitation | Smoke tests passed `Reduced motion fallbacks`; OS-level reduced-motion emulation was not available. |
+| 15 | Debug panel opens with `?debug=1` | PASS | Debug text was present on `?debug=1` and no `INIT ERROR` banner appeared. |
+| 16 | `/v4/test.html` passes | PASS | Live baseline `v=20`: 18/18. Local `v=21`: 20 total, 20 passed, 0 failed. |
+| 17 | Console has no errors | PASS with limitation | Browser runtime showed no `INIT ERROR` banner or broken UI state. Direct console log collection was unavailable in the current in-app browser API. |
+
+## Console Errors
+
+No visible runtime error banner or broken interaction state was observed during local `v=21` QA. Direct console log collection was unavailable in the current in-app browser API, so this run relied on DOM state, smoke tests, and visible runtime-error checks.
+
+## Screenshots / Artifacts
+
+- Local smoke test result: `Total: 20`, `Passed: 20`, `Failed: 0`.
+- Live baseline smoke test result: `Total: 18`, `Passed: 18`, `Failed: 0`.
+- No screenshot files were committed.
+
+## Issues Found
+
+### P0
+
+- None.
+
+### P1
+
+- None.
+
+### P2 / QA Limitations
+
+- True mobile `touchstart` input could not be synthesized in the current browser automation environment; canvas click was verified.
+- Direct console log collection was unavailable in the current in-app browser API.
+- OS-level reduced-motion emulation was not available; reduced-motion smoke coverage passed.
+
+## Release Recommendation
+
+**PASS TO RELEASE**
+
+Rationale: live `v=20` baseline still starts successfully, local `v=21` loads and starts, key screens and controls work, smoke tests pass 20/20, no protected versions changed, and no P0/P1 issues were found.
+
+---
+
 # QA Evidence - Cycle 14 Browser Validation
 
 ## Summary

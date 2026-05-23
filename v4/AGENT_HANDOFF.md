@@ -1,3 +1,92 @@
+# Agent Handoff - Cycle 15 Workflow Setup
+
+## Planner Baseline
+- Role: Codex Planner / Workflow Coordinator
+- Task Type: QA baseline + stability cycle setup
+- Scope: `/v4/` only, plus root `AGENTS.md` workflow rules.
+- Current Baseline:
+  - Latest completed release: Cycle 14.
+  - Current asset version: `v=20`.
+  - Latest known release commit before this setup: `f99c391d105bfce66571a379eaa1288585f9d5e6`.
+  - Pages source remains `main / root`.
+- Cycle Numbering:
+  - User asked to begin the workflow and execute "Cycle 11" if QA passes.
+  - Repository handoff and QA evidence already record Cycle 14 as released, so the next sequential cycle is Cycle 15 to preserve release history.
+- Selected Cycle 15 Tasks:
+  - **P0-1**: Lock down the start-game path after the recent runtime failure.
+  - **P0-2**: Normalize lifecycle transition expectations through smoke coverage before broader refactors.
+  - **P1-13**: Add deterministic smoke coverage for required controls/overlays where it can remain isolated.
+- Acceptance Criteria:
+  - Baseline QA confirms `/v4/` still starts from "开始飞行".
+  - `/v4/test.html` passes before and after changes.
+  - Any code change stays inside `/v4/`, increments `/v4/index.html` and `/v4/test.html` asset versions, and does not modify protected versions.
+  - QA evidence is updated before release.
+
+## Baseline QA
+- Status: PASS.
+- Live baseline:
+  - `/v4/?baseline=cycle15f` loaded with the start screen active and no `INIT ERROR` banner.
+  - "开始飞行" started gameplay; HUD and task display appeared.
+  - Space and mouse/click input were exercised.
+  - Pause/resume, return home, treasure, and settings paths were exercised.
+  - `/v4/test.html?baseline=cycle15` passed 18/18 on current live `v=20` assets.
+- Limitation:
+  - Direct console log collection was unavailable in the current in-app browser API; QA checked visible runtime-error banners, DOM state, and smoke-test results.
+
+## Builder Plan
+- Role: Codex Builder
+- Task Type: QA / stability
+- Scope: `/v4/` only
+- Selected Backlog Items:
+  - **P0-1**: Lock down the start-game path after the recent runtime failure.
+  - **P0-2**: Normalize lifecycle transition expectations through smoke coverage before broader refactors.
+  - **P1-13**: Add deterministic smoke coverage for required controls/overlays where it can remain isolated.
+- Implementation Plan:
+  - Add a reusable smoke-test fixture with the required V4 controls and overlays.
+  - Add lifecycle assertions for START, PLAYING, PAUSED, GAMEOVER, and back-to-home visibility rules.
+  - Add a required-control hook/accessibility smoke test for the main buttons and overlay panels.
+  - Increment `/v4/index.html` and `/v4/test.html` asset versions from `v=20` to `v=21`.
+
+## Implementation Notes
+- Added `ensureGameFixture()` to keep DOM setup consistent across smoke tests.
+- Added `Lifecycle transitions keep HUD, task, and overlays in sync`.
+- Added `Required UI controls and overlays expose stable hooks`.
+- No gameplay behavior, product copy, dependencies, or protected versions were changed.
+- Asset Version:
+  - `/v4/index.html`: `v=21`
+  - `/v4/test.html`: `v=21`
+
+## QA Results
+- JS syntax check: PASS
+  - `for f in v4/js/*.js; do node --check "$f" || exit 1; done`
+- Diff whitespace check: PASS
+  - `git diff --check`
+- Local browser smoke tests: PASS
+  - `http://localhost:8000/v4/test.html?cycle15=v21`: 20 total, 20 passed, 0 failed.
+- Local browser startup QA: PASS
+  - `http://localhost:8000/v4/?cycle15=v21b` loaded with home HUD/task hidden.
+  - Clicking "开始飞行" showed HUD/task and hid the start screen.
+  - Space and canvas click paths were exercised.
+  - Pause/resume, back home, treasure, settings, debug, and sound toggle paths were exercised.
+  - No visible `INIT ERROR` banner or broken UI state was observed.
+- QA Evidence:
+  - `/v4/QA_EVIDENCE.md` updated with Cycle 15 PASS TO RELEASE.
+
+## Release Notes
+- Cycle: Cycle 15
+- Commit Hash: final pushed commit reported in release response.
+- Pushed Branch: main.
+- Pages Source: main / root.
+- Asset Version: v=21.
+- QA Status: PASS TO RELEASE.
+- V4 URL: https://timkok.github.io/iris-butterfly-adventure/v4/
+- Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
+
+## Next Cycle Proposal
+- Cycle 16 should choose at most 3 low-risk items from `/v4/CODEX_BACKLOG.md`, with priority on early-game onboarding rhythm, mission feedback clarity, or treasure locked-state comprehension.
+
+---
+
 # Agent Handoff - Cycle 14 Builder
 
 ## Builder Plan

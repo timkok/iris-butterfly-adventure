@@ -36,6 +36,28 @@ Work on `/v4/` must proceed cycle-by-cycle in this order:
 
 Do not continue to another cycle in the same session unless the user or Planner explicitly asks.
 
+Every cycle must complete these gates:
+
+1. Planner picks at most 3 tasks and records acceptance criteria.
+2. Builder implements only those approved tasks.
+3. QA verifies:
+   - `/v4/` loads.
+   - "开始飞行" starts the game.
+   - HUD appears.
+   - Canvas updates.
+   - Space key works.
+   - Mouse/touch works.
+   - Pause/resume works.
+   - Treasure opens.
+   - Settings opens.
+   - Game Over path works or is simulated.
+   - `/v4/test.html` passes.
+   - Console has no errors.
+4. Release Manager checks diff scope, asset versions, tests, QA evidence, protected areas, dependencies, and Pages source before pushing.
+5. Release Manager writes the next cycle proposal in `/v4/AGENT_HANDOFF.md`.
+
+"开始飞行" is a hard release gate. If it does not work, stop feature work and run a hotfix cycle first.
+
 ## Required First-Time Setup Sequence
 
 For a new Codex agent or fresh repository setup, follow this sequence before ordinary feature work:
@@ -45,7 +67,7 @@ For a new Codex agent or fresh repository setup, follow this sequence before ord
 3. After the hotfix, create or update `/v4/CODEX_BACKLOG.md`.
 4. Proceed cycle-by-cycle: Planner -> Builder -> QA -> Release Manager.
 
-The current V4 baseline has already completed the start-failure hotfix, backlog, QA evidence, and Cycle 14 release notes. Future agents should verify the latest files instead of assuming this note is still current.
+The current V4 baseline has already completed the start-failure hotfix, backlog, QA evidence, and Cycle 14 release notes. The next sequential work cycle is Cycle 15 unless `/v4/AGENT_HANDOFF.md` says otherwise. Future agents should verify the latest files instead of assuming this note is still current.
 
 ## Simplification Audit
 

@@ -29,13 +29,28 @@ Design constraints:
 - Keep `/v4/` playable at all times.
 - Preserve `/legacy-v1/`, root V2, and `/v3/`.
 
+## Current Baseline
+
+- Latest completed release: Cycle 14.
+- Current asset version: `v=20`.
+- Next sequential cycle: Cycle 15.
+- Hard gate before any feature work: clicking "开始飞行" must enter PLAYING, show HUD/task UI, and keep the canvas loop running with no console errors.
+
 ## Next 5 Cycles
 
-1. Cycle 14: stabilize startup regression coverage and state transitions after the P0 hotfix.
-2. Cycle 15: improve child-friendly onboarding, mission clarity, and early-game rhythm.
-3. Cycle 16: polish treasure UX, sticker grouping, and unlock communication without purchase metaphors.
-4. Cycle 17: deepen accessibility and safety coverage for keyboard, screen reader, reduced motion, and Calm Mode.
-5. Cycle 18: add release-quality QA evidence, browser smoke checks, and regression documentation.
+1. Cycle 15: strengthen startup/lifecycle regression coverage and document the multi-agent workflow baseline.
+2. Cycle 16: improve child-friendly onboarding, mission clarity, and early-game rhythm.
+3. Cycle 17: polish treasure UX, sticker grouping, and unlock communication without purchase metaphors.
+4. Cycle 18: deepen accessibility and safety coverage for keyboard, screen reader, reduced motion, and Calm Mode.
+5. Cycle 19: add release-quality QA evidence, browser smoke checks, responsive coverage, and regression documentation.
+
+## Cycle 15 Planner Selection
+
+Cycle 15 should implement at most 3 low-risk stability/QA items after baseline QA passes:
+
+1. **P0-1**: Lock down the start-game path after the recent runtime failure.
+2. **P0-2**: Normalize game lifecycle transitions through smoke coverage before any implementation refactor.
+3. **P1-13**: Add smoke coverage for required buttons and overlays where deterministic and isolated.
 
 ## 1. P0 Hotfix / Stability
 
