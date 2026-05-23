@@ -77,7 +77,7 @@
 - **Dynamic CSS checks**: Confirmed `@keyframes gentle-pulse` is declared and matches `.pulse-active` class attributes.
 
 ## Release Notes
-- **Commit Hash**: `[pending]`
+- **Commit Hash**: `9a42c55`
 - **Push Branch**: `main`
 - **Pages Source**: `https://timkok.github.io/iris-butterfly-adventure/v4/`
 - **Test Page**: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`
