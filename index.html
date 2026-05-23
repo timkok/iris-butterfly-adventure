@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iris's Butterfly Adventure</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
     <div id="game-container">
@@ -15,7 +15,7 @@
         <!-- UI Overlay -->
         <div id="ui-layer">
             <!-- HUD -->
-            <div id="hud">
+            <div id="hud" class="hidden">
                 <div class="hud-group left">
                     <div class="hud-item" id="score-box">
                         <span class="icon">✨</span>
@@ -30,8 +30,8 @@
                     <div class="hud-item" id="lives-box">
                         <span id="lives">❤️❤️❤️</span>
                     </div>
-                    <button id="sound-btn" class="btn-icon">🔊</button>
-                    <button id="pause-btn" class="btn-icon">⏸</button>
+                    <button id="sound-btn" class="btn-icon" title="声音" aria-label="切换声音">🔊</button>
+                    <button id="pause-btn" class="btn-icon" title="暂停" aria-label="暂停游戏">⏸</button>
                 </div>
             </div>
 
@@ -55,18 +55,18 @@
             <div id="start-screen" class="panel active">
                 <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
                 <div class="diff-selector">
-                    <button class="btn-diff active" data-diff="practice">练习模式 (无限心)</button>
-                    <button class="btn-diff" data-diff="easy">简单模式</button>
-                    <button class="btn-diff" data-diff="normal">普通模式</button>
-                    <button class="btn-diff" data-diff="hard">高手模式</button>
+                    <button class="btn-diff active" data-diff="practice" aria-label="选择练习模式">练习模式 (无限心)</button>
+                    <button class="btn-diff" data-diff="easy" aria-label="选择简单模式">简单模式</button>
+                    <button class="btn-diff" data-diff="normal" aria-label="选择普通模式">普通模式</button>
+                    <button class="btn-diff" data-diff="hard" aria-label="选择高手模式">高手模式</button>
                 </div>
                 <div class="button-group">
-                    <button id="start-btn" class="btn-main">开始冒险</button>
+                    <button id="start-btn" class="btn-main" aria-label="开始冒险">开始冒险</button>
                 </div>
                 <div class="button-row">
-                    <button id="how-to-play-btn" class="btn-icon" title="怎么玩">❓</button>
-                    <button id="treasure-btn" class="btn-icon" title="我的宝贝">🎁</button>
-                    <button id="parent-settings-btn" class="btn-icon" title="家长设置">⚙️</button>
+                    <button id="how-to-play-btn" class="btn-icon" title="怎么玩" aria-label="打开怎么玩说明">❓</button>
+                    <button id="treasure-btn" class="btn-icon" title="我的宝贝仓库" aria-label="打开宝贝仓库">🎁</button>
+                    <button id="parent-settings-btn" class="btn-icon" title="家长设置" aria-label="打开家长设置">⚙️</button>
                 </div>
             </div>
 
@@ -104,7 +104,6 @@
                 <button id="reset-high-score-btn" class="btn-secondary">重置最高分</button>
             </div>
 
-            <!-- Other panels unchanged... -->
             <div id="how-to-play-screen" class="panel">
                 <h2>❓ 怎么玩</h2>
                 <p>点击屏幕或者按空格键让蝴蝶向上飞！穿过花藤之间的空隙，躲开障碍物，收集闪亮的星星。</p>
@@ -114,16 +113,16 @@
             <div id="treasure-screen" class="panel">
                 <h2>🎁 我的宝贝仓库</h2>
                 <div class="tabs">
-                    <button class="tab-btn active" id="tab-stickers">魔法贴纸</button>
-                    <button class="tab-btn" id="tab-cosmetics">翅膀外观</button>
+                    <button class="tab-btn active" id="tab-stickers" aria-label="查看魔法贴纸">魔法贴纸</button>
+                    <button class="tab-btn" id="tab-cosmetics" aria-label="查看翅膀外观">翅膀外观</button>
                 </div>
                 <div class="tab-content active" id="stickers-content">
                     <div class="sticker-grid">
-                        <div class="sticker locked" id="sticker-star">⭐</div>
-                        <div class="sticker locked" id="sticker-bunny">🐰</div>
-                        <div class="sticker locked" id="sticker-rainbow">🌈</div>
-                        <div class="sticker locked" id="sticker-flower">🌸</div>
-                        <div class="sticker locked" id="sticker-butterfly">🦋</div>
+                        <div class="sticker locked" id="sticker-star"><span class="sticker-emoji">⭐</span><span class="sticker-status">未解锁</span></div>
+                        <div class="sticker locked" id="sticker-bunny"><span class="sticker-emoji">🐰</span><span class="sticker-status">未解锁</span></div>
+                        <div class="sticker locked" id="sticker-rainbow"><span class="sticker-emoji">🌈</span><span class="sticker-status">未解锁</span></div>
+                        <div class="sticker locked" id="sticker-flower"><span class="sticker-emoji">🌸</span><span class="sticker-status">未解锁</span></div>
+                        <div class="sticker locked" id="sticker-butterfly"><span class="sticker-emoji">🦋</span><span class="sticker-status">未解锁</span></div>
                     </div>
                 </div>
                 <div class="tab-content" id="cosmetics-content">
@@ -150,7 +149,7 @@
                         </div>
                     </div>
                 </div>
-                <button id="close-treasure-btn" class="btn-main">返回</button>
+                <button id="close-treasure-btn" class="btn-main" aria-label="返回首页">返回首页</button>
             </div>
 
             <div id="pause-screen" class="panel">
@@ -169,14 +168,12 @@
                 <button id="restart-btn" class="btn-main">再玩一次</button>
                 <button id="back-to-home-btn" class="btn-secondary">返回首页</button>
             </div>
-
-            <div id="dummy-panel" class="panel"></div>
         </div>
     </div>
 
     <!-- Sound for alerts -->
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=11"></script>
 </body>
 </html>

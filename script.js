@@ -25,9 +25,9 @@ let audioCtx = null;
 let currentMessageTimer = null;
 
 const diffSettings = {
-    practice: { speed: 1.05, gap: 235, spawnRate: 170, starRate: 95, tolerance: 14, lives: 99 },
-    easy: { speed: 1.45, gap: 205, spawnRate: 145, starRate: 100, tolerance: 9, lives: 5 },
-    normal: { speed: 1.95, gap: 175, spawnRate: 122, starRate: 110, tolerance: 4, lives: 3 },
+    practice: { speed: 0.95, gap: 270, spawnRate: 185, starRate: 95, tolerance: 18, lives: 99 },
+    easy: { speed: 1.32, gap: 230, spawnRate: 160, starRate: 100, tolerance: 12, lives: 5 },
+    normal: { speed: 1.95, gap: 180, spawnRate: 126, starRate: 110, tolerance: 5, lives: 3 },
     hard: { speed: 2.55, gap: 145, spawnRate: 98, starRate: 122, tolerance: -1, lives: 3 }
 };
 
@@ -55,6 +55,7 @@ const screens = {
 };
 
 const ui = {
+    hud: document.getElementById('hud'),
     score: document.getElementById('score'),
     highScore: document.getElementById('high-score'),
     lives: document.getElementById('lives'),
@@ -90,6 +91,7 @@ let obstacles = [];
 let stars = [];
 let particles = [];
 let bgElements = [];
+const firstObstacleFrame = 120;
 
 function loadAssistSettings() {
     try {
@@ -126,6 +128,11 @@ function buildSettings() {
 function showScreen(screen) {
     Object.values(screens).forEach(panel => panel.classList.remove('active'));
     if (screen) screen.classList.add('active');
+}
+
+function setGameUiVisible(visible) {
+    ui.hud.classList.toggle('hidden', !visible);
+    ui.taskDisplay.classList.toggle('hidden', !visible || gameState !== 'PLAYING');
 }
 
 function initBackground() {
@@ -215,7 +222,7 @@ function updateGame() {
 
     if (player.y > canvas.height - player.radius - 16) {
         player.y = canvas.height - player.radius - 16;
-        handleCollision('小蝴蝶碰到草地啦，轻轻飞起来。');
+        handleCollision(difficulty === 'practice' ? '练习模式，继续飞！' : '轻轻点一下，继续飞起来！');
     }
 
     if (player.y < player.radius) {
@@ -223,7 +230,7 @@ function updateGame() {
         player.velocity = 0;
     }
 
-    if (frameCount % currentSettings.spawnRate === 0) spawnObstacle();
+    if (frameCount === firstObstacleFrame || (frameCount > firstObstacleFrame && (frameCount - firstObstacleFrame) % currentSettings.spawnRate === 0)) spawnObstacle();
     if (frameCount % currentSettings.starRate === 0) spawnStar();
 
     updateObstacles();
@@ -238,7 +245,7 @@ function spawnObstacle() {
     const gapY = minGapCenter + Math.random() * (maxGapCenter - minGapCenter);
     const width = 58;
     obstacles.push({
-        x: canvas.width + width,
+        x: canvas.width + 12,
         width,
         gapY,
         gap: currentSettings.gap,
@@ -260,7 +267,7 @@ function updateObstacles() {
             obstacle.passed = true;
         }
         if (collidesWithObstacle(obstacle)) {
-            handleCollision(difficulty === 'practice' ? '练习模式没关系，再试着穿过花藤空隙。' : '碰到花藤啦，少一颗心。');
+            handleCollision(difficulty === 'practice' ? '练习模式，继续飞！' : '碰到花藤啦，没关系再试一次！');
         }
         if (obstacle.x + obstacle.width < -30) obstacles.splice(i, 1);
     }
@@ -520,9 +527,10 @@ function startGame() {
     stars = [];
     particles = [];
     screenShake = 0;
+    ui.message.classList.add('hidden');
     initBackground();
     showScreen(null);
-    ui.taskDisplay.classList.remove('hidden');
+    setGameUiVisible(true);
     showMessage('穿过花藤空隙，收集星星吧！', 1700);
     updateHUD();
 }
@@ -530,6 +538,8 @@ function startGame() {
 function pauseGame() {
     if (gameState !== 'PLAYING') return;
     gameState = 'PAUSED';
+    setGameUiVisible(true);
+    ui.taskDisplay.classList.add('hidden');
     screens.pause.classList.add('active');
 }
 
@@ -537,6 +547,7 @@ function resumeGame() {
     if (gameState !== 'PAUSED') return;
     gameState = 'PLAYING';
     screens.pause.classList.remove('active');
+    setGameUiVisible(true);
 }
 
 function restartGame() {
@@ -549,7 +560,7 @@ function backToHome() {
     obstacles = [];
     stars = [];
     particles = [];
-    ui.taskDisplay.classList.add('hidden');
+    setGameUiVisible(false);
     showScreen(screens.start);
     updateHUD();
 }
@@ -561,18 +572,15 @@ function gameOver() {
     }
     ui.finalScore.textContent = score;
     ui.recordScore.textContent = highScore;
-    ui.taskDisplay.classList.add('hidden');
+    setGameUiVisible(false);
     showScreen(screens.gameOver);
     updateHUD();
 }
 
 function checkMilestones() {
     if (score === 5 || score === 10 || score === 15) {
-        const text = score === 10 ? '太棒了，10 颗星星达成！继续飞吧！' : `太棒了，已经收集 ${score} 颗星星！`;
+        const text = score === 10 ? '任务完成！继续挑战更高分吧 ✨' : `太棒了，已经收集 ${score} 颗星星！`;
         showMessage(text, 2200);
-    }
-    if (score === 10) {
-        showParentMessage();
     }
     updateUnlocks();
 }
@@ -608,7 +616,10 @@ function updateUnlocks() {
 function renderTreasure() {
     document.querySelectorAll('.sticker').forEach(sticker => {
         const id = sticker.id.replace('sticker-', '');
-        sticker.classList.toggle('locked', !ownedStickers.includes(id));
+        const isOwned = ownedStickers.includes(id);
+        sticker.classList.toggle('locked', !isOwned);
+        const status = sticker.querySelector('.sticker-status');
+        if (status) status.textContent = isOwned ? '已解锁' : '未解锁';
     });
 
     document.querySelectorAll('.cosmetic-item').forEach(item => {
@@ -687,7 +698,6 @@ function saveSettingsFromUI() {
         parentMessage: ui.parentMessage.value.trim() || defaultAssistSettings.parentMessage
     };
     saveAssistSettings();
-    currentSettings = buildSettings();
 }
 
 function setupListeners() {
@@ -720,6 +730,8 @@ function setupListeners() {
     on('sound-btn', 'click', () => {
         soundEnabled = !soundEnabled;
         ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
+        ui.sound.setAttribute('aria-label', soundEnabled ? '关闭声音' : '打开声音');
+        ui.sound.setAttribute('aria-pressed', String(soundEnabled));
         if (soundEnabled) playSound('click');
     });
 
@@ -731,7 +743,7 @@ function setupListeners() {
     on('close-settings-btn', 'click', () => {
         saveSettingsFromUI();
         showScreen(screens.start);
-        showMessage('设置已保存。', 1200);
+        showMessage('设置已保存', 1200);
     });
 
     on('reset-high-score-btn', 'click', () => {
@@ -769,6 +781,12 @@ function setupListeners() {
     window.addEventListener('touchstart', event => {
         if (gameState === 'PLAYING') event.preventDefault();
     }, { passive: false });
+    window.addEventListener('touchmove', event => {
+        if (gameState === 'PLAYING') event.preventDefault();
+    }, { passive: false });
+    window.addEventListener('dblclick', event => {
+        event.preventDefault();
+    });
     window.addEventListener('keydown', event => {
         if (event.code === 'Space') {
             event.preventDefault();
@@ -807,6 +825,9 @@ function init() {
     setupListeners();
     renderTreasure();
     updateHUD();
+    setGameUiVisible(false);
+    ui.sound.setAttribute('aria-pressed', String(soundEnabled));
+    ui.sound.setAttribute('aria-label', '关闭声音');
     showScreen(screens.start);
     requestAnimationFrame(loop);
 }
