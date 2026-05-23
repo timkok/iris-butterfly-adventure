@@ -1,3 +1,57 @@
+# Agent Handoff - Cycle 14 Builder
+
+## Builder Plan
+- Role: Codex Builder
+- Task Type: hotfix + UI improvement + accessibility
+- Scope: `/v4/` only
+- Selected Backlog Items:
+  - **P0-3**: Fix parent life-setting override regression risk.
+  - **P1-5**: Align how-to copy with current obstacle and star rules.
+  - **P1-9**: Complete ARIA labels and roles for overlay controls.
+- Implementation Plan:
+  - Preserve parent-selected lives from `storage.loadAll(state)` during `startGame()`, while keeping practice mode infinite.
+  - Update the how-to text to mention click/space, flower-vine gaps, obstacles, and shiny stars.
+  - Add missing accessible labels/roles for overlay controls and treasure tabs without changing gameplay.
+  - Increment `/v4/index.html` and `/v4/test.html` asset versions after CSS/JS/HTML changes.
+  - Run existing tests and browser startup QA before commit.
+
+## Implementation Notes
+- P0-3:
+  - `game.startGame()` now preserves the lives value loaded from parent settings via `storage.loadAll(state)`.
+  - Practice mode still forces infinite lives.
+  - Difficulty lives remain the fallback if a stored lives value is invalid.
+- P1-5:
+  - Updated the how-to copy to mention screen/Space control, flower-vine gaps, obstacles, and shiny stars.
+- P1-9:
+  - Added missing accessible labels for settings, how-to close, pause, restart, and back-home controls.
+  - Added tablist/tab/tabpanel relationships for treasure tabs and panels.
+- Tests:
+  - Added a smoke test for parent lives override on `startGame()`.
+- Asset Version:
+  - `/v4/index.html`: `v=20`
+  - `/v4/test.html`: `v=20`
+
+## QA Results
+- JS syntax check: PASS
+  - `for f in v4/js/*.js; do node --check "$f" || exit 1; done`
+- Diff whitespace check: PASS
+  - `git diff --check`
+- Browser smoke tests: PASS
+  - `/v4/test.html?cycle14=v20`: 18 total, 18 passed, 0 failed.
+- Browser startup QA: PASS
+  - `/v4/?cycle14=v20` loaded with `style.css?v=20` and JS `v=20`.
+  - Clicked "开始飞行"; HUD and task display appeared and start screen closed.
+  - Space key and canvas click were exercised during PLAYING.
+  - Pause and resume worked.
+  - How-to screen opened and showed updated copy.
+  - Treasure opened; stickers/cosmetics tabs switched with correct ARIA state.
+  - Settings opened; key settings controls exposed labels.
+  - No `v=20` console errors observed.
+- Note:
+  - Browser tooling could not synthesize a true mobile `touchstart` event in this environment; the existing touch path was not changed in this cycle.
+
+---
+
 # Agent Handoff - HOTFIX V4 Start Game Failure
 
 ## HOTFIX: V4 start game failure

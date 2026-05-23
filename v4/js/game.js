@@ -6,7 +6,7 @@ window.IrisGame.game = {
         const storage = window.IrisGame.storage;
         const ui = window.IrisGame.ui;
         const canvas = window.IrisGame.canvas;
-               const director = window.IrisGame.director;
+        const director = window.IrisGame.director;
         const player = window.IrisGame.player;
         const missions = window.IrisGame.missions;
         
@@ -30,9 +30,13 @@ window.IrisGame.game = {
         // Spawn starter stars
         this.spawnStarterStars();
         
-        // Apply initial difficulty settings
+        // Keep parent lives overrides from storage.loadAll(), with a difficulty fallback.
         const currentDiff = director.getCurrentDifficulty();
-        state.game.lives = state.game.mode === 'practice' ? 99 : currentDiff.lives;
+        if (state.game.mode === 'practice') {
+            state.game.lives = 99;
+        } else if (!Number.isFinite(state.game.lives) || state.game.lives <= 0) {
+            state.game.lives = currentDiff.lives;
+        }
         
         const hint = director.getHintMessage();
         if (hint) {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iris's Butterfly Adventure - V4</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=19">
+    <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
     <div id="game-container">
@@ -100,23 +100,23 @@
                 <p class="parent-info-note">✨ 这个游戏默认静音，没有广告，没有购买，适合短时间陪伴游玩。</p>
                 
                 <div class="input-group">
-                    <label>飞行速度</label>
-                    <select id="setting-speed">
+                    <label for="setting-speed">飞行速度</label>
+                    <select id="setting-speed" aria-label="飞行速度">
                         <option value="slow">慢速 (更简单)</option>
                         <option value="normal" selected>正常</option>
                         <option value="fast">快速 (更有挑战)</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>碰撞容差</label>
-                    <select id="setting-tolerance">
+                    <label for="setting-tolerance">碰撞容差</label>
+                    <select id="setting-tolerance" aria-label="碰撞容差">
                         <option value="loose">宽松 (不容易撞到)</option>
                         <option value="standard" selected>标准</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>初始生命值</label>
-                    <select id="setting-lives">
+                    <label for="setting-lives">初始生命值</label>
+                    <select id="setting-lives" aria-label="初始生命值">
                         <option value="difficulty" selected>按难度自动</option>
                         <option value="3">3 颗心</option>
                         <option value="5">5 颗心</option>
@@ -124,8 +124,8 @@
                     <div class="setting-tip">注：练习模式始终为无限心。</div>
                 </div>
                 <div class="input-group">
-                    <label>亲子鼓励寄语 (在游戏结束/高分时弹出)</label>
-                    <input type="text" id="setting-message" placeholder="例如：Iris 你真棒，爱你！" maxlength="20">
+                    <label for="setting-message">亲子鼓励寄语 (在游戏结束/高分时弹出)</label>
+                    <input type="text" id="setting-message" placeholder="例如：Iris 你真棒，爱你！" maxlength="20" aria-label="亲子鼓励寄语">
                 </div>
                 
                 <div class="checkbox-group">
@@ -141,27 +141,27 @@
                     （开启时：降低震动、减慢彩虹闪烁、减少 50% 粒子和背景移动，提供更宁静的游玩环境）
                 </div>
 
-                <button id="close-settings-btn" class="btn-main">保存并返回</button>
-                <button id="reset-high-score-btn" class="btn-secondary">重置最高分</button>
+                <button id="close-settings-btn" class="btn-main" aria-label="保存设置并返回首页">保存并返回</button>
+                <button id="reset-high-score-btn" class="btn-secondary" aria-label="重置最高分">重置最高分</button>
             </div>
 
             <div id="how-to-play-screen" class="panel">
                 <h2>❓ 怎么玩</h2>
-                <p>点击屏幕或者按空格键让蝴蝶向上飞！穿过花藤之间的空隙，躲开障碍物，收集美丽的星星吧。</p>
-                <button id="close-how-to-btn" class="btn-main">明白了</button>
+                <p>点击屏幕或者按空格键让蝴蝶向上飞！穿过花藤之间的空隙，躲开障碍物，收集闪亮的星星。</p>
+                <button id="close-how-to-btn" class="btn-main" aria-label="关闭玩法说明">明白了</button>
             </div>
 
             <div id="treasure-screen" class="panel">
                 <h2>🎁 我的宝贝仓库</h2>
                 <p class="treasure-desc">飞得越远，解锁越多小宝贝 ✨</p>
-                <div class="tabs">
-                    <button class="tab-btn active" id="tab-stickers" aria-label="查看魔法贴纸">魔法贴纸</button>
-                    <button class="tab-btn" id="tab-cosmetics" aria-label="查看翅膀外观">翅膀外观</button>
+                <div class="tabs" role="tablist" aria-label="宝贝分类">
+                    <button class="tab-btn active" id="tab-stickers" role="tab" aria-selected="true" aria-controls="stickers-content" aria-label="查看魔法贴纸">魔法贴纸</button>
+                    <button class="tab-btn" id="tab-cosmetics" role="tab" aria-selected="false" aria-controls="cosmetics-content" aria-label="查看翅膀外观">翅膀外观</button>
                 </div>
-                <div class="tab-content active" id="stickers-content">
+                <div class="tab-content active" id="stickers-content" role="tabpanel" aria-labelledby="tab-stickers">
                     <div class="sticker-grid" id="stickers-container"></div>
                 </div>
-                <div class="tab-content" id="cosmetics-content">
+                <div class="tab-content" id="cosmetics-content" role="tabpanel" aria-labelledby="tab-cosmetics">
                     <div class="cosmetic-grid" id="cosmetics-container"></div>
                 </div>
                 <button id="close-treasure-btn" class="btn-main" aria-label="返回首页">返回首页</button>
@@ -176,9 +176,9 @@
                     <p>任务进度: <span id="pause-task">收集 10 颗星星 (0/10)</span></p>
                 </div>
                 <p id="pause-rest-tip" style="margin: 10px 0 16px; font-weight: 800; color: #77c987; font-size: 1.05rem;"></p>
-                <button id="resume-btn" class="btn-main">继续飞行</button>
-                <button id="restart-from-pause-btn" class="btn-secondary">重新开始</button>
-                <button id="back-to-home-from-pause-btn" class="btn-secondary">回到首页</button>
+                <button id="resume-btn" class="btn-main" aria-label="继续飞行">继续飞行</button>
+                <button id="restart-from-pause-btn" class="btn-secondary" aria-label="从暂停菜单重新开始">重新开始</button>
+                <button id="back-to-home-from-pause-btn" class="btn-secondary" aria-label="从暂停菜单回到首页">回到首页</button>
             </div>
 
             <div id="game-over-screen" class="panel">
@@ -195,8 +195,8 @@
                 <p id="over-best-performance" style="margin: 12px 0 6px; font-weight: 900; color: #ff9d00; font-size: 1.08rem; text-align: center;"></p>
                 <p id="over-rest-tip" style="margin: 10px 0 16px; font-weight: 800; color: #77c987; font-size: 1.05rem; display: none;"></p>
                 <p id="over-encouragement" style="margin: 6px 0 16px; font-weight: 800; color: #ff7eb3; font-size: 1.05rem;"></p>
-                <button id="restart-btn" class="btn-main">再飞一次</button>
-                <button id="back-to-home-btn" class="btn-secondary">回到首页</button>
+                <button id="restart-btn" class="btn-main" aria-label="再飞一次">再飞一次</button>
+                <button id="back-to-home-btn" class="btn-secondary" aria-label="从游戏结束页回到首页">回到首页</button>
             </div>
         </div>
     </div>
@@ -205,18 +205,18 @@
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <!-- Game Engine Scripts -->
-    <script src="js/config.js?v=19"></script>
-    <script src="js/state.js?v=19"></script>
-    <script src="js/storage.js?v=19"></script>
-    <script src="js/audio.js?v=19"></script>
-    <script src="js/director.js?v=19"></script>
-    <script src="js/debug.js?v=19"></script>
-    <script src="js/ui.js?v=19"></script>
-    <script src="js/entities.js?v=19"></script>
-    <script src="js/canvas.js?v=19"></script>
-    <script src="js/missions.js?v=19"></script>
-    <script src="js/rewards.js?v=19"></script>
-    <script src="js/game.js?v=19"></script>
-    <script src="js/main.js?v=19"></script>
+    <script src="js/config.js?v=20"></script>
+    <script src="js/state.js?v=20"></script>
+    <script src="js/storage.js?v=20"></script>
+    <script src="js/audio.js?v=20"></script>
+    <script src="js/director.js?v=20"></script>
+    <script src="js/debug.js?v=20"></script>
+    <script src="js/ui.js?v=20"></script>
+    <script src="js/entities.js?v=20"></script>
+    <script src="js/canvas.js?v=20"></script>
+    <script src="js/missions.js?v=20"></script>
+    <script src="js/rewards.js?v=20"></script>
+    <script src="js/game.js?v=20"></script>
+    <script src="js/main.js?v=20"></script>
 </body>
 </html>

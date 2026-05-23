@@ -72,6 +72,36 @@
         state.resetGameState();
     });
 
+    test('Parent lives setting applies on next startGame', () => {
+        const state = window.IrisGame.state;
+        const storage = window.IrisGame.storage;
+        const game = window.IrisGame.game;
+        const originalGetSettings = storage.getSettings;
+
+        try {
+            storage.getSettings = () => ({
+                ...window.IrisGame.config.defaultAssistSettings,
+                speed: 'normal',
+                tolerance: 'standard',
+                lives: '3'
+            });
+
+            state.gameState = 'START';
+            state.game.mode = 'easy';
+            game.startGame();
+            assert(state.game.lives === 3, `Parent lives override should start easy mode with 3 lives, got ${state.game.lives}`);
+
+            state.gameState = 'START';
+            state.game.mode = 'practice';
+            game.startGame();
+            assert(state.game.lives === 99, 'Practice mode should stay infinite even when parent lives override is 3');
+        } finally {
+            storage.getSettings = originalGetSettings;
+            state.gameState = 'START';
+            state.resetGameState();
+        }
+    });
+
     test('getStageForScore() logic', () => {
         const director = window.IrisGame.director;
         assert(director.getStageForScore(0) === 'warmup', 'Score 0 should be warmup');
