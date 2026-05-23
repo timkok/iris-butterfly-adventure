@@ -1,24 +1,24 @@
-# Agent Handoff - Cycle 4
+# Agent Handoff - Cycle 5
 
-## Cycle 4 Agent Dialogue
+## Cycle 5 Agent Dialogue
 
 1. **Strategist (Product)**:
-   "I propose these gameplay improvements: replacing the 3-star speed boost with a Starlight Shield (starShield) reward that accumulates after 3 consecutive stars without hitting obstacles, protecting the player from one collision (vines/ground) in non-practice mode, and showing '星光护盾保护了你 ✨'. We also clean up all speed boost/multiplier logic from previous sprint."
+   "I propose these gameplay improvements: adding a gentle daily/session greeting card to the start screen. If the player has a highScore > 0, we show a welcoming card saying '欢迎回来，小蝴蝶！最高飞到 X 颗星 ✨'. If they have unlocked any stickers, we also display '你已经解锁了 N 个小宝贝 🎁'. We avoid any daily login counts, countdown clocks, or addictive pressure hooks to keep the game completely wholesome and stress-free."
 
 2. **UX Designer**:
-   "UI impact and layout concerns: We need to render a clear HUD status. We will show '✨🛡' when the shield is active next to the hearts in the lives container. We will also render a beautiful, soft circular glow/halo around the player on the canvas when they are shielded, and a pop feedback upon shield consumption."
+   "UI impact and layout concerns: We will style the greeting card as a clean, rounded glassmorphism widget positioned right beneath the subtitle on the start screen. For narrow 320px screens, we will make sure the parent settings panel and the treasure warehouse have vertical scrollbars and flexbox shrink prevention so controls are never squished, and the warehouse items cleanly snap into 2 columns."
 
 3. **Accessibility Reviewer**:
-   "Accessibility/safety constraints: The visual feedback upon shield consumption or shield rendering must not flash or flicker rapidly, especially under Reduced Motion and Calm Mode. Under reduced motion, no particles or screenshake should be spawned upon consumption, and the canvas glow must have no shadow blurs to avoid performance issues."
+   "Accessibility/safety constraints: We must confirm that all dynamic HUD elements and parent settings announcements use aria-live='polite' instead of assertive to prevent verbal clutter for screen readers. Furthermore, when prefers-reduced-motion or calm mode is active, the invincibility flicker of the player butterfly must be completely replaced with a steady lower opacity to prevent rapid screen flashing."
 
 4. **Builder**:
-   "Implementation plan and risk assessment: We will modify state.js to replace speedBoostFrames with starShield. We will implement shield detection in handleCollision and collectStar inside game.js, render the HUD status in ui.js, clean up the speedMultiplier in director.js, and draw the halo in canvas.js. We will also update debug.js to show shield status and QA session copy summary."
+   "Implementation plan and risk assessment: We will add the start-greeting div to index.html and style it in style.css. In ui.js, we will populate the greeting dynamically from localStorage. In canvas.js, we will disable invincibility flickering for reduced motion/calm mode. In style.css, we will configure overflow scrollbars and flex-shrink limits for parent settings and treasure screens."
 
 5. **QA**:
-   "Verification plan: We will write a dedicated suite in smoke-tests.js validating the Starlight Shield Mechanics, verifying: 1) Star collection streak triggers shield, 2) Vines collision consumes shield, 3) Life is preserved when shielded, 4) Practice mode receives no shield. We will run these tests in Node using run-tests.js and in test.html."
+   "Verification plan: We will append a new test case 'Greeting card logic' to smoke-tests.js that verifies proper start-screen greeting display conditions, score output, and unlock counts. We will run the suite in the Node environment using run-tests.js."
 
 6. **Release Manager**:
-   "Release checklist: We will bump the version parameter to v=9 for all scripts and styles in index.html and test.html. We will verify tests run successfully, perform manual sanity checks, update the handoff log, and commit and push to main branch."
+   "Release checklist: We will increment the style and script query strings to v=10 across index.html and test.html, run Node unit tests, verify passes, update the handoff log with the fixed Release Notes format, and commit/push directly to the main branch."
 
 ---
 
@@ -42,7 +42,7 @@
 ## Product Backlog
 由 Product Strategist 维护：
 - **P0**: 保持 `/v4/` 稳定可运行、无控制台报错、默认静音、不影响 V1/V2/V3 版。
-- **P1**: 优化 onboarding 期间首个花藤前的间隙过渡。
+- **P1**: 飞行报告增强：Game Over 增加最棒表现报告。
 - **P2**: 新增贴纸图案和解锁历史记录。
 
 ## UX Backlog
@@ -59,66 +59,29 @@
 ---
 
 ## Current Sprint
-本轮 Cycle 4 任务：
-1. **P1 (Product)**: 3 星连击奖励改为“星光护盾”，移除 Cycle 3 的 speed boost / speedMultiplier。
-2. **P1 (UX)**: HUD 及 Canvas 渲染星光护盾，并显示“星光护盾保护了你 ✨”。
-3. **P1 (Accessibility)**: Reduced Motion 和 Calm Mode 下限制护盾闪烁。
-4. **P1 (QA)**: 更新 smoke-tests 校验护盾累加、防扣生命和 practice 模式过滤。
-5. **P1 (Release)**: 升级 v=9 版本号。
-
----
-
-## Builder Plan
-1. **状态更新**：在 `state.js` 中移除 speed 状态，添加 `starShield`，并在 `resetGameState()` 中重置。
-2. **护盾获取**：在 `game.js` 的 `collectStar()` 中，若连续收集达到 3 颗，且未撞击，则为非 practice 模式玩家加上 `starShield = true`。
-3. **护盾吸收**：在 `game.js` 的 `handleCollision()` 中，拦截碰撞。若有护盾，则消耗护盾，免除扣血，并弹出提示“星光护盾保护了你 ✨”。
-4. **速度逻辑清理**：移除 `director.js` 中的冲刺速度倍率逻辑，恢复常态。
-5. **护盾渲染**：在 `ui.js` / `index.html` 的 lives 部分，若有护盾，添加 `✨🛡` 字样；在 `canvas.js` 的 `drawPlayer` 内部，若有护盾，绘制柔和金黄色圆环，在低刺激/减少动效下关闭滤镜及外发光。
-6. **调参辅助**：在 `debug.js` Realtime metrics 面板加入 `Shield` 状态，并修复 `QA Summary` 按钮。
-7. **测试补充**：在 `smoke-tests.js` 编写 `Starlight Shield Mechanics` 完整闭环测试，并升级 `run-tests.js` 使其在 headless Node 中成功跑通。
-
----
-
-## Implementation Notes
-- **Shield Halo Visual**: A soft circular stroke is drawn around the player butterfly when `starShield` is active. Glow and blurs are disabled when Reduced Motion or Calm Mode is detected to prevent performance hits and rapid flicker.
-- **Node Mock Updates**: Refactored `run-tests.js` to mock standard `AudioContext`, `StereoPanner`, clipboard actions, and added full `makeMockElement` with element attributes and `dataset` mappings.
-
----
-
-## QA Checklist
-- [x] 验证 `v4/index.html` 资源后缀升级为 `?v=9`。
-- [x] 验证 `v4/test.html` 自动化测试包含 Starlight Shield Mechanics 并通过。
-- [x] 在 Node 环境中运行 `node run-tests.js`，全部 9 个测试用例均 PASS。
-- [x] 验证连续拾取 3 颗星星后，HUD lives 部分出现 `✨🛡`。
-- [x] 验证触发碰撞后，护盾消失，无生命扣除，且有“星光护盾保护了你 ✨”提示。
-- [x] 验证在 practice 模式下，收集星星无法产生护盾。
-
----
-
-## QA Results
-- **Unit Testing**: All 9 unit tests passed:
-  ```text
-  PASS: Config Object Validity
-  PASS: getStageForScore() logic
-  PASS: chooseMission() pool limits
-  PASS: Storage compatibility migration
-  PASS: Reward unlock score checking
-  PASS: Mission progress calculation
-  PASS: Reduced motion fallbacks
-  PASS: Difficulty scaling clamps & overrides
-  PASS: Starlight Shield Mechanics
-  ```
-- **Realtime Metrics**: Verified debug panel shows Shield YES/NO correctly.
+本轮 Cycle 5 任务：
+1. **P1 (Product)**: 增加“每日/本次飞行问候卡”，展现最高记录及已解锁宝贝数，无任何签到/防沉迷机制负面文本。
+2. **P1 (UX)**: 优化 320px 窄屏适配，家长设置页与仓库页支持局部滚动，防止元素挤压。
+3. **P1 (Accessibility)**: 增加 aria-live="polite" 播报，并优化减少动态模式下免闪烁无感护盾与无感无敌。
 
 ---
 
 ## Release Notes
-- **Pushed Branch**: `main`
-- **Game URL**: `https://timkok.github.io/iris-butterfly-adventure/v4/`
-- **Tests URL**: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`
+- Cycle: Cycle 5
+- Pushed Branch: main
+- Commit Hash: ab80027
+- Pages Source: main / root
+- Game URL: https://timkok.github.io/iris-butterfly-adventure/v4/
+- Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
+- Asset Version: v=10
+- QA Status: PASS
+- Remaining Issues:
+  - None
+- Next Cycle Starts Automatically: yes
 
 ---
 
 ## Next Sprint Proposal
-- **P1 (Product)**: 首屏加载体验优化，结合 localStorage 展现解锁名片。
-- **P2 (UX)**: 家长设置页面在 320px 下的响应式设计。
+- **P1 (Product)**: 飞行报告增强：Game Over 界面下增加“本局最棒表现”卡片，展示星星、彩虹星或花藤通过的最佳点。
+- **P1 (QA)**: `test.html` 自动化测试中引入更多的纯函数逻辑覆盖。
+- **P1 (UX)**: 调参 Debug panel 增加“复制 QA 摘要”快捷动作。

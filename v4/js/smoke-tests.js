@@ -172,6 +172,60 @@
         assert(state.game.starShield === false, 'Practice mode should not receive starShield');
     });
     
+    test('Greeting card logic', () => {
+        const state = window.IrisGame.state;
+        const ui = window.IrisGame.ui;
+        const storage = window.IrisGame.storage;
+        
+        // Save original functions
+        const origGetHighScore = storage.getHighScore;
+        const origGetStickers = storage.getStickers;
+        const origGetCosmetics = storage.getCosmetics;
+        const origGreetingElement = ui.elements.greeting;
+        
+        try {
+            // Mock greeting element
+            ui.elements.greeting = {
+                classList: {
+                    _classes: new Set(),
+                    add(c) { this._classes.add(c); },
+                    remove(c) { this._classes.delete(c); },
+                    contains(c) { return this._classes.has(c); }
+                },
+                innerHTML: ''
+            };
+            
+            // Case 1: highScore is 0 (new player)
+            storage.getHighScore = () => 0;
+            ui.elements.greeting.classList.remove('hidden');
+            ui.renderGreeting();
+            assert(ui.elements.greeting.classList.contains('hidden'), 'Greeting should be hidden if highScore is 0');
+            
+            // Case 2: highScore > 0, no stickers unlocked
+            storage.getHighScore = () => 4; // Not enough for first sticker (needs 5)
+            storage.getStickers = () => [];
+            storage.getCosmetics = () => ['default'];
+            ui.elements.greeting.classList.add('hidden');
+            ui.renderGreeting();
+            assert(!ui.elements.greeting.classList.contains('hidden'), 'Greeting should be shown if highScore > 0');
+            assert(ui.elements.greeting.innerHTML.includes('最高飞到 4 颗星'), 'Greeting should report correct highScore');
+            assert(!ui.elements.greeting.innerHTML.includes('解锁了'), 'Greeting should not mention unlocks if none');
+            
+            // Case 3: Stickers unlocked
+            storage.getHighScore = () => 12; // Unlocks 'star' (5) and 'flower' (10)
+            storage.getStickers = () => ['star', 'flower'];
+            storage.getCosmetics = () => ['default'];
+            ui.renderGreeting();
+            assert(ui.elements.greeting.innerHTML.includes('解锁了 2 个小宝贝'), 'Should report 2 unlocked items (2 stickers)');
+        } finally {
+            // Restore original functions
+            storage.getHighScore = origGetHighScore;
+            storage.getStickers = origGetStickers;
+            storage.getCosmetics = origGetCosmetics;
+            ui.elements.greeting = origGreetingElement;
+        }
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {

@@ -250,7 +250,8 @@ window.IrisGame.canvas = {
         const player = window.IrisGame.player;
         const ctx = this.ctx;
         
-        if (player.invincibleFrames > 0 && Math.floor(player.invincibleFrames / 6) % 2 === 0) return;
+        const isFlickerDisabled = state.prefersReducedMotion || state.game.calmModeEnabled;
+        if (player.invincibleFrames > 0 && !isFlickerDisabled && Math.floor(player.invincibleFrames / 6) % 2 === 0) return;
         
         this.drawPlayerTrail();
         
@@ -262,7 +263,7 @@ window.IrisGame.canvas = {
         ctx.rotate(player.velocity * rotateFactor);
         
         const flap = Math.sin(player.wingPhase) * 0.18;
-        ctx.globalAlpha = player.invincibleFrames > 0 ? 0.72 : 1;
+        ctx.globalAlpha = player.invincibleFrames > 0 ? (isFlickerDisabled ? 0.45 : 0.72) : 1;
         ctx.font = '28px serif';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';

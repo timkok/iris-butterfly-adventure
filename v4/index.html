@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iris's Butterfly Adventure - V4</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
     <div id="game-container">
@@ -45,7 +45,7 @@
             <div id="message-display" class="hidden" aria-live="polite"></div>
             
             <!-- Parent Easter Egg -->
-            <div id="easter-egg-msg" class="hidden">
+            <div id="easter-egg-msg" class="hidden" aria-live="polite">
                 <div id="egg-text"></div>
                 <div style="font-size: 3rem;">💖</div>
             </div>
@@ -59,6 +59,7 @@
 
                 <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
                 <p class="start-subtitle">V4 引擎重构实验版</p>
+                <div id="start-greeting" class="start-greeting-card hidden" aria-live="polite"></div>
                 
                 <div class="diff-selector" role="radiogroup" aria-label="选择游戏难度">
                     <button class="btn-diff" data-diff="practice" aria-label="选择练习课">
@@ -204,18 +205,18 @@
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <!-- Game Engine Scripts -->
-    <script src="js/config.js?v=9"></script>
-    <script src="js/state.js?v=9"></script>
-    <script src="js/storage.js?v=9"></script>
-    <script src="js/audio.js?v=9"></script>
-    <script src="js/director.js?v=9"></script>
-    <script src="js/debug.js?v=9"></script>
-    <script src="js/ui.js?v=9"></script>
-    <script src="js/entities.js?v=9"></script>
-    <script src="js/canvas.js?v=9"></script>
-    <script src="js/missions.js?v=9"></script>
-    <script src="js/rewards.js?v=9"></script>
-    <script src="js/game.js?v=9"></script>
-    <script src="js/main.js?v=9"></script>
+    <script src="js/config.js?v=10"></script>
+    <script src="js/state.js?v=10"></script>
+    <script src="js/storage.js?v=10"></script>
+    <script src="js/audio.js?v=10"></script>
+    <script src="js/director.js?v=10"></script>
+    <script src="js/debug.js?v=10"></script>
+    <script src="js/ui.js?v=10"></script>
+    <script src="js/entities.js?v=10"></script>
+    <script src="js/canvas.js?v=10"></script>
+    <script src="js/missions.js?v=10"></script>
+    <script src="js/rewards.js?v=10"></script>
+    <script src="js/game.js?v=10"></script>
+    <script src="js/main.js?v=10"></script>
 </body>
 </html>

@@ -126,6 +126,32 @@ canvas {
     z-index: 5;
 }
 
+.start-greeting-card {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px solid rgba(255, 126, 179, 0.25);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 0 auto 16px;
+    max-width: 310px;
+    font-size: 0.88rem;
+    color: #4a3e8c;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(255, 126, 179, 0.1);
+    z-index: 5;
+    backdrop-filter: blur(4px);
+    box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .start-greeting-card {
+        box-shadow: none;
+        backdrop-filter: none;
+        background: #fff;
+    }
+}
+
 .glow-text {
     text-shadow: 0 4px 0 rgba(255, 255, 255, 0.9), 0 12px 32px rgba(255, 126, 179, 0.38);
 }
@@ -801,7 +827,45 @@ input:focus-visible {
     .sticker-grid,
     .cosmetic-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
     }
+    
+    .panel h2 {
+        font-size: 1.3rem;
+        margin-top: 10px;
+        margin-bottom: 8px;
+    }
+    
+    .settings-desc,
+    .parent-info-note,
+    .setting-tip {
+        font-size: 0.75rem;
+    }
+    
+    .input-group label {
+        font-size: 0.8rem;
+    }
+    
+    .input-group select,
+    .input-group input {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Scrollable layout and squish prevention for settings and treasure panels */
+#parent-settings-screen,
+#treasure-screen {
+    justify-content: flex-start;
+    overflow-y: auto;
+    max-height: 100%;
+    padding-top: calc(28px + env(safe-area-inset-top));
+    padding-bottom: calc(36px + env(safe-area-inset-bottom));
+}
+
+#parent-settings-screen > *,
+#treasure-screen > * {
+    flex-shrink: 0;
 }
 
 /* Gentle pulse animation for start/onboarding flight hint text */

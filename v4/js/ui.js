@@ -51,7 +51,8 @@ window.IrisGame.ui = {
             restReminderCheckbox: document.getElementById('setting-rest-reminder'),
             gentleModeCheckbox: document.getElementById('setting-gentle-mode'),
             calmModeCheckbox: document.getElementById('setting-calm-mode'),
-            reducedMotionNotice: document.getElementById('reduced-motion-notice')
+            reducedMotionNotice: document.getElementById('reduced-motion-notice'),
+            greeting: document.getElementById('start-greeting')
         };
     },
     
@@ -67,6 +68,51 @@ window.IrisGame.ui = {
             const mainBtn = activePanel.querySelector('.btn-main');
             if (mainBtn) mainBtn.focus();
         }
+        if (screenKey === 'start') {
+            this.renderGreeting();
+        }
+    },
+    
+    renderGreeting() {
+        const state = window.IrisGame.state;
+        const config = window.IrisGame.config;
+        const storage = window.IrisGame.storage;
+        const greetingEl = this.elements.greeting;
+        
+        if (!greetingEl) return;
+        
+        const highScore = storage.getHighScore();
+        if (highScore <= 0) {
+            greetingEl.classList.add('hidden');
+            return;
+        }
+        
+        // Count unlocked stickers + cosmetics
+        const ownedStickers = storage.getStickers();
+        const ownedCosmetics = storage.getCosmetics();
+        let totalUnlockedCount = 0;
+        let unlockedStickerCount = 0;
+        
+        config.UNLOCKS.forEach(item => {
+            if (item.type === 'sticker') {
+                if (highScore >= item.requirementHighScore || ownedStickers.includes(item.id)) {
+                    unlockedStickerCount++;
+                    totalUnlockedCount++;
+                }
+            } else if (item.type === 'cosmetic') {
+                if (highScore >= item.requirementHighScore || ownedCosmetics.includes(item.id)) {
+                    totalUnlockedCount++;
+                }
+            }
+        });
+        
+        let greetingHTML = `欢迎回来，小蝴蝶！最高飞到 ${highScore} 颗星 ✨`;
+        if (unlockedStickerCount > 0) {
+            greetingHTML += `<br><span style="margin-top: 4px; display: inline-block; color: #ff65a3;">你已经解锁了 ${totalUnlockedCount} 个小宝贝 🎁</span>`;
+        }
+        
+        greetingEl.innerHTML = greetingHTML;
+        greetingEl.classList.remove('hidden');
     },
     
     setGameUiVisible(visible) {
