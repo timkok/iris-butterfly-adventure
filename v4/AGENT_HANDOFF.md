@@ -1,3 +1,36 @@
+# Agent Handoff - HOTFIX V4 Start Game Failure
+
+## HOTFIX: V4 start game failure
+- Priority: P0
+- Task Type: hotfix
+- Root Cause:
+  - The gameplay loop crashed after pressing "开始飞行" because `updateGame()` referenced `ui.renderHUD()` without declaring `const ui = window.IrisGame.ui;` in that function scope.
+  - Adjacent startup state issue: `director.getCurrentDifficulty()` did not return `lives`, so `startGame()` could overwrite loaded lives with `undefined`.
+- Files Changed:
+  - `/v4/js/game.js`
+  - `/v4/js/director.js`
+  - `/v4/js/smoke-tests.js`
+  - `/v4/index.html`
+  - `/v4/test.html`
+  - `/v4/AGENT_HANDOFF.md`
+- Console Error Before:
+  - `ReferenceError: ui is not defined`
+  - `at Object.updateGame (http://localhost:8000/v4/js/game.js?v=17:512:13)`
+  - `at Object.loop (http://localhost:8000/v4/js/game.js?v=17:577:18)`
+  - `at http://localhost:8000/v4/js/game.js?v=17:586:42`
+- Console Status After:
+  - Local browser QA with final `v=19` assets: no new `/v4/` console errors.
+- Tests Run:
+  - `for f in v4/js/*.js; do node --check "$f" || exit 1; done`
+  - `/v4/test.html?hotfix=v19`: 17 total, 17 passed, 0 failed.
+  - Browser QA on `/v4/?hotfix=domqa`: "开始飞行" starts the game, HUD and task display appear, Space and mouse input exercised, pause/restart works, no new `/v4/` console errors.
+  - Browser QA on `/v4/?hotfix=overlayqa`: treasure opens, settings opens, Game Over path observed, no new `/v4/` console errors.
+  - Browser visual movement check: screenshots differ while playing, confirming the canvas continues updating.
+- Asset Version: v=19
+- Commit Hash: pending until release commit; final pushed hash reported in release response.
+
+---
+
 # Agent Handoff - Cycle 13
 
 ## Cycle 12 Agent Dialogue

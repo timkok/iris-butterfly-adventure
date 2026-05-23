@@ -1,12 +1,12 @@
 (function() {
     const results = [];
-    
+
     function assert(condition, message) {
         if (!condition) {
             throw new Error(message || 'Assertion failed');
         }
     }
-    
+
     function test(name, fn) {
         try {
             fn();
@@ -15,9 +15,9 @@
             results.push({ name, passed: false, error: e.message });
         }
     }
-    
+
     // --- Test Cases ---
-    
+
     test('Config Object Validity', () => {
         const config = window.IrisGame.config;
         assert(config !== undefined, 'window.IrisGame.config should be defined');
@@ -25,7 +25,53 @@
         assert(config.STAGES.breeze.minScore === 16, 'Breeze stage threshold should be 16');
         assert(config.UNLOCKS.length === 8, 'Unlocks array should have 8 items');
     });
-    
+
+    test('startGame changes gameState from START to PLAYING without throwing', () => {
+        const state = window.IrisGame.state;
+        const ui = window.IrisGame.ui;
+        const canvas = window.IrisGame.canvas;
+        const game = window.IrisGame.game;
+
+        if (!document.getElementById('gameCanvas')) {
+            const fixture = document.createElement('div');
+            fixture.id = 'game-fixture';
+            fixture.innerHTML = `
+                <canvas id="gameCanvas"></canvas>
+                <div id="hud" class="hidden"><span id="score"></span><span id="lives"></span><span id="hud-shield"></span></div>
+                <div id="task-display" class="hidden"><span id="task-text"></span><span id="task-progress"></span></div>
+                <div id="message-display" class="hidden"></div>
+                <div id="easter-egg-msg" class="hidden"><div id="egg-text"></div></div>
+                <button id="sound-btn"></button><button id="pause-btn"></button>
+                <div id="start-screen"></div><div id="how-to-play-screen"></div><div id="parent-settings-screen"></div>
+                <div id="treasure-screen"></div><div id="pause-screen"></div><div id="game-over-screen"></div>
+                <span id="final-score"></span><span id="final-vines"></span><span id="final-mode"></span><span id="final-stage"></span>
+                <span id="final-task"></span><span id="record-score"></span><span id="over-title"></span>
+                <span id="over-encouragement"></span><span id="over-best-performance"></span><span id="over-rest-tip"></span>
+                <select id="setting-speed"></select><select id="setting-tolerance"></select><select id="setting-lives"></select>
+                <input id="setting-message"><input type="checkbox" id="setting-rest-reminder">
+                <input type="checkbox" id="setting-gentle-mode"><input type="checkbox" id="setting-calm-mode">
+                <div id="reduced-motion-notice"></div><div id="start-greeting"></div>
+            `;
+            document.body.appendChild(fixture);
+        }
+
+        ui.cacheDOM();
+        canvas.initCanvas(document.getElementById('gameCanvas'));
+        state.gameState = 'START';
+        state.game.mode = 'easy';
+        state.resetGameState();
+
+        game.startGame();
+
+        assert(state.gameState === 'PLAYING', 'startGame should set gameState to PLAYING');
+        assert(ui.elements.hud && !ui.elements.hud.classList.contains('hidden'), 'HUD should be visible after startGame');
+        assert(state.game.lives === 5, `Easy mode should start with 5 lives, got ${state.game.lives}`);
+        assert(state.stars.length >= 2, 'Starter stars should be spawned');
+
+        state.gameState = 'START';
+        state.resetGameState();
+    });
+
     test('getStageForScore() logic', () => {
         const director = window.IrisGame.director;
         assert(director.getStageForScore(0) === 'warmup', 'Score 0 should be warmup');
@@ -37,45 +83,45 @@
         assert(director.getStageForScore(31) === 'rainbow', 'Score 31 should be rainbow');
         assert(director.getStageForScore(100) === 'rainbow', 'Score 100 should be rainbow');
     });
-    
+
     test('chooseMission() pool limits', () => {
         const missions = window.IrisGame.missions;
         const state = window.IrisGame.state;
-        
+
         missions.chooseMission('practice');
         assert(state.game.mission !== null, 'Mission should be chosen');
         assert(['collect_stars_10', 'pass_vines_5', 'survive_30s'].includes(state.game.mission.id), 'Practice mode must choose a simple mission');
-        
+
         missions.chooseMission('easy');
         assert(state.game.mission !== null, 'Mission should be chosen for easy');
     });
-    
+
     test('Storage compatibility migration', () => {
         const storage = window.IrisGame.storage;
-        
+
         localStorage.removeItem(storage.KEYS.cosmetics);
         localStorage.removeItem(storage.KEYS.stickers);
-        
+
         storage.migrateOldStorage();
-        
+
         const cosmetics = JSON.parse(localStorage.getItem(storage.KEYS.cosmetics));
         const stickers = JSON.parse(localStorage.getItem(storage.KEYS.stickers));
-        
+
         assert(Array.isArray(cosmetics) && cosmetics.includes('default'), 'Migration should initialize cosmetics array with default');
         assert(Array.isArray(stickers) && stickers.length === 0, 'Migration should initialize stickers array');
     });
-    
+
     test('Reward unlock score checking', () => {
         const rewards = window.IrisGame.rewards;
         assert(rewards.isUnlocked(10, 5) === true, 'Unlocked if score >= requirement');
         assert(rewards.isUnlocked(4, 5) === false, 'Locked if score < requirement');
         assert(rewards.isUnlocked(5, 5) === true, 'Unlocked if score equals requirement');
     });
-    
+
     test('Mission progress calculation', () => {
         const missions = window.IrisGame.missions;
         const config = window.IrisGame.config;
-        
+
         const mockGame = {
             score: 7,
             passedObstacles: 3,
@@ -83,49 +129,49 @@
             rainbowStarsCollected: 1,
             noHitStarCount: 4
         };
-        
+
         const m1 = config.MISSIONS.collect_stars_10;
         const m2 = config.MISSIONS.survive_30s;
         const m3 = config.MISSIONS.clean_collect_5;
-        
+
         assert(missions.getMissionProgress(mockGame, m1) === 7, 'Collect stars progress should match game score');
         assert(missions.getMissionProgress(mockGame, m2) === 2, 'Survive 30s progress should match game frames / 60');
         assert(missions.getMissionProgress(mockGame, m3) === 4, 'Clean collect progress should match noHitStarCount');
     });
-    
+
     test('Reduced motion fallbacks', () => {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
-        
+
         state.prefersReducedMotion = true;
         state.game.mode = 'easy';
         state.game.currentStage = 'warmup';
-        
+
         const diff = director.getCurrentDifficulty();
         assert(diff.speed > 0, 'Speed must be positive');
         assert(diff.gap >= 200, 'Gap must respect min limits');
     });
-    
+
     test('Difficulty scaling clamps & overrides', () => {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
-        
+
         state.game.mode = 'hard';
         state.game.currentStage = 'rainbow';
         state.debugActive = true;
         state.tuningOverrides.speedMultiplier = 1.5;
         state.tuningOverrides.gapBonus = 20;
-        
+
         const diffHard = director.getCurrentDifficulty();
         assert(diffHard.speed > 0, 'Hard speed should be positive');
-        
+
         state.debugActive = false;
     });
-    
+
     test('Starlight Shield Mechanics', () => {
         const state = window.IrisGame.state;
         const game = window.IrisGame.game;
-        
+
         state.resetGameState();
         state.gameState = 'PLAYING';
         window.IrisGame.player.invincibleFrames = 0;
@@ -133,32 +179,32 @@
         state.game.lives = 5;
         state.game.consecutiveStarsNoHit = 0;
         state.game.starShield = false;
-        
+
         // 1. Collecting stars increments combo, triggers shield at 3
         const mockStar = { type: 'normal', x: 200, y: 200, update: () => {} };
-        
+
         state.stars = [mockStar];
         game.collectStar(mockStar, 0);
         assert(state.game.consecutiveStarsNoHit === 1, 'Streak should be 1');
         assert(state.game.starShield === false, 'Shield should be false');
-        
+
         state.stars = [mockStar];
         game.collectStar(mockStar, 0);
         state.stars = [mockStar];
         game.collectStar(mockStar, 0);
         assert(state.game.consecutiveStarsNoHit === 0, 'Streak should reset after shield trigger');
         assert(state.game.starShield === true, 'Should have starShield after 3 stars');
-        
+
         // 2. Collision consumes shield and prevents life deduction
         game.handleCollision('Collision check');
         assert(state.game.starShield === false, 'Shield should be consumed');
         assert(state.game.lives === 5, 'Lives should not decrease when shielded');
-        
+
         // 3. Subsequent collision without shield decreases lives
         window.IrisGame.player.invincibleFrames = 0;
         game.handleCollision('Collision check');
         assert(state.game.lives === 4, 'Lives should decrease without shield');
-        
+
         // 4. Practice mode doesn't get shield
         state.resetGameState();
         state.game.mode = 'practice';
@@ -171,18 +217,18 @@
         game.collectStar(mockStar, 0);
         assert(state.game.starShield === false, 'Practice mode should not receive starShield');
     });
-    
+
     test('Greeting card logic', () => {
         const state = window.IrisGame.state;
         const ui = window.IrisGame.ui;
         const storage = window.IrisGame.storage;
-        
+
         // Save original functions
         const origGetHighScore = storage.getHighScore;
         const origGetStickers = storage.getStickers;
         const origGetCosmetics = storage.getCosmetics;
         const origGreetingElement = ui.elements.greeting;
-        
+
         try {
             // Mock greeting element
             ui.elements.greeting = {
@@ -194,13 +240,13 @@
                 },
                 innerHTML: ''
             };
-            
+
             // Case 1: highScore is 0 (new player)
             storage.getHighScore = () => 0;
             ui.elements.greeting.classList.remove('hidden');
             ui.renderGreeting();
             assert(ui.elements.greeting.classList.contains('hidden'), 'Greeting should be hidden if highScore is 0');
-            
+
             // Case 2: highScore > 0, no stickers unlocked
             storage.getHighScore = () => 4; // Not enough for first sticker (needs 5)
             storage.getStickers = () => [];
@@ -210,7 +256,7 @@
             assert(!ui.elements.greeting.classList.contains('hidden'), 'Greeting should be shown if highScore > 0');
             assert(ui.elements.greeting.innerHTML.includes('最高飞到 4 颗星'), 'Greeting should report correct highScore');
             assert(!ui.elements.greeting.innerHTML.includes('解锁了'), 'Greeting should not mention unlocks if none');
-            
+
             // Case 3: Stickers unlocked
             storage.getHighScore = () => 12; // Unlocks 'star' (5) and 'flower' (10)
             storage.getStickers = () => ['star', 'flower'];
@@ -225,72 +271,85 @@
             ui.elements.greeting = origGreetingElement;
         }
     });
-    
+
     test('Adaptive Gap Scaling', () => {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
-        
-        state.resetGameState();
-        state.game.mode = 'easy';
-        state.game.currentStage = 'warmup';
-        state.game.lives = 5;
-        state.game.consecutiveCollisions = 0;
-        
-        const diffNormal = director.getCurrentDifficulty();
-        const baseGap = diffNormal.gap;
-        
-        // 1. 2 consecutive collisions should widen the gap
-        state.game.consecutiveCollisions = 2;
-        const diffWidened = director.getCurrentDifficulty();
-        assert(diffWidened.gap === baseGap + 20, `Gap should widen by 20px on 2 consecutive collisions (got ${diffWidened.gap} vs ${baseGap})`);
-        
-        // 2. 1 remaining life in easy mode should widen the gap by 30px
-        state.game.consecutiveCollisions = 0;
-        state.game.lives = 1;
-        const diffLowLife = director.getCurrentDifficulty();
-        assert(diffLowLife.gap === baseGap + 30, `Gap should widen by 30px when lives === 1 (got ${diffLowLife.gap} vs ${baseGap})`);
-        
-        // 3. Practice mode should have an extra 30px gap padding
-        state.game.mode = 'practice';
-        state.game.lives = 99;
-        const diffPractice = director.getCurrentDifficulty();
-        const practiceBaseConf = window.IrisGame.config.GAME_MODES.practice;
-        const expectedPracticeGap = practiceBaseConf.baseGap + 30; // since modeConf.baseGap = 240
-        assert(diffPractice.gap === expectedPracticeGap, `Practice mode gap should have 30px padding (got ${diffPractice.gap} vs ${expectedPracticeGap})`);
+        const storage = window.IrisGame.storage;
+        const originalGetSettings = storage.getSettings;
+
+        try {
+            storage.getSettings = () => ({
+                ...window.IrisGame.config.defaultAssistSettings,
+                speed: 'normal',
+                tolerance: 'standard',
+                lives: 'difficulty'
+            });
+
+            state.resetGameState();
+            state.game.mode = 'easy';
+            state.game.currentStage = 'warmup';
+            state.game.lives = 5;
+            state.game.consecutiveCollisions = 0;
+
+            const diffNormal = director.getCurrentDifficulty();
+            const baseGap = diffNormal.gap;
+
+            // 1. 2 consecutive collisions should widen the gap
+            state.game.consecutiveCollisions = 2;
+            const diffWidened = director.getCurrentDifficulty();
+            assert(diffWidened.gap === baseGap + 20, `Gap should widen by 20px on 2 consecutive collisions (got ${diffWidened.gap} vs ${baseGap})`);
+
+            // 2. 1 remaining life in easy mode should widen the gap by 30px
+            state.game.consecutiveCollisions = 0;
+            state.game.lives = 1;
+            const diffLowLife = director.getCurrentDifficulty();
+            assert(diffLowLife.gap === baseGap + 30, `Gap should widen by 30px when lives === 1 (got ${diffLowLife.gap} vs ${baseGap})`);
+
+            // 3. Practice mode should have an extra 30px gap padding
+            state.game.mode = 'practice';
+            state.game.lives = 99;
+            const diffPractice = director.getCurrentDifficulty();
+            const practiceBaseConf = window.IrisGame.config.GAME_MODES.practice;
+            const expectedPracticeGap = practiceBaseConf.baseGap + 30;
+            assert(diffPractice.gap === expectedPracticeGap, `Practice mode gap should have 30px padding (got ${diffPractice.gap} vs ${expectedPracticeGap})`);
+        } finally {
+            storage.getSettings = originalGetSettings;
+        }
     });
-    
+
     test('Game Over Best Performance', () => {
         const state = window.IrisGame.state;
         const ui = window.IrisGame.ui;
-        
+
         const origBestElement = ui.elements.overBestPerformance;
-        
+
         try {
             ui.elements.overBestPerformance = { textContent: '' };
-            
+
             // Case 1: Mission completed
             state.game.missionCompleted = true;
             ui.renderGameOver();
             assert(ui.elements.overBestPerformance.textContent.includes('飞行课任务'), 'Should select mission completed first');
-            
+
             // Case 2: No mission completed, but rainbow stars collected
             state.game.missionCompleted = false;
             state.game.rainbowStarsCollected = 1;
             ui.renderGameOver();
             assert(ui.elements.overBestPerformance.textContent.includes('彩虹星'), 'Should select rainbow stars second');
-            
+
             // Case 3: Passed obstacles
             state.game.rainbowStarsCollected = 0;
             state.game.passedObstacles = 6;
             ui.renderGameOver();
             assert(ui.elements.overBestPerformance.textContent.includes('6 组花藤'), 'Should select passed obstacles third');
-            
+
             // Case 4: High score
             state.game.passedObstacles = 2;
             state.game.score = 8;
             ui.renderGameOver();
             assert(ui.elements.overBestPerformance.textContent.includes('8 颗星星'), 'Should select score fourth');
-            
+
             // Case 5: Fallback encouraging tip
             state.game.score = 2;
             ui.renderGameOver();
@@ -299,15 +358,15 @@
             ui.elements.overBestPerformance = origBestElement;
         }
     });
-    
+
     test('Wind Lines and Background Elements structure', () => {
         const state = window.IrisGame.state;
         const game = window.IrisGame.game;
-        
+
         state.resetGameState();
         state.game.currentStage = 'breeze';
         state.windLines = [];
-        
+
         // Trigger wind lines generation
         game.updateWindLines(1.5);
         // Force push a line to test formats
@@ -317,54 +376,54 @@
             length: 80,
             speed: 2.7
         });
-        
+
         assert(state.windLines.length > 0, 'Should have at least 1 wind line');
         const line = state.windLines[0];
         assert(typeof line.x === 'number', 'Line x should be a number');
         assert(typeof line.y === 'number', 'Line y should be a number');
         assert(line.length >= 40 && line.length <= 100, 'Line length should be in range [40, 100]');
         assert(line.speed > 0, 'Line speed should be positive');
-        
+
         // Test update loop updates coordinates
         const initialX = line.x;
         game.updateWindLines(1.5);
         assert(state.windLines[0].x < initialX, 'Wind line should move left');
     });
-    
+
     test('Sticker Unlock Tracking (seenStickers)', () => {
         const state = window.IrisGame.state;
         const storage = window.IrisGame.storage;
         const rewards = window.IrisGame.rewards;
-        
+
         // Save originals
         const origHighScore = state.game.highScore;
-        
+
         try {
             // Clear seen stickers
             localStorage.removeItem(storage.KEYS.seenStickers);
-            
+
             // 1. seenStickers defaults to empty array
             const empty = storage.getSeenStickers();
             assert(Array.isArray(empty) && empty.length === 0, 'Default seenStickers should be empty array');
-            
+
             // 2. markNewStickersAsSeen persists IDs
             rewards.markNewStickersAsSeen(['star', 'flower']);
             const seen = storage.getSeenStickers();
             assert(seen.includes('star'), 'Should contain star');
             assert(seen.includes('flower'), 'Should contain flower');
             assert(seen.length === 2, 'Should have exactly 2 entries');
-            
+
             // 3. Duplicate marking doesn't create duplicates
             rewards.markNewStickersAsSeen(['star']);
             const seen2 = storage.getSeenStickers();
             assert(seen2.length === 2, 'Should not duplicate entries');
-            
+
             // 4. getNewlyUnlockedCount works
             state.game.highScore = 12; // Unlocks star (5) and flower (10)
             // star and flower are already seen, so count should be 0
             const count0 = rewards.getNewlyUnlockedCount();
             assert(count0 === 0, 'All unlocked stickers are seen, count should be 0');
-            
+
             // 5. New unlock that hasn't been seen
             state.game.highScore = 20; // Also unlocks butterfly (15)
             const count1 = rewards.getNewlyUnlockedCount();
@@ -374,10 +433,10 @@
             localStorage.removeItem(storage.KEYS.seenStickers);
         }
     });
-    
+
     test('Leaf and TapRipple Entities', () => {
         const entities = window.IrisGame.entities;
-        
+
         // 1. Leaf entity construction and properties
         const leaf = new entities.Leaf(300, 100);
         assert(typeof leaf.x === 'number' && leaf.x === 300, 'Leaf x should be 300');
@@ -387,14 +446,14 @@
         assert(typeof leaf.rotation === 'number', 'Leaf should have rotation');
         assert(['🍃', '🌿'].includes(leaf.emoji), 'Leaf emoji should be a leaf');
         assert(leaf.size >= 10 && leaf.size <= 16, 'Leaf size should be in range [10, 16]');
-        
+
         // 2. Leaf update moves position
         const startX = leaf.x;
         const startY = leaf.y;
         leaf.update(false);
         assert(leaf.x < startX, 'Leaf should drift left after update');
         assert(leaf.y > startY, 'Leaf should drift down after update');
-        
+
         // 3. Leaf calm mode update is slower
         const leaf2 = new entities.Leaf(300, 100);
         const leaf3 = new entities.Leaf(300, 100);
@@ -403,26 +462,26 @@
         leaf2.update(false); // normal
         leaf3.update(true);  // calm
         assert(Math.abs(300 - leaf3.x) < Math.abs(300 - leaf2.x), 'Calm mode leaf should move less than normal');
-        
+
         // 4. TapRipple entity construction
         const ripple = new entities.TapRipple(150, 200);
         assert(ripple.x === 150, 'Ripple x should be 150');
         assert(ripple.y === 200, 'Ripple y should be 200');
         assert(ripple.radius === 4, 'Ripple initial radius should be 4');
         assert(ripple.alpha === 0.5, 'Ripple initial alpha should be 0.5');
-        
+
         // 5. TapRipple update expands and fades
         ripple.update();
         assert(ripple.radius > 4, 'Ripple radius should expand');
         assert(ripple.alpha < 0.5, 'Ripple alpha should decrease');
     });
-    
+
     test('Effects Policy Caps & Modes validation', () => {
         const state = window.IrisGame.state;
         const config = window.IrisGame.config;
         const entities = window.IrisGame.entities;
         const game = window.IrisGame.game;
-        
+
         // Save original states
         const origPrefersReduced = state.prefersReducedMotion;
         const origCalmMode = state.game.calmModeEnabled;
@@ -430,42 +489,42 @@
         const origLeaves = state.leaves;
         const origRipples = state.tapRipples;
         const origStarShield = state.game.starShield;
-        
+
         try {
             // 1. Particle capping verification
             state.prefersReducedMotion = false;
             state.game.calmModeEnabled = false;
             state.particles = [];
-            
+
             // Try to spawn 120 particles (exceeds cap of 80)
             for (let i = 0; i < 15; i++) {
                 entities.createParticles(100, 100, '#ffffff', 10);
             }
             assert(state.particles.length === config.EFFECTS_POLICY.maxParticles, `Particles should be capped at maxParticles (${config.EFFECTS_POLICY.maxParticles}), got ${state.particles.length}`);
-            
+
             // 2. Calm Mode reduces particle density
             state.particles = [];
             state.game.calmModeEnabled = true;
             entities.createParticles(100, 100, '#ffffff', 10);
             const expectedCalmCount = Math.round(10 * config.EFFECTS_POLICY.calmModeParticleMultiplier);
             assert(state.particles.length === expectedCalmCount, `Calm mode particles should scale down, expected ${expectedCalmCount}, got ${state.particles.length}`);
-            
+
             // 3. Leaves capping and calm mode behavior
             state.game.calmModeEnabled = false;
             state.leaves = [];
-            
+
             const maxLeaves = config.EFFECTS_POLICY.maxLeaves;
             for (let i = 0; i < maxLeaves + 5; i++) {
                 state.leaves.push(new entities.Leaf(100, 100));
             }
             game.updateGame();
             assert(state.leaves.length === maxLeaves, `Leaves should be trimmed to maxLeaves (${maxLeaves}), got ${state.leaves.length}`);
-            
+
             state.game.calmModeEnabled = true;
             game.updateGame();
             const expectedCalmLeaves = Math.max(1, Math.round(maxLeaves * config.EFFECTS_POLICY.calmModeParticleMultiplier));
             assert(state.leaves.length === expectedCalmLeaves, `Calm mode leaves should be trimmed to scaled cap (${expectedCalmLeaves}), got ${state.leaves.length}`);
-            
+
             // 4. Tap Ripples capping verification
             state.tapRipples = [];
             const maxRipples = config.EFFECTS_POLICY.maxTapRipples;
@@ -474,16 +533,16 @@
             }
             game.updateGame();
             assert(state.tapRipples.length === maxRipples, `Ripples should be trimmed to maxTapRipples (${maxRipples}), got ${state.tapRipples.length}`);
-            
+
             // 5. Reduced Motion disables ambient leaves and ripples
             state.prefersReducedMotion = true;
             state.leaves = [new entities.Leaf(100, 100)];
             state.game.currentStage = 'garden';
-            
+
             state.leaves = [];
             const disableAmbientLeaves = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
             assert(disableAmbientLeaves === true, 'Reduced motion should flag ambient leaf disable');
-            
+
         } finally {
             state.prefersReducedMotion = origPrefersReduced;
             state.game.calmModeEnabled = origCalmMode;
@@ -493,28 +552,28 @@
             state.game.starShield = origStarShield;
         }
     });
-    
+
     // --- Render Results ---
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('test-results-body');
         const totalTestsEl = document.getElementById('total-tests');
         const passedEl = document.getElementById('total-passed');
         const failedEl = document.getElementById('total-failed');
-        
+
         let passedCount = 0;
         let failedCount = 0;
-        
+
         results.forEach(res => {
             const tr = document.createElement('tr');
-            
+
             const nameTd = document.createElement('td');
             nameTd.textContent = res.name;
-            
+
             const statusTd = document.createElement('td');
             statusTd.textContent = res.passed ? 'PASS' : 'FAIL';
             statusTd.className = res.passed ? 'status-pass' : 'status-fail';
-            
+
             const detailsTd = document.createElement('td');
             if (res.passed) {
                 detailsTd.textContent = '测试通过 ✓';
@@ -527,15 +586,15 @@
                 detailsTd.appendChild(errSpan);
                 failedCount++;
             }
-            
+
             if (res.passed) passedCount++;
-            
+
             tr.appendChild(nameTd);
             tr.appendChild(statusTd);
             tr.appendChild(detailsTd);
             tbody.appendChild(tr);
         });
-        
+
         totalTestsEl.textContent = results.length;
         passedEl.textContent = passedCount;
         failedEl.textContent = failedCount;

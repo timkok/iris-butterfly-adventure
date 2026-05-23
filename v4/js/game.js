@@ -124,6 +124,7 @@ window.IrisGame.game = {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
         const currentDiff = director.getCurrentDifficulty();
+        const ui = window.IrisGame.ui;
         
         let gap = currentDiff.gap;
         
@@ -376,6 +377,7 @@ window.IrisGame.game = {
         const director = window.IrisGame.director;
         const player = window.IrisGame.player;
         const canvas = window.IrisGame.canvas;
+        const ui = window.IrisGame.ui;
         const currentDiff = director.getCurrentDifficulty();
         
         state.frameCount++;
