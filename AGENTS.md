@@ -13,6 +13,53 @@
 - Final acceptance should be based on the latest GitHub repository files, latest commit, and GitHub Pages build/deploy status.
 - Do not use a stale `github.io` page as the primary success signal, because GitHub Pages/CDN/browser cache may lag.
 - If CSS or JavaScript changes are made, increment the cache-buster versions in the relevant HTML files.
+- Do not run endless autonomous changes in one session. Prefer small commits and reviewable diffs.
+
+## Multi-Agent Cycle
+
+Work on `/v4/` must proceed cycle-by-cycle in this order:
+
+1. **Planner**
+   - Writes issues, backlog items, and acceptance criteria.
+   - Does not modify implementation files.
+2. **Builder**
+   - Implements only selected Planner issues.
+   - Keeps changes small, scoped, and testable.
+   - Must stop feature work if a P0 bug exists.
+3. **QA**
+   - Performs browser validation, regression checks, and evidence capture.
+   - Does not add product features.
+   - May update `/v4/QA_EVIDENCE.md` or tests only when necessary.
+4. **Release Manager**
+   - Checks diff scope, asset versions, tests, QA evidence, commits, pushes, Pages source, and release notes.
+   - Releases only if QA says `PASS TO RELEASE`.
+
+Do not continue to another cycle in the same session unless the user or Planner explicitly asks.
+
+## Required First-Time Setup Sequence
+
+For a new Codex agent or fresh repository setup, follow this sequence before ordinary feature work:
+
+1. Create or update `AGENTS.md` with the project rules.
+2. Run the V4 start-failure hotfix if "开始飞行" does not work.
+3. After the hotfix, create or update `/v4/CODEX_BACKLOG.md`.
+4. Proceed cycle-by-cycle: Planner -> Builder -> QA -> Release Manager.
+
+The current V4 baseline has already completed the start-failure hotfix, backlog, QA evidence, and Cycle 14 release notes. Future agents should verify the latest files instead of assuming this note is still current.
+
+## Simplification Audit
+
+Every 5 cycles, run a Simplification Audit before continuing feature work:
+
+1. Are there too many effects?
+2. Is the game still easy to understand?
+3. Does `/v4/` start reliably?
+4. Is browser QA still passing?
+5. Did any feature increase child frustration?
+6. Did any animation bypass reduced motion?
+7. Can code be simplified without deleting protected versions?
+
+Record the audit outcome in `/v4/AGENT_HANDOFF.md` and, when useful, `/v4/CODEX_BACKLOG.md`.
 
 ## Protected Areas
 
