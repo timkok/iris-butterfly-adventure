@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iris's Butterfly Adventure</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
     <div id="game-container">
@@ -53,12 +53,29 @@
 
             <!-- Start Screen -->
             <div id="start-screen" class="panel active">
+                <!-- Background decorations -->
+                <div class="start-deco deco-cloud">☁️</div>
+                <div class="start-deco deco-star">⭐</div>
+                <div class="start-deco deco-flower">🌸</div>
+
                 <h1 class="glow-text">🦋 Iris 的蝴蝶奇遇</h1>
                 <div class="diff-selector">
-                    <button class="btn-diff active" data-diff="practice" aria-label="选择练习模式">练习模式 (无限心)</button>
-                    <button class="btn-diff" data-diff="easy" aria-label="选择简单模式">简单模式</button>
-                    <button class="btn-diff" data-diff="normal" aria-label="选择普通模式">普通模式</button>
-                    <button class="btn-diff" data-diff="hard" aria-label="选择高手模式">高手模式</button>
+                    <button class="btn-diff active" data-diff="practice" aria-label="选择练习模式">
+                        <span class="diff-title">练习模式</span>
+                        <span class="diff-desc">∞ 心 / 最宽空隙</span>
+                    </button>
+                    <button class="btn-diff" data-diff="easy" aria-label="选择简单模式">
+                        <span class="diff-title">简单模式</span>
+                        <span class="diff-desc">5 心 / 慢速</span>
+                    </button>
+                    <button class="btn-diff" data-diff="normal" aria-label="选择普通模式">
+                        <span class="diff-title">普通模式</span>
+                        <span class="diff-desc">3 心 / 标准</span>
+                    </button>
+                    <button class="btn-diff" data-diff="hard" aria-label="选择高手模式">
+                        <span class="diff-title">高手模式</span>
+                        <span class="diff-desc">3 心 / 挑战</span>
+                    </button>
                 </div>
                 <div class="button-group">
                     <button id="start-btn" class="btn-main" aria-label="开始冒险">开始冒险</button>
@@ -73,6 +90,7 @@
             <!-- Parent Settings Screen -->
             <div id="parent-settings-screen" class="panel">
                 <h2>⚙️ 家长辅助设置</h2>
+                <p class="settings-desc">这些设置会在下一局开始时生效。</p>
                 <div class="input-group">
                     <label>飞行速度</label>
                     <select id="setting-speed">
@@ -101,7 +119,7 @@
                     <label>亲子鼓励寄语 (在高分时弹出)</label>
                     <input type="text" id="setting-message" placeholder="例如：Iris 你真棒，爱你！" maxlength="20">
                 </div>
-                <button id="close-settings-btn" class="btn-main">保存设置</button>
+                <button id="close-settings-btn" class="btn-main">保存并返回</button>
                 <button id="reset-high-score-btn" class="btn-secondary">重置最高分</button>
             </div>
 
@@ -113,6 +131,7 @@
 
             <div id="treasure-screen" class="panel">
                 <h2>🎁 我的宝贝仓库</h2>
+                <p class="treasure-desc">飞得越远，解锁越多小宝贝 ✨</p>
                 <div class="tabs">
                     <button class="tab-btn active" id="tab-stickers" aria-label="查看魔法贴纸">魔法贴纸</button>
                     <button class="tab-btn" id="tab-cosmetics" aria-label="查看翅膀外观">翅膀外观</button>
@@ -136,17 +155,17 @@
                         <div class="cosmetic-item" data-id="pink-wings" data-cost="20">
                             <div class="cosmetic-preview" style="filter: hue-rotate(300deg);">🦋</div>
                             <p>甜心粉</p>
-                            <button class="btn-buy">20 ✨</button>
+                            <button class="btn-buy">最高分 20 解锁</button>
                         </div>
-                        <div class="cosmetic-item" data-id="star-trail" data-cost="50">
+                        <div class="cosmetic-item" data-id="star-trail" data-cost="35">
                             <div class="cosmetic-preview">✨</div>
                             <p>闪耀星踪</p>
-                            <button class="btn-buy">50 ✨</button>
+                            <button class="btn-buy">最高分 35 解锁</button>
                         </div>
-                        <div class="cosmetic-item" data-id="rainbow-wings" data-cost="100">
+                        <div class="cosmetic-item" data-id="rainbow-wings" data-cost="50">
                             <div class="cosmetic-preview rainbow-anim">🦋</div>
                             <p>梦幻彩虹</p>
-                            <button class="btn-buy">100 ✨</button>
+                            <button class="btn-buy">最高分 50 解锁</button>
                         </div>
                     </div>
                 </div>
@@ -161,13 +180,15 @@
             </div>
 
             <div id="game-over-screen" class="panel">
-                <h2 id="over-title">冒险结束啦！</h2>
+                <h2 id="over-title">今天飞得很棒！</h2>
                 <div class="final-stats">
-                    <p>本次得分: <span id="final-score">0</span></p>
+                    <p>本次星星数: <span id="final-score">0</span></p>
+                    <p>飞过花藤数: <span id="final-vines">0</span></p>
                     <p>最高记录: <span id="record-score">0</span></p>
                 </div>
-                <button id="restart-btn" class="btn-main">再玩一次</button>
-                <button id="back-to-home-btn" class="btn-secondary">返回首页</button>
+                <p id="over-encouragement" style="margin: 10px 0 16px; font-weight: 800; color: #ff7eb3; font-size: 1.05rem;"></p>
+                <button id="restart-btn" class="btn-main">再飞一次</button>
+                <button id="back-to-home-btn" class="btn-secondary">回到首页</button>
             </div>
         </div>
     </div>
@@ -175,6 +196,6 @@
     <!-- Sound for alerts -->
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-    <script src="script.js?v=9"></script>
+    <script src="script.js?v=10"></script>
 </body>
 </html>

@@ -30,13 +30,20 @@ let hasReached15 = localStorage.getItem('iris_butterfly_reached15') === 'true';
 
 let shownStage6 = false;
 let shownStage16 = false;
-let shownStage30 = false;
+let shownStage31 = false;
+
+let lastRainbowStarScore = 0;
+let vinesPassed = 0;
+let currentTask = 1;
+
+let shownRestReminder = false;
+const sessionStartTime = Date.now();
 
 const diffSettings = {
     practice: { speed: 0.9, gap: 260, spawnRate: 185, starRate: 95, tolerance: 18, lives: 99 },
-    easy: { speed: 1.32, gap: 225, spawnRate: 160, starRate: 100, tolerance: 12, lives: 5 },
-    normal: { speed: 1.95, gap: 180, spawnRate: 126, starRate: 110, tolerance: 5, lives: 3 },
-    hard: { speed: 2.55, gap: 145, spawnRate: 98, starRate: 122, tolerance: -1, lives: 3 }
+    easy: { speed: 1.2, gap: 230, spawnRate: 160, starRate: 100, tolerance: 12, lives: 5 },
+    normal: { speed: 1.8, gap: 180, spawnRate: 126, starRate: 110, tolerance: 5, lives: 3 },
+    hard: { speed: 2.5, gap: 145, spawnRate: 98, starRate: 122, tolerance: -1, lives: 3 }
 };
 
 const defaultAssistSettings = {
@@ -69,7 +76,10 @@ const ui = {
     highScore: document.getElementById('high-score'),
     lives: document.getElementById('lives'),
     finalScore: document.getElementById('final-score'),
+    finalVines: document.getElementById('final-vines'),
     recordScore: document.getElementById('record-score'),
+    overTitle: document.getElementById('over-title'),
+    overEncouragement: document.getElementById('over-encouragement'),
     taskDisplay: document.getElementById('task-display'),
     taskText: document.getElementById('task-text'),
     taskProgress: document.getElementById('task-progress'),
@@ -149,27 +159,27 @@ function updateDynamicSettings() {
     let minSpawnRate = 75;
 
     if (difficulty === 'practice') {
-        maxSpeedMult = 1.05;
-        maxGapReduce = 10;
-        maxSpawnRateReducePercent = 0.05;
+        maxSpeedMult = 1.02;
+        maxGapReduce = 5;
+        maxSpawnRateReducePercent = 0.02;
         minGap = 240;
         minSpawnRate = 160;
     } else if (difficulty === 'easy') {
-        maxSpeedMult = 1.15;
-        maxGapReduce = 20;
-        maxSpawnRateReducePercent = 0.10;
+        maxSpeedMult = 1.12;
+        maxGapReduce = 15;
+        maxSpawnRateReducePercent = 0.08;
         minGap = 200;
         minSpawnRate = 130;
     } else if (difficulty === 'normal') {
-        maxSpeedMult = 1.25;
-        maxGapReduce = 30;
-        maxSpawnRateReducePercent = 0.18;
+        maxSpeedMult = 1.20;
+        maxGapReduce = 25;
+        maxSpawnRateReducePercent = 0.15;
         minGap = 150;
         minSpawnRate = 95;
     } else if (difficulty === 'hard') {
-        maxSpeedMult = 1.35;
-        maxGapReduce = 40;
-        maxSpawnRateReducePercent = 0.25;
+        maxSpeedMult = 1.30;
+        maxGapReduce = 35;
+        maxSpawnRateReducePercent = 0.22;
         minGap = 120;
         minSpawnRate = 75;
     }
@@ -265,6 +275,11 @@ function loop() {
         updateGame();
     }
 
+    if (Date.now() - sessionStartTime > 300000 && !shownRestReminder) {
+        shownRestReminder = true;
+        showMessage("休息一下眼睛吧，等会儿再飞也很棒 🌼", 5000);
+    }
+
     drawObjects();
     drawPlayer();
     ctx.restore();
@@ -315,8 +330,10 @@ function spawnObstacle() {
     const maxGapCenter = canvas.height - 70 - gap / 2;
     const gapY = minGapCenter + Math.random() * (maxGapCenter - minGapCenter);
     const width = 58;
+    const obsX = canvas.width + 12;
+    
     obstacles.push({
-        x: canvas.width + 12,
+        x: obsX,
         width,
         gapY,
         gap,
@@ -324,11 +341,24 @@ function spawnObstacle() {
         flowerOffset: Math.random() * 100,
         isFirst: isFirstObstacle
     });
+
+    if (Math.random() < 0.5) {
+        spawnStar(obsX + width / 2, gapY);
+    }
 }
 
-function spawnStar() {
-    const y = 78 + Math.random() * (canvas.height - 178);
-    stars.push(new Star(canvas.width + 24, y, currentSettings.starSpeed));
+function spawnStar(x = null, y = null) {
+    const starX = x !== null ? x : canvas.width + 24;
+    const starY = y !== null ? y : 78 + Math.random() * (canvas.height - 178);
+    
+    let isRainbow = false;
+    if (score - lastRainbowStarScore >= 12 && Math.random() < 0.3) {
+        isRainbow = true;
+        lastRainbowStarScore = score;
+        showMessage("彩虹星星出现啦 🌈", 2000);
+    }
+    
+    stars.push(new Star(starX, starY, currentSettings.starSpeed, isRainbow ? 'rainbow' : 'normal'));
 }
 
 function spawnStarterStars() {
@@ -342,6 +372,8 @@ function updateObstacles() {
         obstacle.x -= currentSettings.speed;
         if (!obstacle.passed && obstacle.x + obstacle.width < player.x) {
             obstacle.passed = true;
+            vinesPassed++;
+            updateHUD();
         }
         if (collidesWithObstacle(obstacle)) {
             handleCollision(difficulty === 'practice' ? '练习模式，继续飞！' : '碰到花藤啦，没关系，再试一次！');
@@ -356,10 +388,11 @@ function updateStars() {
         star.update();
         if (Math.hypot(player.x - star.x, player.y - star.y) < player.radius + 16) {
             playSound('collect', star.x);
-            score++;
+            const points = star.type === 'rainbow' ? 3 : 1;
+            score += points;
             player.scale = 1.45;
             screenShake = 3;
-            createParticles(star.x, star.y, '#ffd36e', 9);
+            createParticles(star.x, star.y, star.type === 'rainbow' ? '#ff7eb3' : '#ffd36e', 12);
             stars.splice(i, 1);
             saveHighScoreIfNeeded();
             updateDynamicSettings();
@@ -539,11 +572,12 @@ class Particle {
 }
 
 class Star {
-    constructor(x, y, speed) {
+    constructor(x, y, speed, type = 'normal') {
         this.x = x;
         this.y = y;
         this.speed = speed;
         this.angle = Math.random() * Math.PI * 2;
+        this.type = type;
     }
     update() {
         this.x -= this.speed;
@@ -554,10 +588,18 @@ class Star {
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.angle);
-        ctx.font = '22px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⭐', 0, 0);
+        if (this.type === 'rainbow') {
+            ctx.filter = `hue-rotate(${(frameCount * 8) % 360}deg) saturate(2)`;
+            ctx.font = '28px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🌟', 0, 0);
+        } else {
+            ctx.font = '22px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⭐', 0, 0);
+        }
         ctx.restore();
     }
 }
@@ -608,14 +650,23 @@ function startGame() {
     newHighScoreThisRun = false;
     shownStage6 = false;
     shownStage16 = false;
-    shownStage30 = false;
+    shownStage31 = false;
+    lastRainbowStarScore = 0;
+    vinesPassed = 0;
+    currentTask = 1;
     ui.message.classList.add('hidden');
     initBackground();
     spawnStarterStars();
     showScreen(null);
     setGameUiVisible(true);
     updateDynamicSettings();
-    showMessage('穿过花藤空隙，收集星星吧！', 1700);
+    
+    if (difficulty === 'practice') {
+        showMessage("练习模式不会失败，放心试试。", 3000);
+    } else {
+        showMessage('轻轻点击，让小蝴蝶飞起来 🦋', 2500);
+    }
+    
     updateHUD();
 }
 
@@ -654,8 +705,17 @@ function gameOver() {
     gameState = 'GAMEOVER';
     if (newHighScoreThisRun) {
         showParentMessage();
+        ui.overEncouragement.textContent = "新纪录！Iris 太棒啦 🌟";
+    } else {
+        if (score <= 2) {
+            ui.overEncouragement.textContent = "先在练习模式试试吧 🦋";
+        } else {
+            ui.overEncouragement.textContent = "喝口水、抱抱爸爸妈妈，再来一局吧。";
+        }
     }
+    
     ui.finalScore.textContent = score;
+    ui.finalVines.textContent = vinesPassed;
     ui.recordScore.textContent = highScore;
     ui.message.classList.add('hidden');
     setGameUiVisible(false);
@@ -677,12 +737,12 @@ function checkMilestones() {
     if (score >= 6 && score < 16 && !shownStage6) {
         shownStage6 = true;
         showMessage("进入花园挑战区 🌿", 2200);
-    } else if (score >= 16 && score < 30 && !shownStage16) {
+    } else if (score >= 16 && score < 31 && !shownStage16) {
         shownStage16 = true;
         showMessage("风变快啦，稳稳飞 ✨", 2200);
-    } else if (score >= 30 && !shownStage30) {
-        shownStage30 = true;
-        showMessage("最高挑战开始！你太棒了 🌈", 2200);
+    } else if (score >= 31 && !shownStage31) {
+        shownStage31 = true;
+        showMessage("彩虹挑战开始！你太棒了 🌈", 2200);
     } else if (score === 5 || score === 10 || score === 15) {
         const text = score === 10 ? '任务完成！继续挑战更高分吧 ✨' : `太棒了，已经收集 ${score} 颗星星！`;
         showMessage(text, 2200);
@@ -707,13 +767,39 @@ function updateHUD() {
     ui.score.textContent = score;
     ui.highScore.textContent = highScore;
     ui.lives.textContent = difficulty === 'practice' || lives >= 99 ? '∞ 💖' : '❤️'.repeat(Math.max(0, lives));
-    ui.taskProgress.textContent = `(${Math.min(score, 10)}/10)`;
+    
+    if (currentTask === 1) {
+        ui.taskText.textContent = "收集 10 颗星星";
+        ui.taskProgress.textContent = `(${Math.min(score, 10)}/10)`;
+        if (score >= 10) {
+            currentTask = 2;
+            showMessage("任务完成！继续挑战 5 组花藤吧 🌿", 2500);
+            updateHUD();
+        }
+    } else if (currentTask === 2) {
+        ui.taskText.textContent = "穿过 5 组花藤";
+        ui.taskProgress.textContent = `(${Math.min(vinesPassed, 5)}/5)`;
+        if (vinesPassed >= 5) {
+            currentTask = 3;
+            showMessage("飞行挑战完成！继续创造最高记录吧 🏆", 2500);
+            updateHUD();
+        }
+    } else {
+        ui.taskText.textContent = "挑战最高分";
+        if (score > highScore - 1) {
+            ui.taskProgress.textContent = `✨ 新记录！`;
+        } else {
+            ui.taskProgress.textContent = `(目标: ${highScore})`;
+        }
+    }
 }
 
 function updateUnlocks() {
-    if (score >= 5 && !ownedStickers.includes('star')) ownedStickers.push('star');
-    if (score >= 10 && !ownedStickers.includes('flower')) ownedStickers.push('flower');
-    if (score >= 15 && !ownedStickers.includes('butterfly')) ownedStickers.push('butterfly');
+    if (highScore >= 5 && !ownedStickers.includes('star')) ownedStickers.push('star');
+    if (highScore >= 8 && !ownedStickers.includes('bunny')) ownedStickers.push('bunny');
+    if (highScore >= 10 && !ownedStickers.includes('flower')) ownedStickers.push('flower');
+    if (highScore >= 12 && !ownedStickers.includes('rainbow')) ownedStickers.push('rainbow');
+    if (highScore >= 15 && !ownedStickers.includes('butterfly')) ownedStickers.push('butterfly');
     localStorage.setItem(storage.stickers, JSON.stringify(ownedStickers));
     renderTreasure();
 }
