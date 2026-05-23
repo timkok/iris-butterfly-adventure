@@ -797,3 +797,13 @@ input:focus-visible {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Gentle pulse animation for start/onboarding flight hint text */
+@keyframes gentle-pulse {
+    0% { transform: scale(1.0); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1.0); }
+}
+.pulse-active {
+    animation: gentle-pulse 1.8s infinite ease-in-out !important;
+}

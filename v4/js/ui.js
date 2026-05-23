@@ -93,10 +93,18 @@ window.IrisGame.ui = {
             this.elements.message.classList.add('active');
             
             // Reduced motion triggers simplified layout animations
-            if (state.prefersReducedMotion || state.game.calmModeEnabled) {
+            const isReduced = (state.prefersReducedMotion || state.game.calmModeEnabled);
+            if (isReduced) {
                 this.elements.message.style.animation = 'none';
             } else {
                 this.elements.message.style.animation = 'bounceIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            }
+            
+            const onboardingMsg = window.IrisGame.config.UI_TEXT.message || "轻轻点击，让小蝴蝶飞起来 🦋";
+            if (text === onboardingMsg && !isReduced) {
+                this.elements.message.classList.add('pulse-active');
+            } else {
+                this.elements.message.classList.remove('pulse-active');
             }
             
             if (text.includes("任务完成") || text.includes("飞行课完成")) {
@@ -107,7 +115,7 @@ window.IrisGame.ui = {
             
             this.messageTimer = setTimeout(() => {
                 this.elements.message.classList.add('hidden');
-                this.elements.message.classList.remove('active', 'ribbon-style');
+                this.elements.message.classList.remove('active', 'ribbon-style', 'pulse-active');
                 this.messagePriority = 0;
             }, duration);
         }

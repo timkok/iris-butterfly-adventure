@@ -128,9 +128,15 @@ window.IrisGame.director = {
             if (state.game.consecutiveCollisions >= 2) {
                 adaptiveGapPadding = 20;
             }
+            if (state.game.lives === 1) {
+                adaptiveGapPadding = Math.max(adaptiveGapPadding, 30);
+            }
         } else if (state.game.mode === 'normal') {
             if (state.game.consecutiveCollisions >= 2) {
                 adaptiveGapPadding = 12;
+            }
+            if (state.game.lives === 1) {
+                adaptiveGapPadding = Math.max(adaptiveGapPadding, 20);
             }
         }
         

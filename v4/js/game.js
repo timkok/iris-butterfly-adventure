@@ -489,7 +489,7 @@ window.IrisGame.game = {
         
         // Apply Screenshake transform
         if (state.screenShake > 0) {
-            ctx.translate((Math.random() - 0.5) * state.screenShake, (Math.random() - 0.5) * state.screenShake);
+            canvas.ctx.translate((Math.random() - 0.5) * state.screenShake, (Math.random() - 0.5) * state.screenShake);
             state.screenShake *= 0.88;
         }
         
