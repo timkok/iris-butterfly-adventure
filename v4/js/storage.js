@@ -13,116 +13,166 @@ window.IrisGame.storage = {
         calmMode: 'iris_butterfly_calmMode',
         seenStickers: 'iris_butterfly_seenStickers'
     },
-    
+
+    _isStorageAvailable: null,
+    _memStorage: {},
+
+    isAvailable() {
+        if (this._isStorageAvailable !== null) return this._isStorageAvailable;
+        try {
+            localStorage.setItem('__test_storage__', '1');
+            localStorage.removeItem('__test_storage__');
+            this._isStorageAvailable = true;
+        } catch (e) {
+            this._isStorageAvailable = false;
+        }
+        return this._isStorageAvailable;
+    },
+
+    getItem(key) {
+        if (this.isAvailable()) {
+            try {
+                return localStorage.getItem(key);
+            } catch (e) {
+                // Fall through to memory storage
+            }
+        }
+        return this._memStorage[key] || null;
+    },
+
+    setItem(key, value) {
+        if (this.isAvailable()) {
+            try {
+                localStorage.setItem(key, String(value));
+                return;
+            } catch (e) {
+                // Fall through to memory storage
+            }
+        }
+        this._memStorage[key] = String(value);
+    },
+
+    removeItem(key) {
+        if (this.isAvailable()) {
+            try {
+                localStorage.removeItem(key);
+                return;
+            } catch (e) {
+                // Fall through to memory storage
+            }
+        }
+        delete this._memStorage[key];
+    },
+
     migrateOldStorage() {
-        if (!localStorage.getItem(this.KEYS.cosmetics)) {
-            localStorage.setItem(this.KEYS.cosmetics, JSON.stringify(['default']));
+        if (!this.getItem(this.KEYS.cosmetics)) {
+            this.setItem(this.KEYS.cosmetics, JSON.stringify(['default']));
         }
-        if (!localStorage.getItem(this.KEYS.stickers)) {
-            localStorage.setItem(this.KEYS.stickers, JSON.stringify([]));
+        if (!this.getItem(this.KEYS.stickers)) {
+            this.setItem(this.KEYS.stickers, JSON.stringify([]));
         }
     },
-    
+
     getHighScore() {
-        return Number(localStorage.getItem(this.KEYS.highScore) || 0);
+        return Number(this.getItem(this.KEYS.highScore) || 0);
     },
-    
+
     setHighScore(score) {
-        localStorage.setItem(this.KEYS.highScore, String(score));
+        this.setItem(this.KEYS.highScore, String(score));
     },
-    
+
     getSoundEnabled() {
-        return localStorage.getItem(this.KEYS.soundEnabled) === 'true';
+        return this.getItem(this.KEYS.soundEnabled) === 'true';
     },
-    
+
     setSoundEnabled(enabled) {
-        localStorage.setItem(this.KEYS.soundEnabled, String(enabled));
+        this.setItem(this.KEYS.soundEnabled, String(enabled));
     },
-    
+
     getSettings() {
         const defaults = window.IrisGame.config.defaultAssistSettings;
         try {
             return {
                 ...defaults,
-                ...JSON.parse(localStorage.getItem(this.KEYS.settings) || '{}')
+                ...JSON.parse(this.getItem(this.KEYS.settings) || '{}')
             };
         } catch (e) {
             return { ...defaults };
         }
     },
-    
+
     setSettings(settingsObj) {
-        localStorage.setItem(this.KEYS.settings, JSON.stringify(settingsObj));
+        this.setItem(this.KEYS.settings, JSON.stringify(settingsObj));
     },
-    
+
     getRestReminderEnabled() {
-        return localStorage.getItem(this.KEYS.restReminder) !== 'false';
+        return this.getItem(this.KEYS.restReminder) !== 'false';
     },
-    
+
     setRestReminderEnabled(enabled) {
-        localStorage.setItem(this.KEYS.restReminder, String(enabled));
+        this.setItem(this.KEYS.restReminder, String(enabled));
     },
-    
+
     getGentleModeEnabled() {
-        return localStorage.getItem(this.KEYS.gentleMode) !== 'false';
+        return this.getItem(this.KEYS.gentleMode) !== 'false';
     },
-    
+
     setGentleModeEnabled(enabled) {
-        localStorage.setItem(this.KEYS.gentleMode, String(enabled));
+        this.setItem(this.KEYS.gentleMode, String(enabled));
     },
-    
+
     getCalmModeEnabled() {
-        return localStorage.getItem(this.KEYS.calmMode) !== 'false';
+        return this.getItem(this.KEYS.calmMode) !== 'false';
     },
-    
+
     setCalmModeEnabled(enabled) {
-        localStorage.setItem(this.KEYS.calmMode, String(enabled));
+        this.setItem(this.KEYS.calmMode, String(enabled));
     },
-    
+
     getCosmetics() {
         try {
-            return JSON.parse(localStorage.getItem(this.KEYS.cosmetics) || '["default"]');
+            return JSON.parse(this.getItem(this.KEYS.cosmetics) || '["default"]');
         } catch (e) {
             return ['default'];
         }
     },
-    
+
     setCosmetics(cosmeticsArray) {
-        localStorage.setItem(this.KEYS.cosmetics, JSON.stringify(cosmeticsArray));
+        this.setItem(this.KEYS.cosmetics, JSON.stringify(cosmeticsArray));
     },
-    
+
     getActiveCosmetic() {
-        return localStorage.getItem(this.KEYS.activeCosmetic) || 'default';
+        return this.getItem(this.KEYS.activeCosmetic) || 'default';
     },
-    
+
     setActiveCosmetic(id) {
-        localStorage.setItem(this.KEYS.activeCosmetic, id);
+        this.setItem(this.KEYS.activeCosmetic, id);
     },
-    
+
     getStickers() {
         try {
-            return JSON.parse(localStorage.getItem(this.KEYS.stickers) || '[]');
+            return JSON.parse(this.getItem(this.KEYS.stickers) || '[]');
         } catch (e) {
             return [];
         }
     },
-    
+
     setStickers(stickersArray) {
-        localStorage.setItem(this.KEYS.stickers, JSON.stringify(stickersArray));
+        this.setItem(this.KEYS.stickers, JSON.stringify(stickersArray));
     },
-    
+
     getSeenStickers() {
         try {
-            return JSON.parse(localStorage.getItem(this.KEYS.seenStickers) || '[]');
+            return JSON.parse(this.getItem(this.KEYS.seenStickers) || '[]');
         } catch (e) {
             return [];
         }
     },
-    
+
     setSeenStickers(seenArray) {
-        localStorage.setItem(this.KEYS.seenStickers, JSON.stringify(seenArray));
+        this.setItem(this.KEYS.seenStickers, JSON.stringify(seenArray));
     },
-    
+
     loadAll(stateObj) {
         this.migrateOldStorage();
         stateObj.game.highScore = this.getHighScore();
@@ -130,7 +180,7 @@ window.IrisGame.storage = {
         stateObj.game.restReminderEnabled = this.getRestReminderEnabled();
         stateObj.game.gentleModeEnabled = this.getGentleModeEnabled();
         stateObj.game.calmModeEnabled = this.getCalmModeEnabled();
-        
+
         const settings = this.getSettings();
         // sync back settings lives if valid
         const modeConf = window.IrisGame.config.GAME_MODES[stateObj.game.mode] || { lives: 5 };

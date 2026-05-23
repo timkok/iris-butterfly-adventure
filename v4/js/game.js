@@ -6,8 +6,9 @@ window.IrisGame.game = {
         const storage = window.IrisGame.storage;
         const ui = window.IrisGame.ui;
         const canvas = window.IrisGame.canvas;
-        const director = window.IrisGame.director;
+               const director = window.IrisGame.director;
         const player = window.IrisGame.player;
+        const missions = window.IrisGame.missions;
         
         state.resetGameState();
         storage.loadAll(state);
@@ -18,7 +19,7 @@ window.IrisGame.game = {
         
         // Let director reset stats
         director.resetRun();
-        director.chooseMission(state.game.mode);
+        missions.chooseMission(state.game.mode);
         
         canvas.resetBackgroundHSL();
         
@@ -338,13 +339,14 @@ window.IrisGame.game = {
     checkMilestones() {
         const state = window.IrisGame.state;
         const ui = window.IrisGame.ui;
+        const storage = window.IrisGame.storage;
         if (state.game.score === 10 && !state.game.hasReached10) {
             state.game.hasReached10 = true;
-            localStorage.setItem('iris_butterfly_reached10', 'true');
+            storage.setItem('iris_butterfly_reached10', 'true');
             ui.showParentMessage();
         } else if (state.game.score === 15 && !state.game.hasReached15) {
             state.game.hasReached15 = true;
-            localStorage.setItem('iris_butterfly_reached15', 'true');
+            storage.setItem('iris_butterfly_reached15', 'true');
             ui.showParentMessage();
         }
         window.IrisGame.rewards.renderTreasure();

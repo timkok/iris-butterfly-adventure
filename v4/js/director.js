@@ -157,7 +157,7 @@ window.IrisGame.director = {
             starSpeed: targetStarSpeed,
             gap: targetGap,
             spawnRate: targetSpawnRate,
-            tolerance: modeConf.tolerance + toleranceAdd
+            tolerance: (modeConf.tolerance || 0) + toleranceAdd
         };
     },
     

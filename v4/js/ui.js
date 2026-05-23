@@ -282,7 +282,7 @@ window.IrisGame.ui = {
                 const settings = storage.getSettings();
                 let parentMsg = '';
                 try {
-                    const parsed = JSON.parse(localStorage.getItem(storage.KEYS.settings) || '{}');
+                    const parsed = JSON.parse(storage.getItem(storage.KEYS.settings) || '{}');
                     if (parsed.parentMessage && parsed.parentMessage.trim() !== '') {
                         parentMsg = parsed.parentMessage.trim();
                     }
@@ -374,6 +374,7 @@ window.IrisGame.ui = {
         const audio = window.IrisGame.audio;
         const game = window.IrisGame.game;
         const rewards = window.IrisGame.rewards;
+        const storage = window.IrisGame.storage;
         const self = this;
         
         // Start Game
@@ -446,9 +447,9 @@ window.IrisGame.ui = {
                 resetBtn.classList.remove('confirm-state');
                 
                 state.game.highScore = 0;
-                window.IrisGame.storage.setHighScore(0);
-                localStorage.removeItem('iris_butterfly_reached10');
-                localStorage.removeItem('iris_butterfly_reached15');
+                storage.setHighScore(0);
+                storage.removeItem('iris_butterfly_reached10');
+                storage.removeItem('iris_butterfly_reached15');
                 state.game.hasReached10 = false;
                 state.game.hasReached15 = false;
                 
