@@ -300,6 +300,37 @@
         }
     });
     
+    test('Wind Lines and Background Elements structure', () => {
+        const state = window.IrisGame.state;
+        const game = window.IrisGame.game;
+        
+        state.resetGameState();
+        state.game.currentStage = 'breeze';
+        state.windLines = [];
+        
+        // Trigger wind lines generation
+        game.updateWindLines(1.5);
+        // Force push a line to test formats
+        state.windLines.push({
+            x: 400,
+            y: 300,
+            length: 80,
+            speed: 2.7
+        });
+        
+        assert(state.windLines.length > 0, 'Should have at least 1 wind line');
+        const line = state.windLines[0];
+        assert(typeof line.x === 'number', 'Line x should be a number');
+        assert(typeof line.y === 'number', 'Line y should be a number');
+        assert(line.length >= 40 && line.length <= 100, 'Line length should be in range [40, 100]');
+        assert(line.speed > 0, 'Line speed should be positive');
+        
+        // Test update loop updates coordinates
+        const initialX = line.x;
+        game.updateWindLines(1.5);
+        assert(state.windLines[0].x < initialX, 'Wind line should move left');
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {

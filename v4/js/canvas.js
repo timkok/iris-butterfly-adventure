@@ -131,13 +131,23 @@ window.IrisGame.canvas = {
         });
         
         this.parallaxBg.flowers.forEach(f => {
+            const swayAmp = state.prefersReducedMotion ? 0 : (state.game.calmModeEnabled ? 1.5 : 4.5);
+            const swayFreq = state.prefersReducedMotion ? 0 : (state.game.calmModeEnabled ? 0.012 : 0.028);
+            
+            const phase = f.x * 0.04 + state.frameCount * swayFreq;
+            const swayOffset = Math.sin(phase) * swayAmp;
+            
             ctx.strokeStyle = '#66a95c';
             ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(f.x + 12, f.y + 45);
-            ctx.lineTo(f.x + 12, f.y + f.h);
+            ctx.moveTo(f.x + 12, f.y + f.h);
+            
+            const headX = f.x + 12 + swayOffset;
+            const headY = f.y + 42;
+            ctx.lineTo(headX, headY);
             ctx.stroke();
-            this.drawFlower(f.x + 12, f.y + 42, 8, f.color);
+            
+            this.drawFlower(headX, headY, 8, f.color);
         });
         
         ctx.fillStyle = '#8bd080';
@@ -198,10 +208,24 @@ window.IrisGame.canvas = {
         ctx.save();
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
         ctx.lineWidth = 2;
+        
+        const waveAmp = state.prefersReducedMotion ? 0 : (state.game.calmModeEnabled ? 2 : 6);
+        const waveFreq = state.prefersReducedMotion ? 0 : (state.game.calmModeEnabled ? 0.05 : 0.1);
+        
         state.windLines.forEach(line => {
             ctx.beginPath();
-            ctx.moveTo(line.x, line.y);
-            ctx.lineTo(line.x + line.length, line.y);
+            const segments = 12;
+            const segWidth = line.length / segments;
+            for (let j = 0; j <= segments; j++) {
+                const px = line.x + j * segWidth;
+                const phase = j * 0.6 + state.frameCount * waveFreq;
+                const py = line.y + Math.sin(phase) * waveAmp;
+                if (j === 0) {
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
             ctx.stroke();
         });
         ctx.restore();
