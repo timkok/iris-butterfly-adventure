@@ -171,14 +171,21 @@ window.IrisGame.game = {
         
         // Spawn star guided by director placement
         const placement = director.chooseStarPlacement(pattern);
-        if (placement === 'gap_center') {
+        if (state.game.consecutivePasses >= 5) {
+            // Guided path: 3 stars before, in, and after the gap
+            this.spawnStar(obsX - 42, gapY);
             this.spawnStar(obsX + width / 2, gapY);
-        } else if (placement === 'pre_gap') {
-            this.spawnStar(obsX - 45, gapY);
-        } else if (placement === 'post_gap') {
-            this.spawnStar(obsX + width + 45, gapY);
-        } else if (Math.random() < 0.5) {
-            this.spawnStar();
+            this.spawnStar(obsX + width + 42, gapY);
+        } else {
+            if (placement === 'gap_center') {
+                this.spawnStar(obsX + width / 2, gapY);
+            } else if (placement === 'pre_gap') {
+                this.spawnStar(obsX - 45, gapY);
+            } else if (placement === 'post_gap') {
+                this.spawnStar(obsX + width + 45, gapY);
+            } else if (Math.random() < 0.5) {
+                this.spawnStar();
+            }
         }
     },
     

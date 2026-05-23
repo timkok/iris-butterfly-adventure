@@ -142,6 +142,14 @@ window.IrisGame.ui = {
         
         if (this.elements.lives) {
             this.elements.lives.textContent = state.game.mode === 'practice' || state.game.lives >= 99 ? '∞ 💖' : '❤️'.repeat(Math.max(0, state.game.lives));
+            
+            const isLowLives = (state.game.lives === 1 && state.game.mode !== 'practice');
+            const isReduced = (state.prefersReducedMotion || state.game.calmModeEnabled);
+            if (isLowLives && !isReduced) {
+                this.elements.lives.classList.add('low-lives');
+            } else {
+                this.elements.lives.classList.remove('low-lives');
+            }
         }
         
         if (this.elements.taskText && this.elements.taskProgress) {

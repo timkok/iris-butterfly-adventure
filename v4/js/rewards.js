@@ -26,6 +26,14 @@ window.IrisGame.rewards = {
                 stickerDiv.id = `sticker-${item.id}`;
                 stickerDiv.setAttribute('title', isOwned ? item.label : `需最高分 ${item.requirementHighScore} 解锁`);
                 
+                // ARIA accessibility & keyboard traversal for sticker cards
+                stickerDiv.setAttribute('tabindex', '0');
+                stickerDiv.setAttribute('role', 'img');
+                const ariaLabelText = isOwned 
+                    ? `贴纸：${item.label}，已解锁。` 
+                    : `未解锁贴纸：${item.label}，需要最高分达到 ${item.requirementHighScore} 解锁。`;
+                stickerDiv.setAttribute('aria-label', ariaLabelText);
+                
                 const emojiSpan = document.createElement('span');
                 emojiSpan.className = 'sticker-emoji';
                 emojiSpan.textContent = item.icon;
@@ -72,16 +80,19 @@ window.IrisGame.rewards = {
                         button.textContent = '使用中';
                         button.className = 'btn-buy owned active-cosmetic';
                         button.setAttribute('aria-pressed', 'true');
+                        button.setAttribute('aria-label', `外观：${item.label}，当前使用中`);
                     } else {
                         button.textContent = '使用';
                         button.className = 'btn-buy owned';
                         button.setAttribute('aria-pressed', 'false');
+                        button.setAttribute('aria-label', `外观：${item.label}，已解锁，点击使用`);
                     }
                 } else {
                     button.textContent = `最高分 ${item.requirementHighScore} 解锁`;
                     button.className = 'btn-buy locked-cosmetic';
                     button.setAttribute('disabled', 'true');
                     button.setAttribute('aria-pressed', 'false');
+                    button.setAttribute('aria-label', `未解锁外观：${item.label}，需要最高分达到 ${item.requirementHighScore} 解锁`);
                 }
                 
                 button.addEventListener('click', (e) => {
