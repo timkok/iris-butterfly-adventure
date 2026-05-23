@@ -1,3 +1,79 @@
+# QA Evidence - Cycle 12 Animation Budget + Calm Mode Guardrails
+
+## Summary
+
+- Date/time: 2026-05-23 16:21-16:24 EDT
+- Role: Codex QA / Browser Tester
+- Scope: `/v4/`
+- Implementation commit tested: `c0f86876d17ddf9bb65e30592dddc944e723cea0`
+- Branch: `main`
+- Pages source: `main / root`
+- Asset version tested locally: `v=22`
+- Recommendation: **PASS TO RELEASE**
+
+## URLs Tested
+
+- `http://localhost:8000/v4/test.html?cycle12=v22`
+- `http://localhost:8000/v4/?cycle12=v22b`
+- `http://localhost:8000/v4/?cycle12=motion`
+- `http://localhost:8000/v4/?debug=1&cycle12=v22`
+
+## Pass / Fail Table
+
+| # | Check | Result | Evidence / Notes |
+|---|---|---|---|
+| 1 | Home loads | PASS | Local `v=22` home rendered with start screen visible, HUD/task hidden, and no `INIT ERROR` banner. |
+| 2 | Start button works | PASS | Clicking `开始飞行` hid the start panel and entered gameplay. |
+| 3 | Game state changes to PLAYING | PASS | Gameplay UI transitioned to active state after start; smoke tests also assert `startGame` sets PLAYING. |
+| 4 | HUD appears | PASS | HUD and task display were visible after start. |
+| 5 | Canvas updates | PASS | Gameplay screenshots differed after 900 ms (`27044` vs `26860` bytes; hashes differed), confirming visual updates. |
+| 6 | Space jump works | PASS | Space key was exercised during PLAYING with no visible error state. |
+| 7 | Mouse/touch jump works | PASS with limitation | Canvas click path was exercised successfully. True mobile `touchstart` synthesis was not available in this browser automation environment. |
+| 8 | Pause/resume works | PASS | Pause panel opened and resume restored gameplay/task UI. |
+| 9 | Treasure opens | PASS | Treasure panel opened successfully. |
+| 10 | Settings opens | PASS | Parent settings panel opened successfully. |
+| 11 | Sound is muted by default | PASS | Sound button started as `🔇` with `aria-checked="false"`. |
+| 12 | Sound toggle works | PASS | Sound toggled to `🔊` / `aria-checked="true"` and back to `🔇` / `aria-checked="false"`. |
+| 13 | Calm Mode does not crash | PASS | Smoke tests passed Calm Mode particle/leaves density checks; debug panel reported `Calm: YES` during play. |
+| 14 | Reduced Motion path does not crash | PASS | Smoke tests passed reduced-motion fallbacks, ambient disable policy, and tap ripple suppression. |
+| 15 | Debug panel opens with `?debug=1` | PASS | Debug panel opened and showed FX budget fields. During play it reported `FX Budget: OK`, particle/leaves/ripple counts, `Calm: YES`, and `RMotion: NO`. |
+| 16 | `/v4/test.html` passes | PASS | Local `v=22` smoke tests reported `Total: 20`, `Passed: 20`, `Failed: 0`. |
+| 17 | Console has no errors | PASS with limitation | Browser QA showed no `INIT ERROR` banner or broken UI state. Direct console log collection was unavailable in the current in-app browser API. |
+
+## Console Errors
+
+No visible runtime error banner or broken interaction state was observed during local `v=22` QA. Direct console log collection was unavailable in the current in-app browser API.
+
+## Screenshots / Artifacts
+
+- Local smoke test result: `Total: 20`, `Passed: 20`, `Failed: 0`.
+- Canvas motion comparison: screenshot bytes `27044` and `26860`; hashes differed.
+- No screenshot files were committed.
+
+## Issues Found
+
+### P0
+
+- None.
+
+### P1
+
+- None.
+
+### P2 / QA Limitations
+
+- True mobile `touchstart` input could not be synthesized in the current browser automation environment; canvas click was verified.
+- Direct console log collection was unavailable in the current in-app browser API.
+- OS-level reduced-motion emulation was not available; reduced-motion smoke coverage passed.
+
+## Release Recommendation
+
+**PASS TO RELEASE**
+
+Rationale: local `v=22` loads and starts, key screens and controls work, animation-budget smoke tests pass, debug budget status reports OK, no protected versions changed, and no P0/P1 issues were found.
+
+---
+
 # QA Evidence - Cycle 15 Browser Validation
 
 ## Summary

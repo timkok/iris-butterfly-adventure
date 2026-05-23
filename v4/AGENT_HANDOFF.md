@@ -1,3 +1,56 @@
+# Agent Handoff - Cycle 12 Animation Budget + Calm Mode Guardrails
+
+## Builder Plan
+- Role: Codex Builder
+- Task Type: stability
+- Scope: `/v4/` only
+- Selected Tasks:
+  - Centralize the missing reduced-motion effect policy flags in `/v4/js/config.js`.
+  - Enforce reduced-motion stagger and ripple policies through existing V4 effect code.
+  - Extend smoke coverage for animation-budget policy fields, Calm Mode density reduction, and reduced-motion tap ripple suppression.
+  - Increment asset versions from `v=21` to `v=22`.
+
+## Implementation Notes
+- Added explicit `reducedMotionDisableStagger` and `reducedMotionDisableRipple` fields to `EFFECTS_POLICY`.
+- Updated tap ripple suppression to use `reducedMotionDisableRipple`.
+- Updated treasure stagger suppression to use `reducedMotionDisableStagger`.
+- Replaced the sticker seen timer magic number with `EFFECTS_POLICY.stickerCelebrationMs`.
+- Extended `Effects Policy Caps & Modes validation` smoke coverage.
+- No visual effects or gameplay systems were added.
+- Asset Version:
+  - `/v4/index.html`: `v=22`
+  - `/v4/test.html`: `v=22`
+
+## QA Results
+- JS syntax check: PASS
+  - `for f in v4/js/*.js; do node --check "$f" || exit 1; done`
+- Diff whitespace check: PASS
+  - `git diff --check`
+- Local browser smoke tests: PASS
+  - `http://localhost:8000/v4/test.html?cycle12=v22`: 20 total, 20 passed, 0 failed.
+- Local browser startup QA: PASS
+  - `http://localhost:8000/v4/?cycle12=v22b` loaded with home HUD/task hidden.
+  - Clicking "开始飞行" showed HUD/task and hid the start screen.
+  - Space and canvas click paths were exercised.
+  - Pause/resume, treasure, settings, debug, and sound toggle paths were exercised.
+  - Canvas screenshots changed after 900 ms, confirming visible canvas updates.
+  - No visible `INIT ERROR` banner or broken UI state was observed.
+- QA Evidence:
+  - `/v4/QA_EVIDENCE.md` updated with Cycle 12 PASS TO RELEASE.
+
+## Release Notes
+- Cycle: Cycle 12 requested stability cycle
+- Implementation Commit Hash: `c0f86876d17ddf9bb65e30592dddc944e723cea0`
+- QA Evidence Commit Hash: final pushed commit reported in release response.
+- Pushed Branch: main.
+- Pages Source: main / root.
+- Asset Version: v=22.
+- QA Status: PASS TO RELEASE.
+- V4 URL: https://timkok.github.io/iris-butterfly-adventure/v4/
+- Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
+
+---
+
 # Agent Handoff - Cycle 15 Workflow Setup
 
 ## Planner Baseline
