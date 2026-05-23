@@ -1,3 +1,80 @@
+# QA Evidence - Cycle 11 Browser QA Evidence + Stability Gate
+
+## Summary
+
+- Date/time: 2026-05-23 16:27-16:29 EDT
+- Role: Codex QA / Browser Tester
+- Scope: `/v4/`
+- Commit hash tested: `691949078264d63d50b363e3da3d59e11bd13312`
+- Branch: `main`
+- Pages source: `main / root`
+- Asset version observed: `v=22`
+- Code changes made: none
+- Recommendation: **PASS TO RELEASE**
+
+## URLs Tested
+
+- `https://timkok.github.io/iris-butterfly-adventure/v4/?cycle11=stability-v22`
+- `https://timkok.github.io/iris-butterfly-adventure/v4/?cycle11=motion-v22`
+- `https://timkok.github.io/iris-butterfly-adventure/v4/?debug=1&cycle11=debug-v22`
+- `https://timkok.github.io/iris-butterfly-adventure/v4/test.html?cycle11=stability-v22`
+
+## Pass / Fail Table
+
+| # | Check | Result | Evidence / Notes |
+|---|---|---|---|
+| 1 | Home loads | PASS | Home screen rendered with start visible, HUD/task hidden, sound muted, and no `INIT ERROR` banner. |
+| 2 | Start button works | PASS | Clicking `开始飞行` hid the start screen and showed gameplay UI. |
+| 3 | Game state changes to PLAYING | PASS | Observable gameplay state changed to PLAYING UI: start hidden, HUD/task visible. Smoke test `startGame changes gameState from START to PLAYING without throwing` passed on live `/v4/test.html`. |
+| 4 | HUD appears | PASS | HUD appeared after starting. |
+| 5 | Canvas updates | PASS | Two screenshots after start differed after 900 ms: `28175` vs `27440` bytes, different SHA-256 hashes. |
+| 6 | Space jump works | PASS | Space key was exercised during gameplay with HUD/task still active and no visible error state. |
+| 7 | Mouse/touch jump works | PASS with limitation | Canvas click path was exercised successfully. True mobile `touchstart` synthesis was not available in this browser automation environment. |
+| 8 | Pause/resume works | PASS | Pause panel opened; resume returned to gameplay and restored task display. |
+| 9 | Treasure opens | PASS | Treasure panel opened from home. |
+| 10 | Settings opens | PASS | Parent settings panel opened from home. |
+| 11 | Sound is muted by default | PASS | Sound button started as `🔇` with `aria-checked="false"`. |
+| 12 | Sound toggle works | PASS | Sound toggled to `🔊` / `aria-checked="true"` and back to `🔇` / `aria-checked="false"`. |
+| 13 | Calm Mode does not crash | PASS | Debug panel during play reported `Calm: YES` and `FX Budget: OK`; smoke tests passed effects policy coverage. |
+| 14 | Reduced Motion path does not crash | PASS | Live smoke tests passed `Reduced motion fallbacks` and effects policy coverage. OS-level reduced-motion emulation was not available. |
+| 15 | Debug panel opens with `?debug=1` | PASS | Debug panel opened and showed FX budget, particle, leaves, ripple, Calm, and RMotion fields. |
+| 16 | `/v4/test.html` passes | PASS | Live `v=22` smoke tests reported `Total: 20`, `Passed: 20`, `Failed: 0`. |
+| 17 | Console has no errors | PASS with limitation | No visible runtime error banner, no broken interaction state, and live smoke tests passed. Direct console log collection was unavailable in the current in-app browser API. |
+
+## Console Errors
+
+No visible runtime error banner or broken interaction state was observed during live `v=22` QA. Direct console log collection was unavailable in the current in-app browser API, so this check is recorded as PASS with limitation based on visible runtime state and smoke-test results.
+
+## Screenshots / Artifacts
+
+- Canvas motion comparison: screenshot bytes `28175` and `27440`; hashes differed.
+- Live smoke test result: `Total: 20`, `Passed: 20`, `Failed: 0`.
+- No screenshot files were committed.
+
+## Issues Found
+
+### P0
+
+- None.
+
+### P1
+
+- None.
+
+### P2 / QA Limitations
+
+- True mobile `touchstart` input could not be synthesized in the current browser automation environment; canvas click was verified.
+- Direct console log collection was unavailable in the current in-app browser API.
+- OS-level reduced-motion emulation was not available; reduced-motion smoke coverage passed.
+
+## Release Recommendation
+
+**PASS TO RELEASE**
+
+Rationale: current live `/v4/` at commit `691949078264d63d50b363e3da3d59e11bd13312` loads, starts, shows HUD/task, updates canvas, passes live smoke tests 20/20, and has no P0/P1 issues. Because no P0 was found, only this QA document was updated and asset versions remain `v=22`.
+
+---
+
 # QA Evidence - Cycle 12 Animation Budget + Calm Mode Guardrails
 
 ## Summary
