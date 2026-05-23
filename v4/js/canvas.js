@@ -281,6 +281,25 @@ window.IrisGame.canvas = {
             }
         }
         
+        // Draw starlight shield if active
+        if (state.game.starShield) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255, 210, 110, 0.6)';
+            ctx.lineWidth = 2;
+            if (!state.prefersReducedMotion && !state.game.calmModeEnabled) {
+                ctx.shadowColor = '#ffd36e';
+                ctx.shadowBlur = 8;
+            }
+            ctx.arc(0, 0, 22, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw small stars around shield
+            ctx.font = '10px serif';
+            ctx.fillText('✨', 18, -12);
+            ctx.restore();
+        }
+        
         ctx.scale(1, 1 + flap);
         ctx.fillText('🦋', 0, 0);
         ctx.restore();

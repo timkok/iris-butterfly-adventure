@@ -143,11 +143,6 @@ window.IrisGame.director = {
         let targetGap = Math.max(modeConf.minGap, modeConf.baseGap + toleranceAdd - stageGapReduce) + adaptiveGapPadding;
         let targetSpawnRate = Math.max(modeConf.minSpawnRate, Math.round((modeConf.baseSpawnRate / Math.max(0.82, speedMult)) * (1 - stageSpawnRateReduce)));
         
-        if (state.game.speedBoostFrames > 0) {
-            targetSpeed *= 1.10;
-            targetStarSpeed *= 1.10;
-        }
-        
         // Apply debug tuning overrides if active
         if (state.debugActive) {
             const overrides = state.tuningOverrides;

@@ -226,6 +226,22 @@ window.IrisGame.game = {
         
         if (player.invincibleFrames > 0 || state.gameState !== 'PLAYING') return;
         
+        // If has Starlight Shield, absorb the hit!
+        if (state.game.starShield) {
+            state.game.starShield = false;
+            player.invincibleFrames = Math.round(state.tuningOverrides.invincibilityFrames);
+            audio.playSound('click'); // pop sound
+            state.screenShake = state.game.calmModeEnabled ? 0 : (state.game.gentleModeEnabled ? 1 : 3);
+            window.IrisGame.entities.createParticles(player.x, player.y, '#ffd36e', 16);
+            ui.showMessage("星光护盾保护了你 ✨", 1, 1800);
+            
+            director.onCollision();
+            state.game.consecutiveStarsNoHit = 0;
+            window.IrisGame.missions.trigger('hit');
+            ui.renderHUD();
+            return;
+        }
+        
         audio.playSound('hit');
         
         // screenShake amount scales down in Calm Mode (calmModeEnabled)
@@ -246,7 +262,6 @@ window.IrisGame.game = {
         // Notify director of collision
         director.onCollision();
         state.game.consecutiveStarsNoHit = 0;
-        state.game.speedBoostFrames = 0;
         window.IrisGame.missions.trigger('hit');
         
         const hint = director.getHintMessage();
@@ -283,9 +298,12 @@ window.IrisGame.game = {
         
         state.game.consecutiveStarsNoHit = (state.game.consecutiveStarsNoHit || 0) + 1;
         if (state.game.consecutiveStarsNoHit >= 3) {
-            state.game.speedBoostFrames = 120;
-            ui.showMessage("速度冲刺！✨", 1, 1000);
-            window.IrisGame.entities.createParticles(player.x, player.y, '#ffd36e', 16);
+            state.game.consecutiveStarsNoHit = 0; // reset combo counter
+            if (state.game.mode !== 'practice' && !state.game.starShield) {
+                state.game.starShield = true;
+                ui.showMessage("✨ 获得星光护盾！", 1, 1500);
+                window.IrisGame.entities.createParticles(player.x, player.y, '#ffd36e', 18);
+            }
         }
         
         if (star.type === 'rainbow') {
@@ -361,10 +379,7 @@ window.IrisGame.game = {
         state.gameTime++;
         state.game.flightFrames++;
         
-        if (state.game.speedBoostFrames > 0) {
-            state.game.speedBoostFrames--;
-        }
-        
+
         // Physics updates
         player.scale += (1 - player.scale) * 0.1;
         player.wingPhase += state.prefersReducedMotion ? 0.08 : (state.game.calmModeEnabled ? 0.16 : 0.28);

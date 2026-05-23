@@ -122,6 +122,56 @@
         state.debugActive = false;
     });
     
+    test('Starlight Shield Mechanics', () => {
+        const state = window.IrisGame.state;
+        const game = window.IrisGame.game;
+        
+        state.resetGameState();
+        state.gameState = 'PLAYING';
+        window.IrisGame.player.invincibleFrames = 0;
+        state.game.mode = 'easy';
+        state.game.lives = 5;
+        state.game.consecutiveStarsNoHit = 0;
+        state.game.starShield = false;
+        
+        // 1. Collecting stars increments combo, triggers shield at 3
+        const mockStar = { type: 'normal', x: 200, y: 200, update: () => {} };
+        
+        state.stars = [mockStar];
+        game.collectStar(mockStar, 0);
+        assert(state.game.consecutiveStarsNoHit === 1, 'Streak should be 1');
+        assert(state.game.starShield === false, 'Shield should be false');
+        
+        state.stars = [mockStar];
+        game.collectStar(mockStar, 0);
+        state.stars = [mockStar];
+        game.collectStar(mockStar, 0);
+        assert(state.game.consecutiveStarsNoHit === 0, 'Streak should reset after shield trigger');
+        assert(state.game.starShield === true, 'Should have starShield after 3 stars');
+        
+        // 2. Collision consumes shield and prevents life deduction
+        game.handleCollision('Collision check');
+        assert(state.game.starShield === false, 'Shield should be consumed');
+        assert(state.game.lives === 5, 'Lives should not decrease when shielded');
+        
+        // 3. Subsequent collision without shield decreases lives
+        window.IrisGame.player.invincibleFrames = 0;
+        game.handleCollision('Collision check');
+        assert(state.game.lives === 4, 'Lives should decrease without shield');
+        
+        // 4. Practice mode doesn't get shield
+        state.resetGameState();
+        state.game.mode = 'practice';
+        state.game.lives = 99;
+        state.stars = [mockStar];
+        game.collectStar(mockStar, 0);
+        state.stars = [mockStar];
+        game.collectStar(mockStar, 0);
+        state.stars = [mockStar];
+        game.collectStar(mockStar, 0);
+        assert(state.game.starShield === false, 'Practice mode should not receive starShield');
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {

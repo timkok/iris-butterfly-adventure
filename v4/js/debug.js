@@ -112,7 +112,7 @@ window.IrisGame.debug = {
                 Score: <span id="db-score">0</span> | Lives: <span id="db-lives">0</span> | Max: <span id="db-record">0</span><br>
                 Vines: <span id="db-vines">0</span> | Speed: <span id="db-speed">-</span> | Gap: <span id="db-gap">-</span><br>
                 Objects: P:<span id="db-particles">0</span> S:<span id="db-stars">0</span> O:<span id="db-obstacles">0</span><br>
-                Mute: <span id="db-mute">-</span> | Calm: <span id="db-calm">-</span>
+                Mute: <span id="db-mute">-</span> | Calm: <span id="db-calm">-</span> | Shield: <span id="db-shield-status">-</span>
             </div>
             
             <!-- Sliders -->
@@ -149,9 +149,10 @@ window.IrisGame.debug = {
             </div>
             
             <!-- Actions -->
-            <div style="margin-top: 10px; display: flex; gap: 6px;">
-                <button id="db-reset-btn" style="flex:1; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">重置参数</button>
-                <button id="db-copy-btn" style="flex:1; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">复制 JSON</button>
+            <div style="margin-top: 10px; display: flex; gap: 4px; flex-wrap: wrap;">
+                <button id="db-reset-btn" style="flex:1; min-width:80px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">重置参数</button>
+                <button id="db-copy-btn" style="flex:1; min-width:80px; background:#444; border:1px solid #00ffcc; color:#00ffcc; border-radius:4px; padding:4px; cursor:pointer; min-height:28px;">复制 JSON</button>
+                <button id="db-qa-btn" style="width:100%; margin-top:4px; background:#444; border:1px solid #ffaa00; color:#ffaa00; border-radius:4px; padding:4px; cursor:pointer; min-height:28px; font-weight:bold;">复制 QA 摘要</button>
             </div>
             
             <!-- Import Area -->
@@ -242,6 +243,38 @@ window.IrisGame.debug = {
             });
         });
         
+        document.getElementById('db-qa-btn').addEventListener('click', () => {
+            const currentDiff = window.IrisGame.director.getCurrentDifficulty();
+            const qaSummary = {
+                gameState: state.gameState,
+                mode: state.game.mode,
+                score: state.game.score,
+                lives: state.game.lives,
+                highScore: state.game.highScore,
+                currentStage: state.game.currentStage,
+                passedObstacles: state.game.passedObstacles,
+                fps: state.fps,
+                particlesCount: state.particles.length,
+                starsCount: state.stars.length,
+                obstaclesCount: state.obstacles.length,
+                soundEnabled: state.game.soundEnabled,
+                calmModeEnabled: state.game.calmModeEnabled,
+                gentleModeEnabled: state.game.gentleModeEnabled,
+                speedMultiplier: currentDiff.speed / window.IrisGame.config.GAME_MODES[state.game.mode].baseSpeed,
+                gapSize: currentDiff.gap,
+                starShield: state.game.starShield || false
+            };
+            const jsonText = JSON.stringify(qaSummary, null, 2);
+            navigator.clipboard.writeText(jsonText).then(() => {
+                alert('QA Summary JSON copied to clipboard!');
+            }).catch(() => {
+                const textarea = document.getElementById('db-import-area');
+                textarea.value = jsonText;
+                textarea.select();
+                alert('Copied QA summary to bottom textarea! Please copy manually.');
+            });
+        });
+        
         document.getElementById('db-import-btn').addEventListener('click', () => {
             const areaText = document.getElementById('db-import-area').value.trim();
             if (areaText === '') return;
@@ -290,6 +323,7 @@ window.IrisGame.debug = {
         setText('db-obstacles', state.obstacles.length);
         setText('db-mute', state.game.soundEnabled ? 'NO' : 'YES');
         setText('db-calm', state.game.calmModeEnabled ? 'YES' : 'NO');
+        setText('db-shield-status', state.game.starShield ? 'YES' : 'NO');
     },
     
     drawOverlays(ctx) {

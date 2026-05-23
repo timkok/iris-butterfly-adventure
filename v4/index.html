@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iris's Butterfly Adventure - V4</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
     <div id="game-container">
@@ -27,7 +27,7 @@
                 </div>
                 <div class="hud-group right">
                     <div class="hud-item" id="lives-box">
-                        <span id="lives">❤️❤️❤️</span>
+                        <span id="lives">❤️❤️❤️</span><span id="hud-shield" style="margin-left: 6px; font-size: 0.95rem;"></span>
                     </div>
                     <button id="sound-btn" class="btn-icon" title="声音开关" aria-label="声音开关" role="switch" aria-checked="false">🔇</button>
                     <button id="pause-btn" class="btn-icon" title="暂停" aria-label="暂停游戏">⏸</button>
@@ -191,8 +191,9 @@
                     <p>完成任务: <span id="final-task">是</span></p>
                     <p>最高记录: <span id="record-score">0</span></p>
                 </div>
+                <p id="over-best-performance" style="margin: 12px 0 6px; font-weight: 900; color: #ff9d00; font-size: 1.08rem; text-align: center;"></p>
                 <p id="over-rest-tip" style="margin: 10px 0 16px; font-weight: 800; color: #77c987; font-size: 1.05rem; display: none;"></p>
-                <p id="over-encouragement" style="margin: 10px 0 16px; font-weight: 800; color: #ff7eb3; font-size: 1.05rem;"></p>
+                <p id="over-encouragement" style="margin: 6px 0 16px; font-weight: 800; color: #ff7eb3; font-size: 1.05rem;"></p>
                 <button id="restart-btn" class="btn-main">再飞一次</button>
                 <button id="back-to-home-btn" class="btn-secondary">回到首页</button>
             </div>
@@ -203,18 +204,18 @@
     <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <!-- Game Engine Scripts -->
-    <script src="js/config.js?v=8"></script>
-    <script src="js/state.js?v=8"></script>
-    <script src="js/storage.js?v=8"></script>
-    <script src="js/audio.js?v=8"></script>
-    <script src="js/director.js?v=8"></script>
-    <script src="js/debug.js?v=8"></script>
-    <script src="js/ui.js?v=8"></script>
-    <script src="js/entities.js?v=8"></script>
-    <script src="js/canvas.js?v=8"></script>
-    <script src="js/missions.js?v=8"></script>
-    <script src="js/rewards.js?v=8"></script>
-    <script src="js/game.js?v=8"></script>
-    <script src="js/main.js?v=8"></script>
+    <script src="js/config.js?v=9"></script>
+    <script src="js/state.js?v=9"></script>
+    <script src="js/storage.js?v=9"></script>
+    <script src="js/audio.js?v=9"></script>
+    <script src="js/director.js?v=9"></script>
+    <script src="js/debug.js?v=9"></script>
+    <script src="js/ui.js?v=9"></script>
+    <script src="js/entities.js?v=9"></script>
+    <script src="js/canvas.js?v=9"></script>
+    <script src="js/missions.js?v=9"></script>
+    <script src="js/rewards.js?v=9"></script>
+    <script src="js/game.js?v=9"></script>
+    <script src="js/main.js?v=9"></script>
 </body>
 </html>

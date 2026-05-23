@@ -25,6 +25,7 @@ window.IrisGame.ui = {
             hud: document.getElementById('hud'),
             score: document.getElementById('score'),
             lives: document.getElementById('lives'),
+            shield: document.getElementById('hud-shield'),
             finalScore: document.getElementById('final-score'),
             finalVines: document.getElementById('final-vines'),
             finalMode: document.getElementById('final-mode'),
@@ -33,6 +34,7 @@ window.IrisGame.ui = {
             recordScore: document.getElementById('record-score'),
             overTitle: document.getElementById('over-title'),
             overEncouragement: document.getElementById('over-encouragement'),
+            overBestPerformance: document.getElementById('over-best-performance'),
             overRestTip: document.getElementById('over-rest-tip'),
             taskDisplay: document.getElementById('task-display'),
             taskText: document.getElementById('task-text'),
@@ -152,6 +154,10 @@ window.IrisGame.ui = {
             }
         }
         
+        if (this.elements.shield) {
+            this.elements.shield.textContent = state.game.starShield ? '✨🛡' : '';
+        }
+        
         if (this.elements.taskText && this.elements.taskProgress) {
             this.elements.taskText.textContent = missions.getDisplayText();
             this.elements.taskProgress.textContent = missions.getDisplayProgress();
@@ -187,6 +193,20 @@ window.IrisGame.ui = {
             } else {
                 this.elements.overTitle.textContent = Math.random() < 0.5 ? "游戏结束" : "今天飞得很棒！";
             }
+        }
+        
+        if (this.elements.overBestPerformance) {
+            let bestText = "每一次轻轻飞起，都是很棒的尝试 💖";
+            if (state.game.missionCompleted) {
+                bestText = "你完成了飞行课任务！🍀";
+            } else if (state.game.rainbowStarsCollected > 0) {
+                bestText = "你收集到彩虹星啦！🌈";
+            } else if (state.game.passedObstacles >= 5) {
+                bestText = `你穿过了 ${state.game.passedObstacles} 组花藤！🌿`;
+            } else if (state.game.score >= 5) {
+                bestText = `你收集了 ${state.game.score} 颗星星！⭐`;
+            }
+            this.elements.overBestPerformance.textContent = bestText;
         }
         
         if (this.elements.overRestTip) {
