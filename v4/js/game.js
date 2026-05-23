@@ -373,6 +373,7 @@ window.IrisGame.game = {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
         const player = window.IrisGame.player;
+        const canvas = window.IrisGame.canvas;
         const currentDiff = director.getCurrentDifficulty();
         
         state.frameCount++;
