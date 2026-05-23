@@ -113,16 +113,8 @@ canvas {
 
 #start-screen h1 {
     font-size: 2.4rem;
-    margin-bottom: 6px;
+    margin-bottom: 20px;
     color: #6d5bd0;
-    z-index: 5;
-}
-
-.start-subtitle {
-    font-size: 0.95rem;
-    color: var(--muted-text);
-    margin-bottom: 22px;
-    font-weight: 700;
     z-index: 5;
 }
 

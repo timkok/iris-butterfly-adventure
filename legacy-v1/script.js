@@ -13,7 +13,7 @@ const storage = {
 };
 
 let gameState = 'START';
-let difficulty = 'easy'; // Default to easy mode for children
+let difficulty = 'practice';
 let score = 0;
 let highScore = Number(localStorage.getItem(storage.highScore) || 0);
 let lives = 99;
@@ -23,7 +23,6 @@ let screenShake = 0;
 let soundEnabled = localStorage.getItem('iris_butterfly_soundEnabled') === 'true';
 let audioCtx = null;
 let currentMessageTimer = null;
-let currentMessagePriority = 0;
 let newHighScoreThisRun = false;
 
 let hasReached10 = localStorage.getItem('iris_butterfly_reached10') === 'true';
@@ -78,7 +77,6 @@ const ui = {
     lives: document.getElementById('lives'),
     finalScore: document.getElementById('final-score'),
     finalVines: document.getElementById('final-vines'),
-    finalMode: document.getElementById('final-mode'),
     recordScore: document.getElementById('record-score'),
     overTitle: document.getElementById('over-title'),
     overEncouragement: document.getElementById('over-encouragement'),
@@ -279,7 +277,7 @@ function loop() {
 
     if (Date.now() - sessionStartTime > 300000 && !shownRestReminder) {
         shownRestReminder = true;
-        showMessage("休息一下眼睛吧，等会儿再飞也很棒 🌼", 2, 5000);
+        showMessage("休息一下眼睛吧，等会儿再飞也很棒 🌼", 5000);
     }
 
     drawObjects();
@@ -354,10 +352,10 @@ function spawnStar(x = null, y = null) {
     const starY = y !== null ? y : 78 + Math.random() * (canvas.height - 178);
     
     let isRainbow = false;
-    if (score - lastRainbowStarScore >= 15 && Math.random() < 0.3) {
+    if (score - lastRainbowStarScore >= 12 && Math.random() < 0.3) {
         isRainbow = true;
         lastRainbowStarScore = score;
-        showMessage("彩虹星星出现啦 🌈", 2, 2000);
+        showMessage("彩虹星星出现啦 🌈", 2000);
     }
     
     stars.push(new Star(starX, starY, currentSettings.starSpeed, isRainbow ? 'rainbow' : 'normal'));
@@ -623,7 +621,7 @@ function handleCollision(message) {
     screenShake = difficulty === 'practice' ? 4 : 12;
     player.invincibleFrames = 78;
     createParticles(player.x, player.y, '#ff8dbc', 8);
-    showMessage(message, 1, 1200);
+    showMessage(message);
 
     if (difficulty !== 'practice') {
         lives--;
@@ -664,9 +662,9 @@ function startGame() {
     updateDynamicSettings();
     
     if (difficulty === 'practice') {
-        showMessage("练习模式不会失败，放心试试。", 2, 3000);
+        showMessage("练习模式不会失败，放心试试。", 3000);
     } else {
-        showMessage('轻轻点击，让小蝴蝶飞起来 🦋', 1, 2500);
+        showMessage('轻轻点击，让小蝴蝶飞起来 🦋', 2500);
     }
     
     updateHUD();
@@ -710,19 +708,12 @@ function gameOver() {
         ui.overEncouragement.textContent = "新纪录！Iris 太棒啦 🌟";
     } else {
         if (score <= 2) {
-            ui.overEncouragement.textContent = "先在练习模式热身一下 🦋";
+            ui.overEncouragement.textContent = "先在练习模式试试吧 🦋";
         } else {
-            ui.overEncouragement.textContent = "喝口水、抱抱爸爸妈妈，再来一局吧 🌼";
+            ui.overEncouragement.textContent = "喝口水、抱抱爸爸妈妈，再来一局吧。";
         }
     }
     
-    const modesCN = {
-        practice: '练习模式',
-        easy: '简单模式',
-        normal: '普通模式',
-        hard: '高手模式'
-    };
-    ui.finalMode.textContent = modesCN[difficulty] || difficulty;
     ui.finalScore.textContent = score;
     ui.finalVines.textContent = vinesPassed;
     ui.recordScore.textContent = highScore;
@@ -745,44 +736,25 @@ function checkMilestones() {
 
     if (score >= 6 && score < 16 && !shownStage6) {
         shownStage6 = true;
-        showMessage("进入花园挑战区 🌿", 2, 2200);
+        showMessage("进入花园挑战区 🌿", 2200);
     } else if (score >= 16 && score < 31 && !shownStage16) {
         shownStage16 = true;
-        showMessage("风变快啦，稳稳飞 ✨", 2, 2200);
+        showMessage("风变快啦，稳稳飞 ✨", 2200);
     } else if (score >= 31 && !shownStage31) {
         shownStage31 = true;
-        showMessage("彩虹挑战开始！你太棒了 🌈", 2, 2200);
+        showMessage("彩虹挑战开始！你太棒了 🌈", 2200);
     } else if (score === 5 || score === 10 || score === 15) {
         const text = score === 10 ? '任务完成！继续挑战更高分吧 ✨' : `太棒了，已经收集 ${score} 颗星星！`;
-        showMessage(text, 2, 2200);
+        showMessage(text, 2200);
     }
     updateUnlocks();
 }
 
-function showMessage(text, priority = 1, ms = null) {
-    if (currentMessagePriority > priority && ui.message.classList.contains('active')) {
-        return; 
-    }
-    
-    const duration = ms || (priority >= 2 ? 2000 : 1200);
+function showMessage(text, ms = 1500) {
     clearTimeout(currentMessageTimer);
-    currentMessagePriority = priority;
-    
     ui.message.textContent = text;
     ui.message.classList.remove('hidden');
-    ui.message.classList.add('active');
-    
-    if (text.includes("任务完成") || text.includes("飞行挑战完成")) {
-        ui.message.classList.add('ribbon-style');
-    } else {
-        ui.message.classList.remove('ribbon-style');
-    }
-    
-    currentMessageTimer = setTimeout(() => {
-        ui.message.classList.add('hidden');
-        ui.message.classList.remove('active', 'ribbon-style');
-        currentMessagePriority = 0;
-    }, duration);
+    currentMessageTimer = setTimeout(() => ui.message.classList.add('hidden'), ms);
 }
 
 function showParentMessage() {
@@ -801,7 +773,7 @@ function updateHUD() {
         ui.taskProgress.textContent = `(${Math.min(score, 10)}/10)`;
         if (score >= 10) {
             currentTask = 2;
-            showMessage("任务完成！继续挑战 5 组花藤吧 🌿", 2, 2500);
+            showMessage("任务完成！继续挑战 5 组花藤吧 🌿", 2500);
             updateHUD();
         }
     } else if (currentTask === 2) {
@@ -809,7 +781,7 @@ function updateHUD() {
         ui.taskProgress.textContent = `(${Math.min(vinesPassed, 5)}/5)`;
         if (vinesPassed >= 5) {
             currentTask = 3;
-            showMessage("飞行挑战完成！继续创造最高记录吧 🏆", 2, 2500);
+            showMessage("飞行挑战完成！继续创造最高记录吧 🏆", 2500);
             updateHUD();
         }
     } else {
@@ -824,10 +796,10 @@ function updateHUD() {
 
 function updateUnlocks() {
     if (highScore >= 5 && !ownedStickers.includes('star')) ownedStickers.push('star');
+    if (highScore >= 8 && !ownedStickers.includes('bunny')) ownedStickers.push('bunny');
     if (highScore >= 10 && !ownedStickers.includes('flower')) ownedStickers.push('flower');
+    if (highScore >= 12 && !ownedStickers.includes('rainbow')) ownedStickers.push('rainbow');
     if (highScore >= 15 && !ownedStickers.includes('butterfly')) ownedStickers.push('butterfly');
-    if (highScore >= 25 && !ownedStickers.includes('rainbow')) ownedStickers.push('rainbow');
-    if (highScore >= 40 && !ownedStickers.includes('crown')) ownedStickers.push('crown');
     localStorage.setItem(storage.stickers, JSON.stringify(ownedStickers));
     renderTreasure();
 }
@@ -927,15 +899,6 @@ function saveSettingsFromUI() {
     saveAssistSettings();
 }
 
-function updateStartButtonText() {
-    const startBtn = document.getElementById('start-btn');
-    if (difficulty === 'practice') {
-        startBtn.textContent = '开始练习 (不会失败)';
-    } else {
-        startBtn.textContent = '开始飞行';
-    }
-}
-
 function setupListeners() {
     const on = (id, event, handler, options) => {
         const element = document.getElementById(id);
@@ -951,7 +914,6 @@ function setupListeners() {
             button.classList.add('active');
             baseSettings = buildSettings();
             currentSettings = { ...baseSettings };
-            updateStartButtonText();
             playSound('click');
         });
     });
@@ -979,7 +941,7 @@ function setupListeners() {
 
     on('parent-settings-btn', 'click', () => {
         if (gameState === 'PLAYING' || gameState === 'PAUSED') {
-            showMessage('请先返回首页再调整设置', 1, 1500);
+            showMessage('请先返回首页再调整设置', 1500);
             return;
         }
         syncSettingsUI();
@@ -991,39 +953,18 @@ function setupListeners() {
         baseSettings = buildSettings();
         currentSettings = { ...baseSettings };
         showScreen(screens.start);
-        showMessage('设置已保存，下一局生效。', 1, 1500);
+        showMessage('设置已保存，下一局生效。', 1500);
     });
 
-    let resetConfirmTimer = null;
-    let resetConfirmState = false;
-
     on('reset-high-score-btn', 'click', () => {
-        const resetBtn = document.getElementById('reset-high-score-btn');
-        if (!resetConfirmState) {
-            resetConfirmState = true;
-            resetBtn.textContent = "再点一次确认重置";
-            resetBtn.classList.add('confirm-state');
-            
-            resetConfirmTimer = setTimeout(() => {
-                resetConfirmState = false;
-                resetBtn.textContent = "重置最高分";
-                resetBtn.classList.remove('confirm-state');
-            }, 3000);
-        } else {
-            clearTimeout(resetConfirmTimer);
-            resetConfirmState = false;
-            resetBtn.textContent = "重置最高分";
-            resetBtn.classList.remove('confirm-state');
-            
-            highScore = 0;
-            localStorage.setItem(storage.highScore, '0');
-            localStorage.removeItem('iris_butterfly_reached10');
-            localStorage.removeItem('iris_butterfly_reached15');
-            hasReached10 = false;
-            hasReached15 = false;
-            updateHUD();
-            showMessage('最高分已重置。', 1, 1200);
-        }
+        highScore = 0;
+        localStorage.setItem(storage.highScore, '0');
+        localStorage.removeItem('iris_butterfly_reached10');
+        localStorage.removeItem('iris_butterfly_reached15');
+        hasReached10 = false;
+        hasReached15 = false;
+        updateHUD();
+        showMessage('最高分已重置。', 1200);
     });
 
     on('treasure-btn', 'click', () => {
@@ -1089,7 +1030,7 @@ function setupListeners() {
                 baseSettings = buildSettings();
                 currentSettings = { ...baseSettings };
                 showScreen(screens.start);
-                showMessage('设置已保存，下一局生效。', 1, 1500);
+                showMessage('设置已保存，下一局生效。', 1500);
             } else if (screens.treasure.classList.contains('active')) {
                 showScreen(screens.start);
             } else if (screens.gameOver.classList.contains('active')) {
@@ -1111,7 +1052,7 @@ function selectCosmetic(item) {
     const cost = Number(item.dataset.cost || 0);
     if (!ownedCosmetics.includes(id)) {
         if (highScore < cost) {
-            showMessage('星星还不够，继续收集吧！', 1, 1400);
+            showMessage('星星还不够，继续收集吧！', 1400);
             return;
         }
         ownedCosmetics.push(id);
@@ -1129,7 +1070,6 @@ function init() {
     setupListeners();
     renderTreasure();
     updateHUD();
-    updateStartButtonText();
     setGameUiVisible(false);
     ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
     ui.sound.setAttribute('aria-pressed', String(soundEnabled));
