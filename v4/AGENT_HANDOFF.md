@@ -74,7 +74,7 @@
 - **Dynamic Keyframes**: Confirmed that `breathingStart` keyframes include box-shadow property transitions.
 
 ## Release Notes
-- **Commit Hash**: `[pending]`
+- **Commit Hash**: `ac72446`
 - **Push Branch**: `main`
 - **Pages Source**: `https://timkok.github.io/iris-butterfly-adventure/v4/`
 - **Test Page**: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`
