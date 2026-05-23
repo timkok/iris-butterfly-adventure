@@ -34,7 +34,7 @@ const diffSettings = {
 const defaultAssistSettings = {
     speed: 'normal',
     tolerance: 'standard',
-    lives: '99',
+    lives: 'difficulty',
     parentMessage: 'Iris 真棒，爱你！'
 };
 
@@ -93,7 +93,9 @@ let bgElements = [];
 
 function loadAssistSettings() {
     try {
-        return { ...defaultAssistSettings, ...JSON.parse(localStorage.getItem(storage.settings) || '{}') };
+        const stored = { ...defaultAssistSettings, ...JSON.parse(localStorage.getItem(storage.settings) || '{}') };
+        if (stored.lives === '99') stored.lives = 'difficulty';
+        return stored;
     } catch {
         return { ...defaultAssistSettings };
     }
@@ -107,7 +109,7 @@ function buildSettings() {
     const base = diffSettings[difficulty];
     const speedMult = assistSettings.speed === 'slow' ? 0.78 : assistSettings.speed === 'fast' ? 1.14 : 1;
     const toleranceAdd = assistSettings.tolerance === 'loose' ? 10 : 0;
-    const livesOverride = Number(assistSettings.lives);
+    const livesOverride = assistSettings.lives === 'difficulty' ? NaN : Number(assistSettings.lives);
 
     return {
         ...base,
@@ -117,7 +119,7 @@ function buildSettings() {
         tolerance: base.tolerance + toleranceAdd,
         spawnRate: Math.round(base.spawnRate / Math.max(0.82, speedMult)),
         starRate: Math.round(base.starRate / Math.max(0.88, speedMult)),
-        lives: Number.isFinite(livesOverride) ? livesOverride : base.lives
+        lives: difficulty === 'practice' ? 99 : Number.isFinite(livesOverride) ? livesOverride : base.lives
     };
 }
 
@@ -275,12 +277,20 @@ function updateStars() {
             screenShake = 3;
             createParticles(star.x, star.y, '#ffd36e', 9);
             stars.splice(i, 1);
+            saveHighScoreIfNeeded();
             checkMilestones();
             updateHUD();
         } else if (star.x < -24) {
             stars.splice(i, 1);
         }
     }
+}
+
+function saveHighScoreIfNeeded() {
+    if (score <= highScore) return false;
+    highScore = score;
+    localStorage.setItem(storage.highScore, String(highScore));
+    return true;
 }
 
 function updateParticles() {
@@ -546,9 +556,7 @@ function backToHome() {
 
 function gameOver() {
     gameState = 'GAMEOVER';
-    if (score > highScore) {
-        highScore = score;
-        localStorage.setItem(storage.highScore, String(highScore));
+    if (saveHighScoreIfNeeded()) {
         showParentMessage();
     }
     ui.finalScore.textContent = score;
@@ -559,11 +567,11 @@ function gameOver() {
 }
 
 function checkMilestones() {
-    if (score === 5 || score === 10 || score === 15 || score > highScore) {
-        const text = score > highScore ? assistSettings.parentMessage : `太棒了，已经收集 ${score} 颗星星！`;
+    if (score === 5 || score === 10 || score === 15) {
+        const text = score === 10 ? '太棒了，10 颗星星达成！继续飞吧！' : `太棒了，已经收集 ${score} 颗星星！`;
         showMessage(text, 2200);
     }
-    if (score === 10 || score > highScore) {
+    if (score === 10) {
         showParentMessage();
     }
     updateUnlocks();
@@ -683,7 +691,12 @@ function saveSettingsFromUI() {
 }
 
 function setupListeners() {
-    document.getElementById('start-btn').addEventListener('click', startGame);
+    const on = (id, event, handler, options) => {
+        const element = document.getElementById(id);
+        if (element) element.addEventListener(event, handler, options);
+    };
+
+    on('start-btn', 'click', startGame);
 
     document.querySelectorAll('.btn-diff').forEach(button => {
         button.addEventListener('click', () => {
@@ -695,57 +708,61 @@ function setupListeners() {
         });
     });
 
-    document.getElementById('how-to-play-btn').addEventListener('click', () => showScreen(screens.howTo));
-    document.getElementById('close-how-to-btn').addEventListener('click', () => showScreen(screens.start));
-    document.getElementById('pause-btn').addEventListener('click', pauseGame);
-    document.getElementById('resume-btn').addEventListener('click', resumeGame);
-    document.getElementById('restart-btn').addEventListener('click', restartGame);
-    document.getElementById('restart-from-pause-btn').addEventListener('click', restartGame);
-    document.getElementById('back-to-home-btn').addEventListener('click', backToHome);
-    document.getElementById('back-to-home-from-pause-btn').addEventListener('click', backToHome);
+    on('how-to-play-btn', 'click', () => showScreen(screens.howTo));
+    on('close-how-to-btn', 'click', () => showScreen(screens.start));
+    on('pause-btn', 'click', pauseGame);
+    on('resume-btn', 'click', resumeGame);
+    on('restart-btn', 'click', restartGame);
+    on('restart-from-pause-btn', 'click', restartGame);
+    on('back-to-home-btn', 'click', backToHome);
+    on('back-to-home-from-pause-btn', 'click', backToHome);
 
-    document.getElementById('sound-btn').addEventListener('click', () => {
+    on('sound-btn', 'click', () => {
         soundEnabled = !soundEnabled;
         ui.sound.textContent = soundEnabled ? '🔊' : '🔇';
         if (soundEnabled) playSound('click');
     });
 
-    document.getElementById('parent-settings-btn').addEventListener('click', () => {
+    on('parent-settings-btn', 'click', () => {
         syncSettingsUI();
         showScreen(screens.settings);
     });
 
-    document.getElementById('close-settings-btn').addEventListener('click', () => {
+    on('close-settings-btn', 'click', () => {
         saveSettingsFromUI();
         showScreen(screens.start);
         showMessage('设置已保存。', 1200);
     });
 
-    document.getElementById('reset-high-score-btn').addEventListener('click', () => {
+    on('reset-high-score-btn', 'click', () => {
         highScore = 0;
         localStorage.setItem(storage.highScore, '0');
         updateHUD();
         showMessage('最高分已重置。', 1200);
     });
 
-    document.getElementById('treasure-btn').addEventListener('click', () => {
+    on('treasure-btn', 'click', () => {
         renderTreasure();
+        switchTab('stickers');
         showScreen(screens.treasure);
     });
-    document.getElementById('close-treasure-btn').addEventListener('click', () => showScreen(screens.start));
+    on('close-treasure-btn', 'click', () => showScreen(screens.start));
 
-    document.getElementById('tab-stickers').addEventListener('click', () => switchTab('stickers'));
-    document.getElementById('tab-cosmetics').addEventListener('click', () => switchTab('cosmetics'));
+    on('tab-stickers', 'click', () => switchTab('stickers'));
+    on('tab-cosmetics', 'click', () => switchTab('cosmetics'));
 
     document.querySelectorAll('.cosmetic-item').forEach(item => {
         item.addEventListener('click', () => selectCosmetic(item));
     });
 
-    canvas.addEventListener('mousedown', event => {
+    const gameContainer = document.getElementById('game-container');
+    gameContainer.addEventListener('mousedown', event => {
+        if (event.target.closest('button, select, input')) return;
         event.preventDefault();
         jump();
     });
-    canvas.addEventListener('touchstart', event => {
+    gameContainer.addEventListener('touchstart', event => {
+        if (event.target.closest('button, select, input')) return;
         event.preventDefault();
         jump();
     }, { passive: false });
