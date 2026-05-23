@@ -73,7 +73,7 @@
 - **ARIA/Locker Validation**: Confirmed that sticker div tags receive focus and contain descriptive aria-labels, and cosmetic buttons have context-aware screen reader descriptions.
 
 ## Release Notes
-- **Commit Hash**: `[pending]`
+- **Commit Hash**: `4f9fcb5`
 - **Push Branch**: `main`
 - **Pages Source**: `https://timkok.github.io/iris-butterfly-adventure/v4/`
 - **Test Page**: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`
