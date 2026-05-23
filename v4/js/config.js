@@ -164,6 +164,19 @@ window.IrisGame.config = {
         { id: 'rainbow-wings', label: '梦幻彩虹', type: 'cosmetic', requirementHighScore: 50, icon: '🦋', class: 'rainbow-anim' }
     ],
     
+    EFFECTS_POLICY: {
+        maxParticles: 80,
+        maxLeaves: 12,
+        maxTapRipples: 4,
+        stickerCelebrationMs: 2200,
+        treasureStaggerEnabled: true,
+        tapRippleEnabled: true,
+        leavesEnabled: true,
+        shieldHaloEnabled: true,
+        calmModeParticleMultiplier: 0.45,
+        reducedMotionDisableAmbient: true
+    },
+    
     defaultAssistSettings: {
         speed: 'normal',
         tolerance: 'standard',

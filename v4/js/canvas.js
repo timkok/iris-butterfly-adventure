@@ -307,12 +307,14 @@ window.IrisGame.canvas = {
         }
         
         // Draw starlight shield if active
-        if (state.game.starShield) {
+        const config = window.IrisGame.config;
+        if (state.game.starShield && config.EFFECTS_POLICY.shieldHaloEnabled) {
             ctx.save();
             ctx.beginPath();
             ctx.strokeStyle = 'rgba(255, 210, 110, 0.6)';
             ctx.lineWidth = 2;
-            if (!state.prefersReducedMotion && !state.game.calmModeEnabled) {
+            const disableGlow = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
+            if (!disableGlow && !state.game.calmModeEnabled) {
                 ctx.shadowColor = '#ffd36e';
                 ctx.shadowBlur = 8;
             }

@@ -112,7 +112,8 @@ window.IrisGame.debug = {
                 Score: <span id="db-score">0</span> | Lives: <span id="db-lives">0</span> | Max: <span id="db-record">0</span><br>
                 Vines: <span id="db-vines">0</span> | Speed: <span id="db-speed">-</span> | Gap: <span id="db-gap">-</span><br>
                 Objects: P:<span id="db-particles">0</span> S:<span id="db-stars">0</span> O:<span id="db-obstacles">0</span><br>
-                Mute: <span id="db-mute">-</span> | Calm: <span id="db-calm">-</span> | Shield: <span id="db-shield-status">-</span>
+                Mute: <span id="db-mute">-</span> | Calm: <span id="db-calm">-</span> | RMotion: <span id="db-rm">-</span><br>
+                FX Budget: <span id="db-fx-budget">-</span> | P:<span id="db-p-budget">0/80</span> L:<span id="db-l-budget">0/12</span> R:<span id="db-r-budget">0/4</span> | Shield: <span id="db-shield-status">-</span>
             </div>
             
             <!-- Sliders -->
@@ -323,7 +324,26 @@ window.IrisGame.debug = {
         setText('db-obstacles', state.obstacles.length);
         setText('db-mute', state.game.soundEnabled ? 'NO' : 'YES');
         setText('db-calm', state.game.calmModeEnabled ? 'YES' : 'NO');
+        setText('db-rm', state.prefersReducedMotion ? 'YES' : 'NO');
         setText('db-shield-status', state.game.starShield ? 'YES' : 'NO');
+        
+        const config = window.IrisGame.config;
+        const maxParticles = config.EFFECTS_POLICY.maxParticles;
+        const maxLeavesBase = config.EFFECTS_POLICY.maxLeaves;
+        const maxLeaves = state.game.calmModeEnabled ? Math.max(1, Math.round(maxLeavesBase * config.EFFECTS_POLICY.calmModeParticleMultiplier)) : maxLeavesBase;
+        const maxRipples = config.EFFECTS_POLICY.maxTapRipples;
+        
+        setText('db-p-budget', `${state.particles.length}/${maxParticles}`);
+        setText('db-l-budget', `${state.leaves.length}/${maxLeaves}`);
+        setText('db-r-budget', `${state.tapRipples.length}/${maxRipples}`);
+        
+        const isHigh = state.particles.length > maxParticles || state.leaves.length > maxLeaves || state.tapRipples.length > maxRipples;
+        const statusEl = document.getElementById('db-fx-budget');
+        if (statusEl) {
+            statusEl.textContent = isHigh ? 'HIGH' : 'OK';
+            statusEl.style.color = isHigh ? '#ff8dbc' : '#77c987';
+            statusEl.style.fontWeight = 'bold';
+        }
     },
     
     drawOverlays(ctx) {

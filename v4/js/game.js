@@ -465,8 +465,11 @@ window.IrisGame.game = {
         }
         
         // Spawn ambient leaves (garden, breeze, rainbow stages only)
-        if (!state.prefersReducedMotion && ['garden', 'breeze', 'rainbow'].includes(state.game.currentStage)) {
-            const maxLeaves = state.game.calmModeEnabled ? 3 : 6;
+        const config = window.IrisGame.config;
+        const disableAmbientLeaves = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
+        if (config.EFFECTS_POLICY.leavesEnabled && !disableAmbientLeaves && ['garden', 'breeze', 'rainbow'].includes(state.game.currentStage)) {
+            const maxLeavesBase = config.EFFECTS_POLICY.maxLeaves;
+            const maxLeaves = state.game.calmModeEnabled ? Math.max(1, Math.round(maxLeavesBase * config.EFFECTS_POLICY.calmModeParticleMultiplier)) : maxLeavesBase;
             const spawnChance = state.game.calmModeEnabled ? 0.008 : 0.02;
             if (state.leaves.length < maxLeaves && Math.random() < spawnChance) {
                 state.leaves.push(new window.IrisGame.entities.Leaf(
@@ -482,6 +485,17 @@ window.IrisGame.game = {
             if (state.leaves[i].x < -30 || state.leaves[i].y > 620) {
                 state.leaves.splice(i, 1);
             }
+        }
+        
+        // Trim leaves to cap if needed
+        const currentMaxLeaves = state.game.calmModeEnabled ? Math.max(1, Math.round(config.EFFECTS_POLICY.maxLeaves * config.EFFECTS_POLICY.calmModeParticleMultiplier)) : config.EFFECTS_POLICY.maxLeaves;
+        while (state.leaves.length > currentMaxLeaves) {
+            state.leaves.shift();
+        }
+        
+        // Trim tap ripples to cap if needed
+        while (state.tapRipples.length > config.EFFECTS_POLICY.maxTapRipples) {
+            state.tapRipples.shift();
         }
         
         // Update tap ripples

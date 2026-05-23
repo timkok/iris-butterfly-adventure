@@ -30,10 +30,13 @@ window.IrisGame.rewards = {
             if (item.type === 'sticker') {
                 const stickerDiv = document.createElement('div');
                 let className = `sticker ${isOwned ? '' : 'locked'}`;
-                if (isNewlyUnlocked && !isReduced) {
-                    className += ' sticker-newly-unlocked';
-                } else if (isNewlyUnlocked && isReduced) {
-                    className += ' sticker-newly-unlocked-gentle';
+                const disableSparkles = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
+                if (isNewlyUnlocked && !disableSparkles) {
+                    if (isReduced) {
+                        className += ' sticker-newly-unlocked-gentle';
+                    } else {
+                        className += ' sticker-newly-unlocked';
+                    }
                 }
                 stickerDiv.className = className;
                 stickerDiv.id = `sticker-${item.id}`;
@@ -74,7 +77,8 @@ window.IrisGame.rewards = {
                 stickerDiv.appendChild(statusSpan);
                 
                 // Entrance stagger animation
-                if (!state.prefersReducedMotion) {
+                const disableStagger = (state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient) || !config.EFFECTS_POLICY.treasureStaggerEnabled;
+                if (!disableStagger) {
                     stickerDiv.classList.add('treasure-enter');
                     stickerDiv.style.animationDelay = `${stickerIndex * 60}ms`;
                 }
@@ -135,7 +139,8 @@ window.IrisGame.rewards = {
                 itemDiv.appendChild(button);
                 
                 // Entrance stagger animation
-                if (!state.prefersReducedMotion) {
+                const disableCosmeticStagger = (state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient) || !config.EFFECTS_POLICY.treasureStaggerEnabled;
+                if (!disableCosmeticStagger) {
                     itemDiv.classList.add('treasure-enter');
                     itemDiv.style.animationDelay = `${cosmeticIndex * 60}ms`;
                 }

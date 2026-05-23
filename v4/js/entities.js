@@ -21,6 +21,7 @@ window.IrisGame.player = {
     
     jump() {
         const state = window.IrisGame.state;
+        const config = window.IrisGame.config;
         if (state.gameState === 'START') return;
         if (state.gameState === 'PLAYING') {
             this.velocity = this.lift;
@@ -28,9 +29,12 @@ window.IrisGame.player = {
             window.IrisGame.entities.createParticles(this.x - 6, this.y + 8, '#ffffff', 3);
             window.IrisGame.audio.playSound('click');
             
-            // Tap ripple effect (suppressed under reduced motion)
-            if (!state.prefersReducedMotion) {
-                state.tapRipples.push(new window.IrisGame.entities.TapRipple(this.x, this.y));
+            // Tap ripple effect (suppressed under reduced motion policy)
+            const disableRipple = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
+            if (config.EFFECTS_POLICY.tapRippleEnabled && !disableRipple) {
+                if (state.tapRipples.length < config.EFFECTS_POLICY.maxTapRipples) {
+                    state.tapRipples.push(new window.IrisGame.entities.TapRipple(this.x, this.y));
+                }
             }
         }
     }
@@ -39,13 +43,14 @@ window.IrisGame.player = {
 window.IrisGame.entities = {
     createParticles(x, y, color, count = 6) {
         const state = window.IrisGame.state;
+        const config = window.IrisGame.config;
         if (state.prefersReducedMotion) return;
         
-        // 50% fewer particles in Calm Mode
-        const finalCount = state.game.calmModeEnabled ? Math.max(1, Math.round(count * 0.5)) : count;
+        // Scale particles in Calm Mode using EFFECTS_POLICY multiplier
+        const finalCount = state.game.calmModeEnabled ? Math.max(1, Math.round(count * config.EFFECTS_POLICY.calmModeParticleMultiplier)) : count;
         
         for (let i = 0; i < finalCount; i++) {
-            if (state.particles.length >= 80) {
+            if (state.particles.length >= config.EFFECTS_POLICY.maxParticles) {
                 state.particles.shift();
             }
             state.particles.push(new this.Particle(x, y, color));

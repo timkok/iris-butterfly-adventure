@@ -417,6 +417,83 @@
         assert(ripple.alpha < 0.5, 'Ripple alpha should decrease');
     });
     
+    test('Effects Policy Caps & Modes validation', () => {
+        const state = window.IrisGame.state;
+        const config = window.IrisGame.config;
+        const entities = window.IrisGame.entities;
+        const game = window.IrisGame.game;
+        
+        // Save original states
+        const origPrefersReduced = state.prefersReducedMotion;
+        const origCalmMode = state.game.calmModeEnabled;
+        const origParticles = state.particles;
+        const origLeaves = state.leaves;
+        const origRipples = state.tapRipples;
+        const origStarShield = state.game.starShield;
+        
+        try {
+            // 1. Particle capping verification
+            state.prefersReducedMotion = false;
+            state.game.calmModeEnabled = false;
+            state.particles = [];
+            
+            // Try to spawn 120 particles (exceeds cap of 80)
+            for (let i = 0; i < 15; i++) {
+                entities.createParticles(100, 100, '#ffffff', 10);
+            }
+            assert(state.particles.length === config.EFFECTS_POLICY.maxParticles, `Particles should be capped at maxParticles (${config.EFFECTS_POLICY.maxParticles}), got ${state.particles.length}`);
+            
+            // 2. Calm Mode reduces particle density
+            state.particles = [];
+            state.game.calmModeEnabled = true;
+            entities.createParticles(100, 100, '#ffffff', 10);
+            const expectedCalmCount = Math.round(10 * config.EFFECTS_POLICY.calmModeParticleMultiplier);
+            assert(state.particles.length === expectedCalmCount, `Calm mode particles should scale down, expected ${expectedCalmCount}, got ${state.particles.length}`);
+            
+            // 3. Leaves capping and calm mode behavior
+            state.game.calmModeEnabled = false;
+            state.leaves = [];
+            
+            const maxLeaves = config.EFFECTS_POLICY.maxLeaves;
+            for (let i = 0; i < maxLeaves + 5; i++) {
+                state.leaves.push(new entities.Leaf(100, 100));
+            }
+            game.updateGame();
+            assert(state.leaves.length === maxLeaves, `Leaves should be trimmed to maxLeaves (${maxLeaves}), got ${state.leaves.length}`);
+            
+            state.game.calmModeEnabled = true;
+            game.updateGame();
+            const expectedCalmLeaves = Math.max(1, Math.round(maxLeaves * config.EFFECTS_POLICY.calmModeParticleMultiplier));
+            assert(state.leaves.length === expectedCalmLeaves, `Calm mode leaves should be trimmed to scaled cap (${expectedCalmLeaves}), got ${state.leaves.length}`);
+            
+            // 4. Tap Ripples capping verification
+            state.tapRipples = [];
+            const maxRipples = config.EFFECTS_POLICY.maxTapRipples;
+            for (let i = 0; i < maxRipples + 3; i++) {
+                state.tapRipples.push(new entities.TapRipple(100, 100));
+            }
+            game.updateGame();
+            assert(state.tapRipples.length === maxRipples, `Ripples should be trimmed to maxTapRipples (${maxRipples}), got ${state.tapRipples.length}`);
+            
+            // 5. Reduced Motion disables ambient leaves and ripples
+            state.prefersReducedMotion = true;
+            state.leaves = [new entities.Leaf(100, 100)];
+            state.game.currentStage = 'garden';
+            
+            state.leaves = [];
+            const disableAmbientLeaves = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableAmbient;
+            assert(disableAmbientLeaves === true, 'Reduced motion should flag ambient leaf disable');
+            
+        } finally {
+            state.prefersReducedMotion = origPrefersReduced;
+            state.game.calmModeEnabled = origCalmMode;
+            state.particles = origParticles;
+            state.leaves = origLeaves;
+            state.tapRipples = origRipples;
+            state.game.starShield = origStarShield;
+        }
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {
