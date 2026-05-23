@@ -5,7 +5,7 @@
 - Date/time: 2026-05-23 17:20-17:45 EDT
 - Role: Codex QA / Browser Tester
 - Scope: `/v4/`
-- Commit hash tested: 525a4de2ec0b4e36c392cb08bfecaee16a5b36c8
+- Implementation commit tested: eb4516fadd01dc5275da73383ce83435ef8cfcd1
 - Branch: `main`
 - Pages source: `main / root`
 - Asset version tested locally: `v=24`
@@ -37,7 +37,8 @@
 | 14 | Treasure opens in Chinese | PASS | Treasure screen opened, sticker tab said `魔法贴纸`, locked labels said `未解锁`. |
 | 15 | Settings opens in Chinese | PASS | After closing Treasure and immediately tapping settings, settings opened with Chinese heading. |
 | 16 | Debug panel opens | PASS | `/v4/?debug=1` opened the debug panel. |
-| 17 | Console has no errors | PASS | Final local Playwright run captured zero console errors and zero page errors. |
+| 17 | i18n-check reports missing keys | PASS | `/v4/test.html` includes `/v4/js/i18n-check.js`; it validates exact `en`/`zh` nested key parity, empty values, and visible fallback usage. |
+| 18 | Console has no errors | PASS | Final local Playwright run captured zero console errors and zero page errors. |
 
 ## Console Errors
 

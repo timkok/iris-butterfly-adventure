@@ -398,7 +398,7 @@ Do not remove files, protected versions, or product features during the audit wi
   - Browser QA on `/v4/?hotfix=overlayqa`: treasure opens, settings opens, Game Over path observed, no new `/v4/` console errors.
   - Browser visual movement check: screenshots differ while playing, confirming the canvas continues updating.
 - Asset Version: v=19
-- Commit Hash: 525a4de2ec0b4e36c392cb08bfecaee16a5b36c8; final pushed hash reported in release response.
+- Implementation Commit Hash: eb4516fadd01dc5275da73383ce83435ef8cfcd1; final pushed hash reported in release response.
 
 ---
 
@@ -614,7 +614,8 @@ Do not remove files, protected versions, or product features during the audit wi
 
 ## Release Notes
 - Cycle: Cycle 14 Internationalization QA and English polish
-- Commit Hash: 525a4de2ec0b4e36c392cb08bfecaee16a5b36c8.
+- Implementation Commit Hash: eb4516fadd01dc5275da73383ce83435ef8cfcd1.
+- Release Docs Commit Hash: final pushed commit reported in release response.
 - Pushed Branch: main.
 - Pages Source: main / root.
 - Asset Version: v=24.
