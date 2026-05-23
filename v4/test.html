@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris's Butterfly Adventure - V4 Smoke Tests</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+        h1 {
+            color: #00ffcc;
+            border-bottom: 2px solid #00ffcc;
+            padding-bottom: 8px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: #252526;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #3c3c3c;
+        }
+        .pass-count { color: #4ec9b0; }
+        .fail-count { color: #f44747; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #3c3c3c;
+        }
+        th {
+            background-color: #2d2d2d;
+            color: #00ffcc;
+        }
+        tr:nth-child(even) {
+            background-color: #252526;
+        }
+        .status-pass {
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        .status-fail {
+            color: #f44747;
+            font-weight: bold;
+        }
+        .error-msg {
+            font-size: 12px;
+            color: #ff8888;
+            margin-top: 4px;
+            display: block;
+            white-space: pre-wrap;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #00ffcc;
+            text-decoration: none;
+            border: 1px solid #00ffcc;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .back-link:hover {
+            background: #00ffcc;
+            color: #1e1e1e;
+        }
+    </style>
+</head>
+<body>
+    <h1>🦋 Iris's Butterfly Adventure - V4 Smoke Tests</h1>
+    
+    <div class="stats">
+        <div>Total: <span id="total-tests">0</span></div>
+        <div>Passed: <span id="total-passed" class="pass-count">0</span></div>
+        <div>Failed: <span id="total-failed" class="fail-count">0</span></div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">Test Case</th>
+                <th style="width: 15%;">Status</th>
+                <th style="width: 35%;">Message / Details</th>
+            </tr>
+        </thead>
+        <tbody id="test-results-body">
+            <!-- Programmatically filled -->
+        </tbody>
+    </table>
+    
+    <a href="index.html" class="back-link">🔙 返回游戏首页</a>
+
+    <!-- Load game files to test -->
+    <script src="js/config.js?v=5"></script>
+    <script src="js/state.js?v=5"></script>
+    <script src="js/storage.js?v=5"></script>
+    <script src="js/director.js?v=5"></script>
+    <script src="js/missions.js?v=5"></script>
+    <script src="js/rewards.js?v=5"></script>
+    
+    <!-- Load test cases runner -->
+    <script src="js/smoke-tests.js?v=5"></script>
+</body>
+</html>
