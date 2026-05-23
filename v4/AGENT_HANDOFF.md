@@ -50,6 +50,17 @@
 - Note:
   - Browser tooling could not synthesize a true mobile `touchstart` event in this environment; the existing touch path was not changed in this cycle.
 
+## Release Notes
+- Cycle: Cycle 14
+- Commit Hash: 97b56b763566685a8db9e65c7aeaf86c039bdd71
+- QA Evidence Commit: de4b48699e46d74574a6b7da714eff80cc30faa0
+- Pushed Branch: main
+- Pages Source: main / root
+- Asset Version: v=20
+- QA Status: PASS TO RELEASE (live `/v4/test.html` 18/18 passing, no current-run `/v4/` console errors)
+- V4 URL: https://timkok.github.io/iris-butterfly-adventure/v4/
+- Tests URL: https://timkok.github.io/iris-butterfly-adventure/v4/test.html
+
 ---
 
 # Agent Handoff - HOTFIX V4 Start Game Failure
