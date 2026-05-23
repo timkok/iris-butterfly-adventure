@@ -5,7 +5,7 @@
 - Date/time: 2026-05-23 16:33-16:36 EDT
 - Role: Codex QA / Browser Tester
 - Scope: `/v4/`
-- Commit hash tested: Cycle 13 local working tree; final pushed commit reported in release response.
+- Implementation commit tested locally and live: `a6478b461596510c42f0ee85ca0a6a5375f2d91f`
 - Branch: `main`
 - Pages source: `main / root`
 - Asset version tested locally: `v=23`
@@ -17,13 +17,15 @@
 - `http://localhost:8000/v4/test.html?cycle13=v23`
 - `http://localhost:8000/v4/?cycle13=v23`
 - `http://localhost:8000/v4/?debug=1&cycle13=v23`
+- `https://timkok.github.io/iris-butterfly-adventure/v4/test.html?cycle13=v23`
+- `https://timkok.github.io/iris-butterfly-adventure/v4/?cycle13=v23`
 
 ## Pass / Fail Table
 
 | # | Check | Result | Evidence / Notes |
 |---|---|---|---|
 | 1 | Home loads | PASS | Home rendered with start visible, HUD/task hidden, and no `INIT ERROR` banner. |
-| 2 | Start button works | PASS | Live start gate and local `v=23` start button both hid start and showed gameplay UI. |
+| 2 | Start button works | PASS | Live start gate, local `v=23`, and post-push live `v=23` start button checks hid start and showed gameplay UI. |
 | 3 | HUD appears | PASS | HUD and task display appeared after start. |
 | 4 | Canvas updates | PASS | Existing startup path remained active; Cycle 13 did not touch rendering code. |
 | 5 | Space jump works | PASS | Space key was exercised during gameplay with HUD/task still active. |
@@ -32,7 +34,7 @@
 | 8 | Treasure opens | PASS | Treasure panel opened successfully. |
 | 9 | Settings opens | PASS | Parent settings panel opened successfully. |
 | 10 | Debug panel opens with `?debug=1` | PASS | Debug panel opened and showed FX budget fields. |
-| 11 | `/v4/test.html` passes | PASS | Local `v=23` smoke tests reported `Total: 21`, `Passed: 21`, `Failed: 0`. |
+| 11 | `/v4/test.html` passes | PASS | Local and live `v=23` smoke tests reported `Total: 21`, `Passed: 21`, `Failed: 0`. |
 | 12 | Child-safety guardrail test passes | PASS | New smoke test verified reward/safety text avoids pressure and purchase framing while allowing approved "no purchase" notices. |
 | 13 | Console has no errors | PASS with limitation | No visible runtime error banner or broken interaction state appeared. Direct console log collection was unavailable in the current in-app browser API. |
 
@@ -43,6 +45,7 @@ No visible runtime error banner or broken interaction state was observed during 
 ## Screenshots / Artifacts
 
 - Local smoke test result: `Total: 21`, `Passed: 21`, `Failed: 0`.
+- Live smoke test result: `Total: 21`, `Passed: 21`, `Failed: 0`.
 - No screenshot files were committed.
 
 ## Issues Found
@@ -64,7 +67,7 @@ No visible runtime error banner or broken interaction state was observed during 
 
 **PASS TO RELEASE**
 
-Rationale: live start gate passes, local `v=23` loads and starts, smoke tests pass 21/21, debug panel opens, and no P0/P1 issues or protected-version changes were found.
+Rationale: live start gate passes, local and live `v=23` load and start, smoke tests pass 21/21, debug panel opens, and no P0/P1 issues or protected-version changes were found.
 
 ---
 

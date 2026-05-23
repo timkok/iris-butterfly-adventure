@@ -142,11 +142,15 @@ Do not remove files, protected versions, or product features during the audit wi
   - Space and canvas click paths were exercised.
   - Pause/resume, treasure, settings, and debug panel paths were exercised.
   - No visible `INIT ERROR` banner or broken UI state was observed.
+- Live post-push QA: PASS
+  - `https://timkok.github.io/iris-butterfly-adventure/v4/test.html?cycle13=v23`: 21 total, 21 passed, 0 failed.
+  - `https://timkok.github.io/iris-butterfly-adventure/v4/?cycle13=v23`: clicking "开始飞行" showed HUD/task and hid the start screen.
 
 ## Release Notes
 - Cycle: Cycle 13
-- Commit Hash: pending until release commit.
-- Pushed Branch: pending.
+- Implementation Commit Hash: `a6478b461596510c42f0ee85ca0a6a5375f2d91f`
+- Release Docs Commit Hash: pending until release docs commit.
+- Pushed Branch: main.
 - Pages Source: main / root.
 - Asset Version: v=23.
 - QA Status: PASS TO RELEASE.
