@@ -16,13 +16,24 @@ window.IrisGame.rewards = {
         const ownedCosmetics = storage.getCosmetics();
         const activeCosmetic = storage.getActiveCosmetic();
         const ownedStickers = storage.getStickers();
+        const seenStickers = storage.getSeenStickers();
+        
+        const isReduced = state.prefersReducedMotion || state.game.calmModeEnabled;
+        const newlyUnlockedIds = [];
         
         config.UNLOCKS.forEach(item => {
             const isOwned = state.game.highScore >= item.requirementHighScore || ownedStickers.includes(item.id);
+            const isNewlyUnlocked = isOwned && !seenStickers.includes(item.id);
             
             if (item.type === 'sticker') {
                 const stickerDiv = document.createElement('div');
-                stickerDiv.className = `sticker ${isOwned ? '' : 'locked'}`;
+                let className = `sticker ${isOwned ? '' : 'locked'}`;
+                if (isNewlyUnlocked && !isReduced) {
+                    className += ' sticker-newly-unlocked';
+                } else if (isNewlyUnlocked && isReduced) {
+                    className += ' sticker-newly-unlocked-gentle';
+                }
+                stickerDiv.className = className;
                 stickerDiv.id = `sticker-${item.id}`;
                 stickerDiv.setAttribute('title', isOwned ? item.label : `需最高分 ${item.requirementHighScore} 解锁`);
                 
@@ -30,14 +41,26 @@ window.IrisGame.rewards = {
                 stickerDiv.setAttribute('tabindex', '0');
                 stickerDiv.setAttribute('role', 'img');
                 const ariaLabelText = isOwned 
-                    ? `贴纸：${item.label}，已解锁。` 
+                    ? (isNewlyUnlocked ? `新解锁贴纸：${item.label}！恭喜！` : `贴纸：${item.label}，已解锁。`)
                     : `未解锁贴纸：${item.label}，需要最高分达到 ${item.requirementHighScore} 解锁。`;
                 stickerDiv.setAttribute('aria-label', ariaLabelText);
+                
+                if (isNewlyUnlocked) {
+                    newlyUnlockedIds.push(item.id);
+                }
                 
                 const emojiSpan = document.createElement('span');
                 emojiSpan.className = 'sticker-emoji';
                 emojiSpan.textContent = item.icon;
                 stickerDiv.appendChild(emojiSpan);
+                
+                if (isNewlyUnlocked) {
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'sticker-new-badge';
+                    newBadge.textContent = '新!';
+                    newBadge.setAttribute('aria-hidden', 'true');
+                    stickerDiv.appendChild(newBadge);
+                }
                 
                 const statusSpan = document.createElement('span');
                 statusSpan.className = 'sticker-status';
@@ -103,6 +126,14 @@ window.IrisGame.rewards = {
                 cosmeticsContainer.appendChild(itemDiv);
             }
         });
+        
+        // Auto-mark newly unlocked stickers as seen after animation plays
+        if (newlyUnlockedIds.length > 0) {
+            clearTimeout(this._seenTimer);
+            this._seenTimer = setTimeout(() => {
+                this.markNewStickersAsSeen(newlyUnlockedIds);
+            }, 3000);
+        }
     },
     
     selectCosmetic(id, cost) {
@@ -152,5 +183,36 @@ window.IrisGame.rewards = {
     
     isUnlocked(highScore, requirementHighScore) {
         return highScore >= requirementHighScore;
+    },
+    
+    markNewStickersAsSeen(ids) {
+        const storage = window.IrisGame.storage;
+        const seen = storage.getSeenStickers();
+        let changed = false;
+        ids.forEach(id => {
+            if (!seen.includes(id)) {
+                seen.push(id);
+                changed = true;
+            }
+        });
+        if (changed) {
+            storage.setSeenStickers(seen);
+        }
+    },
+    
+    getNewlyUnlockedCount() {
+        const state = window.IrisGame.state;
+        const config = window.IrisGame.config;
+        const storage = window.IrisGame.storage;
+        const seenStickers = storage.getSeenStickers();
+        let count = 0;
+        config.UNLOCKS.forEach(item => {
+            if (item.type !== 'sticker') return;
+            const isOwned = state.game.highScore >= item.requirementHighScore || storage.getStickers().includes(item.id);
+            if (isOwned && !seenStickers.includes(item.id)) {
+                count++;
+            }
+        });
+        return count;
     }
 };

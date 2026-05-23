@@ -10,7 +10,8 @@ window.IrisGame.storage = {
         stickers: 'iris_butterfly_stickers',
         restReminder: 'iris_butterfly_restReminder',
         gentleMode: 'iris_butterfly_gentleMode',
-        calmMode: 'iris_butterfly_calmMode'
+        calmMode: 'iris_butterfly_calmMode',
+        seenStickers: 'iris_butterfly_seenStickers'
     },
     
     migrateOldStorage() {
@@ -108,6 +109,18 @@ window.IrisGame.storage = {
     
     setStickers(stickersArray) {
         localStorage.setItem(this.KEYS.stickers, JSON.stringify(stickersArray));
+    },
+    
+    getSeenStickers() {
+        try {
+            return JSON.parse(localStorage.getItem(this.KEYS.seenStickers) || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+    
+    setSeenStickers(seenArray) {
+        localStorage.setItem(this.KEYS.seenStickers, JSON.stringify(seenArray));
     },
     
     loadAll(stateObj) {

@@ -331,6 +331,50 @@
         assert(state.windLines[0].x < initialX, 'Wind line should move left');
     });
     
+    test('Sticker Unlock Tracking (seenStickers)', () => {
+        const state = window.IrisGame.state;
+        const storage = window.IrisGame.storage;
+        const rewards = window.IrisGame.rewards;
+        
+        // Save originals
+        const origHighScore = state.game.highScore;
+        
+        try {
+            // Clear seen stickers
+            localStorage.removeItem(storage.KEYS.seenStickers);
+            
+            // 1. seenStickers defaults to empty array
+            const empty = storage.getSeenStickers();
+            assert(Array.isArray(empty) && empty.length === 0, 'Default seenStickers should be empty array');
+            
+            // 2. markNewStickersAsSeen persists IDs
+            rewards.markNewStickersAsSeen(['star', 'flower']);
+            const seen = storage.getSeenStickers();
+            assert(seen.includes('star'), 'Should contain star');
+            assert(seen.includes('flower'), 'Should contain flower');
+            assert(seen.length === 2, 'Should have exactly 2 entries');
+            
+            // 3. Duplicate marking doesn't create duplicates
+            rewards.markNewStickersAsSeen(['star']);
+            const seen2 = storage.getSeenStickers();
+            assert(seen2.length === 2, 'Should not duplicate entries');
+            
+            // 4. getNewlyUnlockedCount works
+            state.game.highScore = 12; // Unlocks star (5) and flower (10)
+            // star and flower are already seen, so count should be 0
+            const count0 = rewards.getNewlyUnlockedCount();
+            assert(count0 === 0, 'All unlocked stickers are seen, count should be 0');
+            
+            // 5. New unlock that hasn't been seen
+            state.game.highScore = 20; // Also unlocks butterfly (15)
+            const count1 = rewards.getNewlyUnlockedCount();
+            assert(count1 === 1, 'butterfly is newly unlocked and unseen, count should be 1');
+        } finally {
+            state.game.highScore = origHighScore;
+            localStorage.removeItem(storage.KEYS.seenStickers);
+        }
+    });
+    
     // --- Render Results ---
     
     document.addEventListener('DOMContentLoaded', () => {
