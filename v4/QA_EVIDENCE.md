@@ -1,3 +1,106 @@
+# QA Evidence - Cycle 16 Release Candidate Stabilization
+
+## Summary
+
+- Date/time: 2026-05-23 22:08 EDT
+- Role: Codex QA / Browser Tester
+- Scope: `/v4/`
+- Tested implementation commit: `66418c717b1a8efac9be4227c70ca7d338b793cb`
+- Branch: `main`
+- Pages source: `main / root`
+- Asset version tested locally: `v=25`
+- Recommendation: **PASS TO RELEASE**
+
+## URLs Tested
+
+- `http://localhost:8000/v4/`
+- `http://localhost:8000/v4/test.html`
+- `http://localhost:8000/v4/?debug=1`
+
+## Release Candidate Regression Matrix
+
+| Row | Pass/fail | Console errors | Notes | Screenshot/artifact |
+|---|---|---|---|---|
+| English home | PASS | None | Default language cleared; home rendered `lang="en"`, `Start Flying`, HUD hidden, task hidden. | Headless artifact: 320/375/390 runs. |
+| Chinese home | PASS | None | Language switch rendered `lang="zh-CN"` and `开始飞行`. | Headless artifact: zhHome check. |
+| Start Flying / 开始飞行 | PASS | None | English and Chinese start paths entered `PLAYING`; HUD appeared. | Existing smoke test plus browser flow. |
+| Practice mode | PASS | None | Practice difficulty selected and entered `PLAYING`. | Mode startup sweep. |
+| Easy mode | PASS | None | Easy difficulty selected and entered `PLAYING`; Cycle 15 60s easy playthrough already passed. | Mode startup sweep. |
+| Normal mode | PASS | None | Normal difficulty selected and entered `PLAYING`. | Mode startup sweep. |
+| Hard mode | PASS | None | Hard difficulty selected and entered `PLAYING`. | Mode startup sweep. |
+| Space jump | PASS | None | Space key produced upward velocity. | Browser flow captured upward velocity. |
+| Touch/click jump | PASS | None | Mobile tap on canvas produced upward velocity; click/tap path remained usable. | Browser flow at mobile widths. |
+| Pause/resume | PASS | None | Pause set state to `PAUSED`; resume returned to `PLAYING`. | Browser flow. |
+| Game Over | PASS | None | Simulated Game Over opened the final panel and showed a useful next-run tip. | Browser flow. |
+| Treasure | PASS | None | Treasure opened; locked labels visible in Chinese QA. | Browser flow. |
+| Settings | PASS | None | Settings opened in standard mobile QA and exposed Rest reminders and Calm Mode settings. | Browser flow. |
+| Sound toggle | PASS | None | Default muted; toggle changed sound flag and button to `🔊`. | Browser flow. |
+| Debug panel | PASS | None | `?debug=1` opened debug panel; adaptive-flow metric field present. | Browser flow. |
+| Calm Mode | PASS | None | Calm Mode setting exists and default state remains enabled; effect density tests pass. | Browser flow and smoke tests. |
+| Reduced Motion | PASS | None | Reduced Motion context reported `prefersReducedMotion=true`, `leaves=0`, `tapRipples=0`, `particles=0`; no crash. | Dedicated reduced-motion headless run. |
+| `/v4/test.html` | PASS | None | Smoke tests reported `Total: 29`, `Passed: 29`, `Failed: 0`. | Test page artifact. |
+
+## Start-Button Protection Gate
+
+- Permanent smoke test: `/v4/js/smoke-tests.js` includes `startGame changes gameState from START to PLAYING without throwing`.
+- The test initializes the game fixture, calls `game.startGame()`, verifies `state.gameState === "PLAYING"`, verifies HUD is visible, and verifies starter entities spawn.
+- Browser check: Cycle 16 local QA loaded `/v4/`, clicked `Start Flying`, confirmed `PLAYING` and HUD/task visibility with zero console/page errors.
+- Bilingual check: after switching language, `开始飞行` also entered `PLAYING`.
+
+## Mobile QA
+
+| Width | Pass/fail | Console errors | Notes | Screenshot/artifact |
+|---|---|---|---|---|
+| 320px | PASS | None | No horizontal overflow. Visible button targets were 44px tall or larger; no target under 24x24 CSS px. | Headless artifact width 320. |
+| 375px | PASS | None | No horizontal overflow. Visible button targets were 44px tall or larger; no target under 24x24 CSS px. | Headless artifact width 375. |
+| 390px | PASS | None | No horizontal overflow. Visible button targets were 44px tall or larger; no target under 24x24 CSS px. | Headless artifact width 390. |
+| Touch controls | PASS | None | Mobile tap on `#gameCanvas` caused upward velocity. | Browser flow. |
+
+## Reduced Motion / Calm Mode QA
+
+- Reduced Motion: PASS. Browser context with `reducedMotion: "reduce"` set `state.prefersReducedMotion=true`.
+- Ambient leaves: PASS. Reduced Motion run reported `leaves=0`.
+- Tap ripple: PASS. Reduced Motion run reported `tapRipples=0` after Space/tap.
+- Shield halo: PASS by regression coverage; no flashing issue observed or console errors captured.
+- Sticker celebration: PASS by existing effects-policy smoke coverage; no rapid animation failure detected.
+- Calm Mode: PASS. Calm Mode is default enabled and existing smoke tests verify reduced particle/leaves density.
+
+## Tests Run
+
+- In-app browser loaded `http://localhost:8000/v4/` and confirmed the start entry was present.
+- Local headless browser QA for `/v4/`, `/v4/test.html`, and `/v4/?debug=1`.
+- Mobile headless QA at 320px, 375px, and 390px.
+- Dedicated Reduced Motion headless QA.
+- JS syntax check: `for f in v4/js/*.js; do node --check "$f"; done`.
+- `git diff --check`.
+
+## Console Errors
+
+None in final Cycle 16 QA runs.
+
+## Issues Found
+
+### P0
+
+- None.
+
+### P1
+
+- None.
+
+### P2 / QA Notes
+
+- The animated Start button can be treated as moving by Playwright, so automated clicks use forced click. Manual and smoke-test startup paths pass.
+- No screenshot files were committed; artifacts are command-output evidence in this QA entry.
+
+## Release Recommendation
+
+**PASS TO RELEASE**
+
+Rationale: release-candidate QA passed across bilingual startup, all modes, controls, overlays, mobile widths, Reduced Motion, Calm Mode, debug panel, and `/v4/test.html`; no console/page errors were captured and protected versions remain untouched.
+
+---
+
 # QA Evidence - Cycle 15 Game Feel and Fairness
 
 ## Summary

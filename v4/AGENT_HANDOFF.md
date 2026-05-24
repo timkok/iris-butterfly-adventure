@@ -51,6 +51,97 @@ Do not remove files, protected versions, or product features during the audit wi
 
 ---
 
+# Agent Handoff - Cycle 16 Release Candidate Stabilization
+
+## Planner Agent Discussion
+- Task Type: QA + release candidate stabilization.
+- Scope: `/v4/` only. No gameplay, visual, reward, mission, or UI feature additions.
+- Proposed Tasks:
+  1. Create `/v4/RELEASE_CANDIDATE.md` with commit, asset version, URLs, QA status, rollback, protected-version status, bilingual status, accessibility, and performance/effects budget notes.
+  2. Update `/v4/QA_EVIDENCE.md` with a release-candidate regression matrix covering English/Chinese, all modes, controls, Game Over, overlays, debug, Calm Mode, Reduced Motion, mobile widths, and `/v4/test.html`.
+  3. Preserve the start-button protection gate by documenting the existing permanent smoke test and browser check: page initializes, start handler path runs, game state becomes `PLAYING`, HUD appears, and console errors remain zero.
+- Why They Matter:
+  - Cycle 15 changed core game feel, so the next step should harden release evidence instead of adding more behavior.
+  - The historical start-button failure needs a visible release gate for future agents.
+  - Mobile, reduced motion, Calm Mode, and child-friendly target sizing are release-candidate quality checks.
+- Risk Level:
+  - Low. Documentation-only unless QA finds a P0.
+- Acceptance Criteria:
+  - `/v4/RELEASE_CANDIDATE.md` exists.
+  - `/v4/QA_EVIDENCE.md` has the requested matrix and start-button protection evidence.
+  - Browser QA passes for `/v4/`, `/v4/test.html`, and `/v4/?debug=1`.
+  - 320px, 375px, and 390px mobile widths have no horizontal overflow and no visible target below 24x24 CSS px; primary buttons remain about 44px or larger.
+  - Reduced Motion suppresses non-essential ambient leaves and tap ripples; Calm Mode remains enabled and calmer by default.
+  - No asset version bump unless code changes.
+
+## Builder Agent Discussion
+- Implementation Plan:
+  1. Add release candidate documentation and QA evidence only.
+  2. Do not touch gameplay JS/CSS/HTML assets unless QA finds a P0.
+  3. Keep asset version at `v=25` because only docs are changing.
+- Files To Modify:
+  - `/v4/RELEASE_CANDIDATE.md`
+  - `/v4/QA_EVIDENCE.md`
+  - `/v4/AGENT_HANDOFF.md`
+- Rollback Plan:
+  - Revert the Cycle 16 docs commit if the release candidate evidence needs to be regenerated.
+
+## QA Agent Discussion
+- Test Plan:
+  - Run `/v4/test.html`.
+  - Run JS syntax checks for `/v4/js/*.js`.
+  - Run `git diff --check`.
+  - Browser QA `/v4/`, `/v4/test.html`, and `/v4/?debug=1` locally.
+  - Mobile QA at 320px, 375px, and 390px widths.
+  - Reduced Motion browser context QA.
+- Browser Scenarios:
+  - English home, Chinese home, `Start Flying`, `开始飞行`, practice/easy/normal/hard start, Space, touch/click, pause/resume, Game Over, Treasure, Settings, Sound toggle, Debug, Calm Mode, Reduced Motion.
+- Pass/Fail Criteria:
+  - PASS if tests report 29/29, all release-candidate browser rows pass, console/page errors are zero, and protected versions remain untouched.
+  - BLOCK RELEASE for start failure, console errors, protected-file diffs, dependency changes, or failed tests after two repair attempts.
+
+## Release Manager Discussion
+- Release Checklist:
+  - Confirm QA says `PASS TO RELEASE`.
+  - Confirm diff is limited to `/v4/`.
+  - Confirm only docs changed or, if code changed, asset versions were bumped.
+  - Confirm no dependencies, deletions, protected-file edits, or Pages source changes.
+  - Commit as `Cycle 16: Prepare V4 release candidate QA evidence`.
+  - Push to `main`.
+- Version Bump Requirement:
+  - No bump required for documentation-only changes; keep `/v4/index.html` and `/v4/test.html` at `v=25`.
+- Pages Source:
+  - Expected unchanged: `main / root`.
+
+## QA Results
+- In-app browser loaded local `/v4/` and found the start entry on the home screen.
+- Local headless browser QA passed at 320px, 375px, and 390px mobile widths with no horizontal overflow and no visible targets below 24x24 CSS px.
+- All visible primary/overlay buttons in mobile QA were 44px tall or larger.
+- English and Chinese home/start paths passed.
+- Practice, easy, normal, and hard modes entered `PLAYING`.
+- Space and touch controls produced upward velocity.
+- Pause/resume, Game Over, Treasure, Settings, Sound toggle, Debug panel, Calm Mode, and Reduced Motion checks passed.
+- Reduced Motion context reported `prefersReducedMotion=true`, `leaves=0`, `tapRipples=0`, `particles=0`, and no console/page errors.
+- `/v4/test.html` passed: `Total: 29`, `Passed: 29`, `Failed: 0`.
+- JS syntax check for `/v4/js/*.js`: PASS.
+- `git diff --check`: PASS.
+
+## Release Notes
+- Cycle: 16 Release Candidate Stabilization.
+- Branch: `main`.
+- Pages source: `main / root`.
+- Asset version: `v=25`.
+- QA status: `PASS TO RELEASE`.
+- V4 URL: `https://timkok.github.io/iris-butterfly-adventure/v4/`.
+- Tests URL: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`.
+- Commit hash: to be filled after commit creation.
+
+## Next Cycle Proposal
+- Recommended: Cycle 17 external playtest checklist.
+- Rationale: V4 now has release-candidate QA evidence; the highest-signal next step is structured observation by a real player/caregiver before adding polish or creating `/v5/`.
+
+---
+
 # Agent Handoff - Cycle 15 Game Feel and Fairness
 
 ## Planner Agent Discussion
