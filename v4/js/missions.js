@@ -15,6 +15,12 @@ window.IrisGame.missions = {
         } else {
             poolList = poolList.filter(m => m.allowedModes.includes(modeName));
         }
+        if (modeName === 'easy' && state.game.highScore < 10) {
+            poolList = poolList.filter(m => m.id !== 'collect_rainbow_star' && m.id !== 'clean_collect_5');
+        }
+        if (poolList.length === 0) {
+            poolList = [config.MISSIONS.collect_stars_10];
+        }
         
         const rIndex = Math.floor(Math.random() * poolList.length);
         state.game.mission = poolList[rIndex];

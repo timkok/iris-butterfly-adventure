@@ -148,6 +148,14 @@ window.IrisGame.i18n = {
                     'A tiny lift is still a beautiful flight 🌼'
                 ],
                 newRecord: 'New record! Great flying, Iris 🌟',
+                restCard: 'Great flying today. Maybe take an eye break 🌼',
+                tryTips: {
+                    tapEarlier: 'Try tapping a little earlier before the flower vines.',
+                    followStars: 'Follow the stars through the vine gaps.',
+                    earnShield: 'Collect 3 stars to earn a Starlight Shield.',
+                    tryGarden: 'Try Garden Lesson next for a gentler flight.',
+                    steady: 'Fly gently, follow the stars, and try again when you are ready.'
+                },
                 gentleTips: [
                     'You were gentle and brave like a butterfly 🌸',
                     'Take an eye break — you can fly again later 🌼',
@@ -217,6 +225,7 @@ window.IrisGame.i18n = {
                 ground: 'The butterfly touched the grass. Lift gently!',
                 practiceCollision: 'Practice Lesson — keep flying!',
                 vineCollision: 'You touched a flower vine. That is okay, try again!',
+                lowScoreHint: 'Follow the stars through the vine gaps.',
                 restReminder: 'Take an eye break — you can fly again later 🌼',
                 parentDefault: 'Iris, you flew so well!',
                 missionRibbonWords: ['Mission complete', 'Lesson complete', 'Challenge complete']
@@ -380,6 +389,14 @@ window.IrisGame.i18n = {
                     '只要轻轻起飞，就是最美的小蝴蝶 🌼'
                 ],
                 newRecord: '新纪录！Iris 太棒啦 🌟',
+                restCard: '今天飞得很棒。也许可以休息一下眼睛 🌼',
+                tryTips: {
+                    tapEarlier: '可以稍微早一点轻轻点击，提前穿过花藤。',
+                    followStars: '跟着星星穿过花藤中间的空隙。',
+                    earnShield: '收集 3 颗星星可以获得星光护盾。',
+                    tryGarden: '下一局可以试试花园课，会更轻松一些。',
+                    steady: '轻轻飞，跟着星星走，准备好就再试一次。'
+                },
                 gentleTips: [
                     '你和小蝴蝶一样温柔又勇敢 🌸',
                     '休息一下眼睛吧，等会儿再飞也很棒 🌼',
@@ -449,6 +466,7 @@ window.IrisGame.i18n = {
                 ground: '小蝴蝶碰到草地啦，轻轻飞起来！',
                 practiceCollision: '练习模式，继续飞！',
                 vineCollision: '碰到花藤啦，没关系，再试一次！',
+                lowScoreHint: '跟着星星穿过花藤中间的空隙。',
                 restReminder: '休息一下眼睛吧，等会儿再飞也很棒 🌼',
                 parentDefault: 'Iris 真棒，爱你！',
                 missionRibbonWords: ['任务完成', '飞行课完成', '挑战完成']

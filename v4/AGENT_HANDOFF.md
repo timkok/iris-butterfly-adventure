@@ -51,6 +51,128 @@ Do not remove files, protected versions, or product features during the audit wi
 
 ---
 
+# Agent Handoff - Cycle 15 Game Feel and Fairness
+
+## Planner Agent Discussion
+- Task Type: product improvement + gameplay feel + accessibility/safety QA.
+- Scope: `/v4/` only. Protected versions remain untouched.
+- Proposed Tasks, max 3:
+  1. Tune core flight and obstacle/star fairness: max fall speed, mode-sensitive jump feel, ground coyote recovery, gap transition smoothing, and star safety margins.
+  2. Improve recovery, mission pacing, and end-of-run teaching: shield behavior preserved, collision recovery velocity, simpler mission selection by mode/high score, localized one-tip Game Over retry guidance, and non-blocking rest card after 3 rounds or 5 minutes.
+  3. Add adaptive flow metrics and tests: comfort level, recent collision/pass rates, assist active state, adaptive gap/spawn/star behavior, debug display, smoke tests, browser QA, and release docs.
+- Why They Matter:
+  - The game should feel fair and readable for children before adding more features.
+  - Collisions should feel like recoverable bumps, not abrupt punishment.
+  - End-of-run copy should teach one useful next step and optionally invite rest without guilt or blocking play.
+- Risk Level:
+  - Medium to High. This touches physics, director pacing, mission selection, UI copy, debug, and tests.
+  - Risk is controlled by preserving existing rules, avoiding new monetization/retention mechanics, keeping hard mode challenging, and testing startup in both languages.
+- Acceptance Criteria:
+  - `maxFallSpeed` clamps downward velocity.
+  - Ground-adjacent taps can recover gently.
+  - Practice/easy obstacle gap centers transition smoothly; hard still varies but remains clamped.
+  - Stars near gaps stay inside a safe corridor and away from vine edges.
+  - Collision recovery gives upward velocity and brief invincibility; shield consumption still prevents life loss.
+  - Practice missions remain simple; easy avoids rainbow-star mission until high score >= 10.
+  - Game Over includes one localized, non-shaming “try this next” tip and a gentle rest card after 3 rounds or 5 minutes when reminders are on.
+  - Debug panel shows `comfortLevel`, `recentCollisionRate`, `recentPassRate`, and `assistActive`.
+  - `/v4/test.html` passes, and browser QA confirms English/Chinese start, practice/easy start, 60 seconds no console errors.
+
+## Builder Agent Discussion
+- Implementation Plan:
+  1. Add config/state/director helpers for flight tuning, adaptive flow stats, gap smoothing, star safety clamping, safe mission filtering, and debug metrics.
+  2. Update player/game/ui/i18n for mode-sensitive jump/fall behavior, collision recovery, end-of-run tip/rest card, localized copy, and debug metric display.
+  3. Add smoke tests for max fall clamp, coyote recovery, gap transition smoothing, star safety margin, mission selection, collision recovery, shield preservation, rest reminder trigger, and adaptive flow metrics.
+  4. Increment `/v4/index.html` and `/v4/test.html` asset versions from `v=24` to `v=25`.
+- Files To Modify:
+  - `/v4/index.html`
+  - `/v4/test.html`
+  - `/v4/js/config.js`
+  - `/v4/js/state.js`
+  - `/v4/js/entities.js`
+  - `/v4/js/director.js`
+  - `/v4/js/game.js`
+  - `/v4/js/ui.js`
+  - `/v4/js/i18n.js`
+  - `/v4/js/debug.js`
+  - `/v4/js/smoke-tests.js`
+  - `/v4/CODEX_BACKLOG.md`
+  - `/v4/QA_EVIDENCE.md`
+  - `/v4/AGENT_HANDOFF.md`
+- Rollback Plan:
+  - Revert the Cycle 15 commit if startup, tests, or browser QA regress.
+  - If tests fail after two repair attempts, stop and return a Builder issue list.
+
+## QA Agent Discussion
+- Test Plan:
+  - Run JS syntax checks for all `/v4/js/*.js`.
+  - Run `git diff --check`.
+  - Run `/v4/test.html` locally in browser.
+  - Perform local browser QA on `/v4/`, `/v4/test.html`, and `/v4/?debug=1`.
+- Browser Scenarios:
+  - English default start works.
+  - Switch Chinese and `开始飞行` works.
+  - Practice mode starts.
+  - Easy mode starts.
+  - Let gameplay run for 60 seconds with no console/page errors.
+  - Observe obstacle path for fair gap transitions.
+  - Simulate or trigger Game Over and verify useful localized tip/rest card behavior.
+  - Debug panel shows comfort/adaptive flow metrics.
+- Pass/Fail Criteria:
+  - PASS if startup works in both languages, practice/easy start, tests pass, console/page errors are zero, and no protected files changed.
+  - BLOCK RELEASE for any P0 startup failure, test failure, protected-file diff, or new addictive/monetization wording.
+
+## Release Manager Discussion
+- Release Checklist:
+  - Confirm QA says `PASS TO RELEASE`.
+  - Confirm `git diff --name-only` is limited to `/v4/`.
+  - Confirm no dependencies, build tools, deletions, or GitHub Pages source changes.
+  - Confirm asset versions are bumped to `v=25` in `/v4/index.html` and `/v4/test.html`.
+  - Confirm `/v4/test.html` passes and browser QA passes.
+  - Commit as `Cycle 15: Improve V4 game feel and fairness`.
+  - Push to `main`.
+- Pages Source:
+  - Expected unchanged: `main / root`.
+
+## Builder Implementation Notes
+- Added mode-sensitive flight feel policy with `maxFallSpeed`, softer practice/easy gravity/lift, and near-ground tap recovery.
+- Added obstacle gap transition smoothing, safe star corridor clamping, and adaptive support after repeated collisions.
+- Preserved Starlight Shield behavior while adding gentle upward collision recovery and shield-use tracking.
+- Tuned mission selection so practice receives simple missions only and easy avoids rainbow/no-hit missions until high score 10.
+- Added localized Game Over retry tips plus a non-blocking rest card after 3 rounds or 5 minutes when Rest reminders are enabled.
+- Added adaptive flow debug metrics: `comfortLevel`, `recentCollisionRate`, `recentPassRate`, and `assistActive`.
+- Incremented `/v4/index.html` and `/v4/test.html` assets from `v=24` to `v=25`.
+
+## QA Results
+- JS syntax check: PASS for all `/v4/js/*.js`.
+- `git diff --check`: PASS.
+- `/v4/test.html`: PASS, `Total: 29`, `Passed: 29`, `Failed: 0`.
+- Browser QA: PASS on local `/v4/`, `/v4/test.html`, and `/v4/?debug=1`.
+- English `Start Flying`: PASS, entered `PLAYING`, HUD/task visible, canvas frame count advanced.
+- Chinese `开始飞行`: PASS, entered `PLAYING`, mission text rendered in Chinese.
+- Space jump: PASS.
+- Touch jump: PASS on mobile viewport.
+- Pause/resume: PASS.
+- Treasure/settings/sound toggle: PASS.
+- 60-second easy-mode gameplay run: PASS, obstacles appeared, zero console/page errors.
+- Protected versions: PASS, diff is limited to `/v4/`.
+
+## Release Notes
+- Cycle: 15 Game Feel and Fairness.
+- Branch: `main`.
+- Pages source: `main / root`.
+- Asset version: `v=25`.
+- QA status: `PASS TO RELEASE`.
+- V4 URL: `https://timkok.github.io/iris-butterfly-adventure/v4/`.
+- Tests URL: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`.
+- Commit hash: to be filled after commit creation.
+
+## Next Cycle Proposal
+- Cycle 16 should be a Simplification Audit before adding feature work, because every 5 cycles require an audit and Cycle 15 touched multiple gameplay systems.
+- Audit focus: verify the game remains easy for a child to understand, Calm Mode/reduced motion still reduce effects, start remains reliable, and adaptive flow does not hide too much challenge.
+
+---
+
 # Agent Handoff - Cycle 13 Safety and QA Guardrails
 
 ## Start Gate

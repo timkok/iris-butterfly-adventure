@@ -6,29 +6,45 @@ window.IrisGame.player = {
     radius: 12,
     gravity: 0.18,
     lift: -4.8,
+    maxFallSpeed: 5,
     velocity: 0,
     scale: 1,
     invincibleFrames: 0,
     wingPhase: 0,
-    
+
     reset() {
+        this.applyFlightFeel();
         this.y = 300;
         this.velocity = 0;
         this.scale = 1;
         this.invincibleFrames = 70;
         this.wingPhase = 0;
     },
-    
+
+    applyFlightFeel() {
+        const state = window.IrisGame.state;
+        const feel = window.IrisGame.config.FLIGHT_FEEL[state.game.mode] || window.IrisGame.config.FLIGHT_FEEL.easy;
+        this.gravity = feel.gravity;
+        this.lift = feel.lift;
+        this.maxFallSpeed = feel.maxFallSpeed;
+    },
+
     jump() {
         const state = window.IrisGame.state;
         const config = window.IrisGame.config;
         if (state.gameState === 'START') return;
         if (state.gameState === 'PLAYING') {
-            this.velocity = this.lift;
+            this.applyFlightFeel();
+            const groundY = 600 - this.radius - 16;
+            const nearGround = this.y >= groundY - ((config.FLIGHT_FEEL[state.game.mode] || config.FLIGHT_FEEL.easy).coyoteFrames);
+            this.velocity = nearGround ? Math.min(this.lift * 0.72, -3.0) : this.lift;
+            if (nearGround) {
+                this.y = Math.min(this.y, groundY - 3);
+            }
             this.scale = 1.15;
             window.IrisGame.entities.createParticles(this.x - 6, this.y + 8, '#ffffff', 3);
             window.IrisGame.audio.playSound('click');
-            
+
             // Tap ripple effect (suppressed under reduced motion policy)
             const disableRipple = state.prefersReducedMotion && config.EFFECTS_POLICY.reducedMotionDisableRipple;
             if (config.EFFECTS_POLICY.tapRippleEnabled && !disableRipple) {
@@ -45,10 +61,10 @@ window.IrisGame.entities = {
         const state = window.IrisGame.state;
         const config = window.IrisGame.config;
         if (state.prefersReducedMotion) return;
-        
+
         // Scale particles in Calm Mode using EFFECTS_POLICY multiplier
         const finalCount = state.game.calmModeEnabled ? Math.max(1, Math.round(count * config.EFFECTS_POLICY.calmModeParticleMultiplier)) : count;
-        
+
         for (let i = 0; i < finalCount; i++) {
             if (state.particles.length >= config.EFFECTS_POLICY.maxParticles) {
                 state.particles.shift();
@@ -56,23 +72,23 @@ window.IrisGame.entities = {
             state.particles.push(new this.Particle(x, y, color));
         }
     },
-    
+
     collidesWithObstacle(player, obstacle, tolerance) {
         if (player.invincibleFrames > 0) return false;
-        
+
         const px = player.x;
         const py = player.y;
         const radius = Math.max(4, player.radius - tolerance);
-        
+
         const topBottom = obstacle.gapY - obstacle.gap / 2;
         const bottomTop = obstacle.gapY + obstacle.gap / 2;
-        
+
         const inX = px + radius > obstacle.x + 8 && px - radius < obstacle.x + obstacle.width - 8;
         if (!inX) return false;
-        
+
         return py - radius < topBottom || py + radius > bottomTop;
     },
-    
+
     Star: class {
         constructor(x, y, speed, type = 'normal') {
             this.x = x;
@@ -84,7 +100,7 @@ window.IrisGame.entities = {
         update() {
             const state = window.IrisGame.state;
             this.x -= this.speed;
-            
+
             // Reduced float speed in prefersReducedMotion
             const animSpeed = state.prefersReducedMotion ? 0.01 : (state.game.calmModeEnabled ? 0.04 : 0.08);
             this.angle += animSpeed;
@@ -95,7 +111,7 @@ window.IrisGame.entities = {
             ctx.save();
             ctx.translate(this.x, this.y);
             ctx.rotate(this.angle);
-            
+
             if (this.type === 'rainbow') {
                 if (!state.prefersReducedMotion) {
                     const spinSpeed = state.game.calmModeEnabled ? 3 : 8;
@@ -118,7 +134,7 @@ window.IrisGame.entities = {
             ctx.restore();
         }
     },
-    
+
     Particle: class {
         constructor(x, y, color) {
             this.x = x;
@@ -145,7 +161,7 @@ window.IrisGame.entities = {
             ctx.restore();
         }
     },
-    
+
     Leaf: class {
         constructor(x, y) {
             this.x = x;
@@ -179,7 +195,7 @@ window.IrisGame.entities = {
             ctx.restore();
         }
     },
-    
+
     TapRipple: class {
         constructor(x, y) {
             this.x = x;

@@ -1,3 +1,72 @@
+# QA Evidence - Cycle 15 Game Feel and Fairness
+
+## Summary
+
+- Date/time: 2026-05-23 21:41 EDT
+- Role: Codex QA / Browser Tester
+- Scope: `/v4/`
+- Implementation commit tested: local working tree after `7405c05`
+- Branch: `main`
+- Pages source: `main / root`
+- Asset version tested locally: `v=25`
+- Recommendation: **PASS TO RELEASE**
+
+## URLs Tested
+
+- `http://localhost:8000/v4/`
+- `http://localhost:8000/v4/test.html`
+- `http://localhost:8000/v4/?debug=1`
+
+## Pass / Fail Table
+
+| # | Check | Result | Evidence / Notes |
+|---|---|---|---|
+| 1 | `/v4/test.html` passes | PASS | Local browser smoke tests reported `Total: 29`, `Passed: 29`, `Failed: 0`. |
+| 2 | English default start works | PASS | `Start Flying` entered `PLAYING`, HUD/task appeared, frame count advanced. |
+| 3 | Chinese start works | PASS | Language switch set `lang="zh-CN"` and `开始飞行` entered `PLAYING`. |
+| 4 | Practice/easy flow remains available | PASS | Existing difficulty buttons remain wired; easy was exercised in the 60-second gameplay run. |
+| 5 | Space jump works | PASS | Space key set upward velocity during PLAYING. |
+| 6 | Touch jump works | PASS | Mobile Playwright tap on canvas set upward velocity during PLAYING. |
+| 7 | Pause/resume works | PASS | Pause opened the pause panel; resume returned to `PLAYING`. |
+| 8 | Treasure opens | PASS | Treasure screen opened and locked items showed locked text. |
+| 9 | Settings opens | PASS | Parent settings opened and included Rest reminders setting. |
+| 10 | Sound remains muted by default and toggles | PASS | Default sound flag was false; toggle changed button to `🔊`. |
+| 11 | Debug panel opens with adaptive metrics | PASS | `?debug=1` opened the debug panel and exposed flow metric fields. |
+| 12 | 60 seconds of gameplay has no console errors | PASS | Easy-mode run with repeated jumps saw obstacles and captured zero console/page errors. |
+| 13 | Game Over gives useful tip | PASS | 60-second run reached Game Over with `gameOverTip="tapEarlier"`; smoke test covers retry tip/rest card rendering. |
+| 14 | Console has no errors | PASS | Final Playwright runs captured zero console errors and zero page errors. |
+
+## Console Errors
+
+None in final local browser runs.
+
+## Screenshots / Artifacts
+
+- No screenshot files were committed.
+- Temporary Playwright tooling was used from `/tmp/iris-pw`; no dependencies were added to the repository.
+
+## Issues Found
+
+### P0
+
+- None.
+
+### P1
+
+- None.
+
+### P2 / QA Notes
+
+- The animated Start button is intentionally breathing; Playwright clicks used `force: true` because the button is visually moving. Manual user clicks work and the smoke test verifies the start handler directly.
+
+## Release Recommendation
+
+**PASS TO RELEASE**
+
+Rationale: game feel/fairness smoke tests pass, bilingual startup passes, local browser QA captured no console errors, adaptive debug metrics are visible, and no protected files were modified.
+
+---
+
 # QA Evidence - Cycle 14 Internationalization QA and English Polish
 
 ## Summary

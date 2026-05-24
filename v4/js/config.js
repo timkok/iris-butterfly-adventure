@@ -51,7 +51,7 @@ window.IrisGame.config = {
             recommended: false
         }
     },
-    
+
     STAGES: {
         warmup: {
             name: 'warmup',
@@ -98,7 +98,7 @@ window.IrisGame.config = {
             spawnRateReduction: 0.20
         }
     },
-    
+
     MISSIONS: {
         collect_stars_10: {
             id: 'collect_stars_10',
@@ -151,19 +151,19 @@ window.IrisGame.config = {
             onCompleteMessage: '完美收集挑战完成！太厉害了 🌟'
         }
     },
-    
+
     UNLOCKS: [
         { id: 'star', label: '魔法星星', type: 'sticker', requirementHighScore: 5, icon: '⭐' },
         { id: 'flower', label: '七彩小花', type: 'sticker', requirementHighScore: 10, icon: '🌸' },
         { id: 'butterfly', label: '梦幻蝴蝶', type: 'sticker', requirementHighScore: 15, icon: '🦋' },
         { id: 'rainbow', label: '神奇彩虹', type: 'sticker', requirementHighScore: 25, icon: '🌈' },
         { id: 'crown', label: '终极皇冠', type: 'sticker', requirementHighScore: 40, icon: '👑' },
-        
+
         { id: 'pink-wings', label: '甜心粉', type: 'cosmetic', requirementHighScore: 20, icon: '🦋', style: 'filter: hue-rotate(300deg) saturate(1.4);' },
         { id: 'star-trail', label: '闪耀星踪', type: 'cosmetic', requirementHighScore: 35, icon: '✨', style: '' },
         { id: 'rainbow-wings', label: '梦幻彩虹', type: 'cosmetic', requirementHighScore: 50, icon: '🦋', class: 'rainbow-anim' }
     ],
-    
+
     EFFECTS_POLICY: {
         maxParticles: 80,
         maxLeaves: 12,
@@ -178,14 +178,48 @@ window.IrisGame.config = {
         reducedMotionDisableStagger: true,
         reducedMotionDisableRipple: true
     },
-    
+
+    FLIGHT_FEEL: {
+        practice: { gravity: 0.155, lift: -4.45, maxFallSpeed: 4.2, collisionBounce: -3.2, coyoteFrames: 14 },
+        easy: { gravity: 0.165, lift: -4.65, maxFallSpeed: 4.6, collisionBounce: -3.0, coyoteFrames: 12 },
+        normal: { gravity: 0.18, lift: -4.85, maxFallSpeed: 5.1, collisionBounce: -2.8, coyoteFrames: 9 },
+        hard: { gravity: 0.195, lift: -5.0, maxFallSpeed: 5.6, collisionBounce: -2.55, coyoteFrames: 7 }
+    },
+
+    FAIRNESS: {
+        gapCenterMaxDelta: {
+            practice: 70,
+            easy: 90,
+            normal: 130,
+            hard: 170
+        },
+        starSafetyMargin: 24,
+        recoveryForwardNudge: {
+            practice: 0,
+            easy: 6,
+            normal: 4,
+            hard: 2
+        }
+    },
+
+    ADAPTIVE_FLOW: {
+        assistGapCount: 2,
+        assistGapBonus: 24,
+        assistSpawnRateMultiplier: 1.18,
+        assistStarRateMultiplier: 0.78,
+        lowScoreFrameThreshold: 1800,
+        lowScoreThreshold: 3,
+        lowScoreSpawnRateMultiplier: 1.10,
+        recentWindow: 10
+    },
+
     defaultAssistSettings: {
         speed: 'normal',
         tolerance: 'standard',
         lives: 'difficulty',
         parentMessage: 'Iris 真棒，爱你！'
     },
-    
+
     UI_TEXT: {
         title: '🦋 Iris 的蝴蝶奇遇',
         subtitle: '彩虹花园飞行课',
@@ -194,7 +228,7 @@ window.IrisGame.config = {
         noAdCommitment: '💝 所有宝贝都靠飞行解锁，没有购买内容。',
         reducedMotionNotice: '⚙️ 检测到系统已开启减少动态效果，已自动为您优化动画体验。'
     },
-    
+
     AUDIO_SETTINGS: {
         baseGain: 0.05,
         collectGain: 0.015,
@@ -202,7 +236,7 @@ window.IrisGame.config = {
         hitGainGentle: 0.012,
         clickGain: 0.004
     },
-    
+
     ACCESSIBILITY_SETTINGS: {
         minTouchTargetSize: 44,
         calmModeMultiplier: 0.90

@@ -29,6 +29,7 @@ window.IrisGame.state = {
         newHighScoreThisRun: false,
         hasReached10: false,
         hasReached15: false,
+        roundsPlayed: 0,
         
         lastRainbowStarScore: 0,
         resetConfirmState: false,
@@ -41,6 +42,14 @@ window.IrisGame.state = {
         starsCollectedSinceLastRainbow: 0,
         consecutiveStarsNoHit: 0,
         starShield: false,
+        shieldUsedThisRun: false,
+        lastGapY: null,
+        assistGapsRemaining: 0,
+        recentFlowEvents: [],
+        comfortLevel: 'steady',
+        assistActive: false,
+        lowScoreHintShown: false,
+        gameOverTipKey: '',
         hintFlags: {}
     },
     
@@ -92,6 +101,14 @@ window.IrisGame.state = {
         this.game.starsCollectedSinceLastRainbow = 0;
         this.game.consecutiveStarsNoHit = 0;
         this.game.starShield = false;
+        this.game.shieldUsedThisRun = false;
+        this.game.lastGapY = null;
+        this.game.assistGapsRemaining = 0;
+        this.game.recentFlowEvents = [];
+        this.game.comfortLevel = 'steady';
+        this.game.assistActive = false;
+        this.game.lowScoreHintShown = false;
+        this.game.gameOverTipKey = '';
         this.game.hintFlags = {};
         
         this.frameCount = 0;

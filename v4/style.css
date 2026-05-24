@@ -273,6 +273,11 @@ canvas {
     box-shadow: 0 12px 24px rgba(255, 126, 179, 0.28);
 }
 
+.btn-main.recommended-action {
+    box-shadow: 0 0 0 4px rgba(255, 211, 110, 0.9), 0 14px 30px rgba(255, 126, 179, 0.34);
+    transform: scale(1.04);
+}
+
 #start-btn {
     font-size: 1.2rem;
     padding: 14px 38px;

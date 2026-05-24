@@ -114,7 +114,8 @@ window.IrisGame.debug = {
                 Vines: <span id="db-vines">0</span> | Speed: <span id="db-speed">-</span> | Gap: <span id="db-gap">-</span><br>
                 Objects: P:<span id="db-particles">0</span> S:<span id="db-stars">0</span> O:<span id="db-obstacles">0</span><br>
                 Mute: <span id="db-mute">-</span> | Calm: <span id="db-calm">-</span> | RMotion: <span id="db-rm">-</span><br>
-                FX Budget: <span id="db-fx-budget">-</span> | P:<span id="db-p-budget">0/80</span> L:<span id="db-l-budget">0/12</span> R:<span id="db-r-budget">0/4</span> | Shield: <span id="db-shield-status">-</span>
+                FX Budget: <span id="db-fx-budget">-</span> | P:<span id="db-p-budget">0/80</span> L:<span id="db-l-budget">0/12</span> R:<span id="db-r-budget">0/4</span> | Shield: <span id="db-shield-status">-</span><br>
+                Flow: <span id="db-comfort">-</span> | Coll:<span id="db-collision-rate">0%</span> Pass:<span id="db-pass-rate">0%</span> Assist:<span id="db-assist-active">NO</span>
             </div>
 
             <!-- Sliders -->
@@ -280,7 +281,8 @@ window.IrisGame.debug = {
                 gentleModeEnabled: state.game.gentleModeEnabled,
                 speedMultiplier: currentDiff.speed / window.IrisGame.config.GAME_MODES[state.game.mode].baseSpeed,
                 gapSize: currentDiff.gap,
-                starShield: state.game.starShield || false
+                starShield: state.game.starShield || false,
+                adaptiveFlow: window.IrisGame.director.getAdaptiveState()
             };
             const jsonText = JSON.stringify(qaSummary, null, 2);
             navigator.clipboard.writeText(jsonText).then(() => {
@@ -343,6 +345,12 @@ window.IrisGame.debug = {
         setText('db-calm', state.game.calmModeEnabled ? 'YES' : 'NO');
         setText('db-rm', state.prefersReducedMotion ? 'YES' : 'NO');
         setText('db-shield-status', state.game.starShield ? 'YES' : 'NO');
+
+        const adaptive = window.IrisGame.director.getAdaptiveState();
+        setText('db-comfort', adaptive.comfortLevel);
+        setText('db-collision-rate', Math.round(adaptive.recentCollisionRate * 100) + '%');
+        setText('db-pass-rate', Math.round(adaptive.recentPassRate * 100) + '%');
+        setText('db-assist-active', adaptive.assistActive ? 'YES' : 'NO');
 
         const config = window.IrisGame.config;
         const maxParticles = config.EFFECTS_POLICY.maxParticles;

@@ -115,6 +115,8 @@ window.IrisGame.game = {
     gameOver() {
         const state = window.IrisGame.state;
         state.gameState = 'GAMEOVER';
+        state.game.roundsPlayed++;
+        this.setGameOverTip();
 
         const ui = window.IrisGame.ui;
         ui.renderGameOver();
@@ -157,8 +159,8 @@ window.IrisGame.game = {
             gapY = 300 + waveOffset;
         }
 
-        // Clamp gap center to screen bounds
-        gapY = Math.max(minGapCenter, Math.min(maxGapCenter, gapY));
+        // Clamp and smooth gap center to avoid unfair high/low jumps.
+        gapY = director.smoothGapY(gapY, minGapCenter, maxGapCenter);
 
         const width = 58;
         const obsX = 400 + 12;
@@ -178,16 +180,16 @@ window.IrisGame.game = {
         const placement = director.chooseStarPlacement(pattern);
         if (state.game.consecutivePasses >= 5) {
             // Guided path: 3 stars before, in, and after the gap
-            this.spawnStar(obsX - 42, gapY);
-            this.spawnStar(obsX + width / 2, gapY);
-            this.spawnStar(obsX + width + 42, gapY);
+            this.spawnStar(obsX - 42, director.clampStarToSafeCorridor(gapY, gapY, gap));
+            this.spawnStar(obsX + width / 2, director.clampStarToSafeCorridor(gapY, gapY, gap));
+            this.spawnStar(obsX + width + 42, director.clampStarToSafeCorridor(gapY, gapY, gap));
         } else {
             if (placement === 'gap_center') {
-                this.spawnStar(obsX + width / 2, gapY);
+                this.spawnStar(obsX + width / 2, director.clampStarToSafeCorridor(gapY, gapY, gap));
             } else if (placement === 'pre_gap') {
-                this.spawnStar(obsX - 45, gapY);
+                this.spawnStar(obsX - 45, director.clampStarToSafeCorridor(gapY, gapY, gap));
             } else if (placement === 'post_gap') {
-                this.spawnStar(obsX + width + 45, gapY);
+                this.spawnStar(obsX + width + 45, director.clampStarToSafeCorridor(gapY, gapY, gap));
             } else if (Math.random() < 0.5) {
                 this.spawnStar();
             }
@@ -200,9 +202,12 @@ window.IrisGame.game = {
         const currentDiff = director.getCurrentDifficulty();
 
         const starX = x !== null ? x : 400 + 24;
-        const starY = y !== null ? y : 78 + Math.random() * (600 - 178);
-
         const isRainbow = director.shouldSpawnRainbowStar();
+        let starY = y !== null ? y : 78 + Math.random() * (600 - 178);
+        const nearbyObstacle = state.obstacles.find(obs => Math.abs((obs.x + obs.width / 2) - starX) < obs.width + 70);
+        if (nearbyObstacle) {
+            starY = director.clampStarToSafeCorridor(starY, nearbyObstacle.gapY, nearbyObstacle.gap, isRainbow);
+        }
         if (isRainbow) {
             state.game.lastRainbowStarScore = state.game.score;
             window.IrisGame.ui.showMessage(window.IrisGame.i18n.t('messages.rainbowStar'), 2, 2000);
@@ -234,7 +239,9 @@ window.IrisGame.game = {
         // If has Starlight Shield, absorb the hit!
         if (state.game.starShield) {
             state.game.starShield = false;
+            state.game.shieldUsedThisRun = true;
             player.invincibleFrames = Math.round(state.tuningOverrides.invincibilityFrames);
+            this.applyCollisionRecovery(true);
             audio.playSound('click'); // pop sound
             state.screenShake = state.game.calmModeEnabled ? 0 : (state.game.gentleModeEnabled ? 1 : 3);
             window.IrisGame.entities.createParticles(player.x, player.y, '#ffd36e', 16);
@@ -260,6 +267,7 @@ window.IrisGame.game = {
         state.screenShake = baseShake * shakeOverride;
 
         player.invincibleFrames = Math.round(state.tuningOverrides.invincibilityFrames);
+        this.applyCollisionRecovery(false);
 
         window.IrisGame.entities.createParticles(player.x, player.y, '#ff8dbc', 8);
         ui.showMessage(message, 1, 1200);
@@ -280,6 +288,31 @@ window.IrisGame.game = {
             if (state.game.lives <= 0) {
                 this.gameOver();
             }
+        }
+    },
+
+    applyCollisionRecovery(wasShielded = false) {
+        const state = window.IrisGame.state;
+        const player = window.IrisGame.player;
+        const feel = window.IrisGame.config.FLIGHT_FEEL[state.game.mode] || window.IrisGame.config.FLIGHT_FEEL.easy;
+        const nudge = window.IrisGame.config.FAIRNESS.recoveryForwardNudge[state.game.mode] || 0;
+        player.velocity = Math.min(player.velocity, feel.collisionBounce);
+        player.y = Math.max(player.radius + 8, Math.min(player.y - (wasShielded ? 8 : 14), 600 - player.radius - 42));
+        player.x = Math.min(96, player.x + nudge);
+    },
+
+    setGameOverTip() {
+        const state = window.IrisGame.state;
+        if (state.game.mode === 'hard' && state.game.flightFrames < 900) {
+            state.game.gameOverTipKey = 'tryGarden';
+        } else if (state.game.collisionsThisRun >= 3) {
+            state.game.gameOverTipKey = 'tapEarlier';
+        } else if (state.game.score <= 2) {
+            state.game.gameOverTipKey = 'followStars';
+        } else if (!state.game.shieldUsedThisRun && state.game.score < 6) {
+            state.game.gameOverTipKey = 'earnShield';
+        } else {
+            state.game.gameOverTipKey = 'steady';
         }
     },
 
@@ -375,6 +408,19 @@ window.IrisGame.game = {
         }
     },
 
+    applyPlayerPhysics() {
+        const state = window.IrisGame.state;
+        const player = window.IrisGame.player;
+
+        player.applyFlightFeel();
+        player.scale += (1 - player.scale) * 0.1;
+        player.wingPhase += state.prefersReducedMotion ? 0.08 : (state.game.calmModeEnabled ? 0.16 : 0.28);
+        player.velocity += player.gravity;
+        player.velocity = Math.min(player.velocity, player.maxFallSpeed || 5);
+        player.y += player.velocity;
+        if (player.invincibleFrames > 0) player.invincibleFrames--;
+    },
+
     updateGame() {
         const state = window.IrisGame.state;
         const director = window.IrisGame.director;
@@ -387,13 +433,8 @@ window.IrisGame.game = {
         state.gameTime++;
         state.game.flightFrames++;
 
-
         // Physics updates
-        player.scale += (1 - player.scale) * 0.1;
-        player.wingPhase += state.prefersReducedMotion ? 0.08 : (state.game.calmModeEnabled ? 0.16 : 0.28);
-        player.velocity += player.gravity;
-        player.y += player.velocity;
-        if (player.invincibleFrames > 0) player.invincibleFrames--;
+        this.applyPlayerPhysics();
 
         // Grass boundaries check
         if (player.y > 600 - player.radius - 16) {
@@ -411,8 +452,17 @@ window.IrisGame.game = {
         }
 
         const starRate = Math.round(100 * state.tuningOverrides.starRateMultiplier);
-        if (director.shouldSpawnStar(state.frameCount, starRate)) {
+        const adaptive = director.getAdaptiveState();
+        const adjustedStarRate = adaptive.assistActive
+            ? Math.max(44, Math.round(starRate * window.IrisGame.config.ADAPTIVE_FLOW.assistStarRateMultiplier))
+            : starRate;
+        if (director.shouldSpawnStar(state.frameCount, adjustedStarRate)) {
             this.spawnStar();
+        }
+
+        const hint = director.getHintMessage();
+        if (hint) {
+            ui.showMessage(hint, 1, 2200);
         }
 
         // Parallax background scroll

@@ -20,6 +20,10 @@ Latest i18n review:
 - Cycle 14 established English default plus Chinese switching for primary player-facing UI.
 - Remaining i18n backlog should focus on reducing static fallback text in HTML and polishing developer-only debug labels without changing gameplay.
 
+Latest gameplay review:
+- Cycle 15 implemented child-friendly flight feel/fairness tuning, adaptive flow support, localized retry tips, and natural rest reminders.
+- Next cycle should run a Simplification Audit before adding more systems.
+
 Design constraints:
 - Child-friendly rainbow garden flying game.
 - Default muted.
@@ -35,18 +39,18 @@ Design constraints:
 
 ## Current Baseline
 
-- Latest completed release before current work: Cycle 13 safety and QA guardrails.
-- Current asset version before Cycle 14 i18n work: `v=23`.
-- Current cycle in progress: Cycle 14 Internationalization QA and English polish.
+- Latest completed release before current work: Cycle 15 game feel and fairness.
+- Current asset version after Cycle 15 work: `v=25`.
+- Next sequential cycle: Cycle 16 Simplification Audit.
 - Hard gate before any feature work: clicking "Start Flying" or "开始飞行" must enter PLAYING, show HUD/task UI, and keep the canvas loop running with no console errors.
 
 ## Next 5 Cycles
 
-1. Cycle 15: strengthen startup/lifecycle regression coverage and document the multi-agent workflow baseline.
-2. Cycle 16: improve child-friendly onboarding, mission clarity, and early-game rhythm.
-3. Cycle 17: polish treasure UX, sticker grouping, and unlock communication without purchase metaphors.
-4. Cycle 18: deepen accessibility and safety coverage for keyboard, screen reader, reduced motion, and Calm Mode.
-5. Cycle 19: add release-quality QA evidence, browser smoke checks, responsive coverage, and regression documentation.
+1. Cycle 16: Simplification Audit for gameplay clarity, effect budget, reduced motion, Calm Mode, and code coupling.
+2. Cycle 17: polish treasure UX, sticker grouping, and unlock communication without purchase metaphors.
+3. Cycle 18: deepen accessibility and safety coverage for keyboard, screen reader, reduced motion, and Calm Mode.
+4. Cycle 19: add release-quality QA evidence, browser smoke checks, responsive coverage, and regression documentation.
+5. Cycle 20: Simplification Audit before any further feature work.
 
 ## Cycle 15 Planner Selection
 

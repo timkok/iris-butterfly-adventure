@@ -72,7 +72,7 @@
                 <div id="game-over-screen" class="panel">
                     <span id="final-score"></span><span id="final-vines"></span><span id="final-mode"></span><span id="final-stage"></span>
                     <span id="final-task"></span><span id="record-score"></span><span id="over-title"></span>
-                    <span id="over-encouragement"></span><span id="over-best-performance"></span><span id="over-rest-tip"></span>
+                    <span id="over-encouragement"></span><span id="over-best-performance"></span><span id="over-next-tip"></span><span id="over-rest-tip"></span>
                     <button id="restart-btn" aria-label="重新开始"></button>
                     <button id="back-to-home-btn" aria-label="从游戏结束页回到首页"></button>
                 </div>
@@ -367,13 +367,83 @@
     test('chooseMission() pool limits', () => {
         const missions = window.IrisGame.missions;
         const state = window.IrisGame.state;
+        const originalHighScore = state.game.highScore;
 
-        missions.chooseMission('practice');
-        assert(state.game.mission !== null, 'Mission should be chosen');
-        assert(['collect_stars_10', 'pass_vines_5', 'survive_30s'].includes(state.game.mission.id), 'Practice mode must choose a simple mission');
+        try {
+            state.game.highScore = 0;
+            for (let i = 0; i < 20; i++) {
+                missions.chooseMission('practice');
+                assert(state.game.mission !== null, 'Mission should be chosen');
+                assert(['collect_stars_10', 'pass_vines_5', 'survive_30s'].includes(state.game.mission.id), 'Practice mode must choose a simple mission');
+            }
 
-        missions.chooseMission('easy');
-        assert(state.game.mission !== null, 'Mission should be chosen for easy');
+            for (let i = 0; i < 30; i++) {
+                missions.chooseMission('easy');
+                assert(state.game.mission !== null, 'Mission should be chosen for easy');
+                assert(state.game.mission.id !== 'collect_rainbow_star', 'Easy mode should avoid rainbow star missions before score 10');
+                assert(state.game.mission.id !== 'clean_collect_5', 'Easy mode should avoid no-hit missions before score 10');
+            }
+        } finally {
+            state.game.highScore = originalHighScore;
+        }
+    });
+
+    test('Flight feel clamps fall speed and gives ground recovery', () => {
+        const state = window.IrisGame.state;
+        const player = window.IrisGame.player;
+        const game = window.IrisGame.game;
+
+        state.resetGameState();
+        state.gameState = 'PLAYING';
+        state.game.mode = 'easy';
+        player.reset();
+        player.velocity = 99;
+
+        game.applyPlayerPhysics();
+        assert(player.velocity <= player.maxFallSpeed, 'Player falling velocity should be capped by maxFallSpeed');
+
+        const groundY = 600 - player.radius - 16;
+        player.y = groundY - 2;
+        player.velocity = 2;
+        player.jump();
+        assert(player.velocity < 0, 'Near-ground tap should recover upward');
+        assert(player.y <= groundY - 2, 'Near-ground tap should avoid sticking to the grass');
+    });
+
+    test('Gap smoothing and star safety keep routes readable', () => {
+        const state = window.IrisGame.state;
+        const director = window.IrisGame.director;
+        const config = window.IrisGame.config;
+
+        state.resetGameState();
+        state.game.mode = 'easy';
+        state.game.lastGapY = 300;
+
+        const smoothed = director.smoothGapY(500, 100, 500);
+        assert(smoothed <= 300 + config.FAIRNESS.gapCenterMaxDelta.easy, 'Easy gap center should not jump too far between obstacles');
+
+        const safeY = director.clampStarToSafeCorridor(100, 300, 220, false);
+        assert(safeY >= 300 - 110 + config.FAIRNESS.starSafetyMargin, 'Star should keep the safety margin from top vine edge');
+
+        const rainbowY = director.clampStarToSafeCorridor(100, 300, 220, true);
+        assert(rainbowY >= 300 - 110 + config.FAIRNESS.starSafetyMargin + 10, 'Rainbow star should keep extra margin from vine edges');
+    });
+
+    test('Adaptive flow activates support after repeated collisions', () => {
+        const state = window.IrisGame.state;
+        const director = window.IrisGame.director;
+
+        state.resetGameState();
+        state.game.mode = 'easy';
+        director.onCollision();
+        director.onCollision();
+
+        const adaptive = director.getAdaptiveState();
+        const diff = director.getCurrentDifficulty();
+        assert(adaptive.assistActive === true, 'Adaptive assist should activate after two consecutive collisions');
+        assert(state.game.assistGapsRemaining >= window.IrisGame.config.ADAPTIVE_FLOW.assistGapCount, 'Assist should apply to upcoming gaps');
+        assert(diff.gap > window.IrisGame.config.GAME_MODES.easy.baseGap, 'Adaptive assist should widen the next gaps');
+        assert(adaptive.recentCollisionRate > 0, 'Debug metrics should report recent collision rate');
     });
 
     test('Storage compatibility migration', () => {
@@ -479,11 +549,13 @@
         game.handleCollision('Collision check');
         assert(state.game.starShield === false, 'Shield should be consumed');
         assert(state.game.lives === 5, 'Lives should not decrease when shielded');
+        assert(window.IrisGame.player.velocity < 0, 'Shield collision should leave the butterfly in a recoverable upward state');
 
         // 3. Subsequent collision without shield decreases lives
         window.IrisGame.player.invincibleFrames = 0;
         game.handleCollision('Collision check');
         assert(state.game.lives === 4, 'Lives should decrease without shield');
+        assert(window.IrisGame.player.velocity < 0, 'Unshielded collision should still bounce gently upward');
 
         // 4. Practice mode doesn't get shield
         state.resetGameState();
@@ -578,10 +650,11 @@
             const diffNormal = director.getCurrentDifficulty();
             const baseGap = diffNormal.gap;
 
-            // 1. 2 consecutive collisions should widen the gap
+            // 1. 2 consecutive collisions should widen the gap and apply adaptive support padding.
             state.game.consecutiveCollisions = 2;
             const diffWidened = director.getCurrentDifficulty();
-            assert(diffWidened.gap === baseGap + 20, `Gap should widen by 20px on 2 consecutive collisions (got ${diffWidened.gap} vs ${baseGap})`);
+            const expectedWidenedGap = baseGap + 20 + window.IrisGame.config.ADAPTIVE_FLOW.assistGapBonus;
+            assert(diffWidened.gap === expectedWidenedGap, `Gap should widen with adaptive support after 2 collisions (got ${diffWidened.gap} vs ${expectedWidenedGap})`);
 
             // 2. 1 remaining life in easy mode should widen the gap by 30px
             state.game.consecutiveCollisions = 0;
@@ -641,6 +714,34 @@
             assert(ui.elements.overBestPerformance.textContent !== '', 'Should populate standard encouraging fallback');
         } finally {
             ui.elements.overBestPerformance = origBestElement;
+            window.IrisGame.i18n.setLanguage(origLang, false);
+        }
+    });
+
+    test('Game Over retry tip and rest reminder trigger', () => {
+        const state = window.IrisGame.state;
+        const ui = window.IrisGame.ui;
+        const origLang = window.IrisGame.i18n.currentLang;
+
+        ensureGameFixture();
+
+        try {
+            window.IrisGame.i18n.setLanguage('en', false);
+            ui.cacheDOM();
+            state.resetGameState();
+            state.game.restReminderEnabled = true;
+            state.game.hasShownRestReminder = false;
+            state.game.roundsPlayed = 3;
+            state.game.sessionStartTime = Date.now();
+            state.game.gameOverTipKey = 'followStars';
+            state.game.score = 1;
+
+            ui.renderGameOver();
+
+            assert(ui.elements.overNextTip.textContent.includes('Follow the stars'), 'Game Over should show a useful next-run tip');
+            assert(ui.elements.overRestTip.style.display === 'block', 'Rest reminder should show after three rounds');
+            assert(ui.elements.overRestTip.textContent.includes('eye break'), 'Rest reminder should use gentle copy');
+        } finally {
             window.IrisGame.i18n.setLanguage(origLang, false);
         }
     });

@@ -35,6 +35,7 @@ window.IrisGame.ui = {
             overTitle: document.getElementById('over-title'),
             overEncouragement: document.getElementById('over-encouragement'),
             overBestPerformance: document.getElementById('over-best-performance'),
+            overNextTip: document.getElementById('over-next-tip'),
             overRestTip: document.getElementById('over-rest-tip'),
             taskDisplay: document.getElementById('task-display'),
             taskText: document.getElementById('task-text'),
@@ -255,14 +256,27 @@ window.IrisGame.ui = {
             this.elements.overBestPerformance.textContent = bestText;
         }
 
+        if (this.elements.overNextTip) {
+            const tipKey = state.game.gameOverTipKey || 'steady';
+            const tips = over.tryTips || {};
+            this.elements.overNextTip.textContent = tips[tipKey] || tips.steady || '';
+        }
+
         if (this.elements.overRestTip) {
-            if (state.game.restReminderEnabled && (Date.now() - state.game.sessionStartTime > 300000) && !state.game.hasShownRestReminder) {
-                this.elements.overRestTip.textContent = config.UI_TEXT.restReminder;
+            const sessionLongEnough = Date.now() - state.game.sessionStartTime > 300000;
+            const roundsLongEnough = state.game.roundsPlayed >= 3;
+            if (state.game.restReminderEnabled && (sessionLongEnough || roundsLongEnough) && !state.game.hasShownRestReminder) {
+                this.elements.overRestTip.textContent = over.restCard || config.UI_TEXT.restReminder;
                 this.elements.overRestTip.style.display = 'block';
                 state.game.hasShownRestReminder = true;
             } else {
                 this.elements.overRestTip.style.display = 'none';
             }
+        }
+
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.classList.toggle('recommended-action', state.game.newHighScoreThisRun);
         }
 
         if (this.elements.overEncouragement) {
