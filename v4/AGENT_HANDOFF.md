@@ -165,7 +165,7 @@ Do not remove files, protected versions, or product features during the audit wi
 - QA status: `PASS TO RELEASE`.
 - V4 URL: `https://timkok.github.io/iris-butterfly-adventure/v4/`.
 - Tests URL: `https://timkok.github.io/iris-butterfly-adventure/v4/test.html`.
-- Commit hash: to be filled after commit creation.
+- Commit hash: 5cc6b27.
 
 ## Next Cycle Proposal
 - Cycle 16 should be a Simplification Audit before adding feature work, because every 5 cycles require an audit and Cycle 15 touched multiple gameplay systems.
